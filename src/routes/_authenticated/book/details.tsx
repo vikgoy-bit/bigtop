@@ -131,7 +131,7 @@ function DetailsPage() {
       .insert({
         user_id: user.id,
         unit_id: unit.id,
-        unit_snapshot: unit as unknown as Record<string, unknown>,
+        unit_snapshot: unit as never,
         protect_tier_id: tierId,
         move_in_date: format(moveInDate, "yyyy-MM-dd"),
         total_pence: total,
