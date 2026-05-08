@@ -1,9 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Phone, Mail, MapPin, Clock, ShieldCheck, KeyRound, Camera } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { getStoreganiseUnits, type StoreganiseUnit } from "@/lib/storeganise.functions";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,16 +25,7 @@ export const Route = createFileRoute("/")({
   component: SelectUnitPage,
 });
 
-type Unit = {
-  id: string;
-  name: string;
-  size_sqft: number;
-  size_group: "small" | "medium" | "large";
-  monthly_price_pence: number;
-  weekly_price_pence: number;
-  features: string[];
-  offer_label: string | null;
-};
+type Unit = StoreganiseUnit;
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -46,34 +38,26 @@ function SelectUnitPage() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("all");
   const { user } = useAuth();
   const navigate = useNavigate();
+  const fetchUnits = useServerFn(getStoreganiseUnits);
 
-  const { data: units, isLoading } = useQuery({
-    queryKey: ["units"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("units")
-        .select("id,name,size_sqft,size_group,monthly_price_pence,weekly_price_pence,features,offer_label")
-        .eq("available", true)
-        .order("sort_order");
-      if (error) throw error;
-      return data as Unit[];
-    },
+  const { data, isLoading } = useQuery({
+    queryKey: ["storeganise-units"],
+    queryFn: () => fetchUnits(),
+    staleTime: 60_000,
   });
+  const units = data?.units;
 
   const filtered = useMemo(
-    () => (units ?? []).filter((u) => filter === "all" || u.size_group === filter),
+    () =>
+      (units ?? []).filter(
+        (u) => (filter === "all" || u.groupCode === filter) && u.available > 0
+      ),
     [units, filter]
   );
 
-  // Stash chosen unit then route to login or details
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const unitId = params.get("unit");
-    if (unitId) sessionStorage.setItem("pending_unit_id", unitId);
-  }, []);
-
-  const handleSelect = (unitId: string) => {
-    sessionStorage.setItem("pending_unit_id", unitId);
+  const handleSelect = (unit: Unit) => {
+    sessionStorage.setItem("pending_unit_id", unit.id);
+    sessionStorage.setItem("pending_unit", JSON.stringify(unit));
     if (user) {
       navigate({ to: "/book/details" });
     } else {
@@ -156,7 +140,7 @@ function SelectUnitPage() {
               <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />
             ))}
           {filtered.map((unit) => (
-            <UnitCard key={unit.id} unit={unit} onSelect={() => handleSelect(unit.id)} />
+            <UnitCard key={unit.id} unit={unit} onSelect={() => handleSelect(unit)} />
           ))}
         </div>
 
@@ -216,7 +200,7 @@ function UnitCard({ unit, onSelect }: { unit: Unit; onSelect: () => void }) {
       <div className="flex aspect-[16/10] items-end justify-start bg-gradient-to-br from-primary/10 via-secondary to-accent/15 p-5">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {unit.size_group} unit
+            {unit.groupTitle || unit.groupCode} unit
           </div>
           <div className="mt-1 font-display text-4xl font-extrabold leading-none">
             {unit.size_sqft}
