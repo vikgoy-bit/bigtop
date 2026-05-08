@@ -140,7 +140,7 @@ function SelectUnitPage() {
               <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />
             ))}
           {filtered.map((unit) => (
-            <UnitCard key={unit.id} unit={unit} onSelect={() => handleSelect(unit.id)} />
+            <UnitCard key={unit.id} unit={unit} onSelect={() => handleSelect(unit)} />
           ))}
         </div>
 
