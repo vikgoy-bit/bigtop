@@ -200,7 +200,7 @@ function UnitCard({ unit, onSelect }: { unit: Unit; onSelect: () => void }) {
       <div className="flex aspect-[16/10] items-end justify-start bg-gradient-to-br from-primary/10 via-secondary to-accent/15 p-5">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {unit.size_group} unit
+            {unit.groupTitle || unit.groupCode} unit
           </div>
           <div className="mt-1 font-display text-4xl font-extrabold leading-none">
             {unit.size_sqft}
