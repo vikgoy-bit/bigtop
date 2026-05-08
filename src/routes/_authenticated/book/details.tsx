@@ -24,10 +24,12 @@ export const Route = createFileRoute("/_authenticated/book/details")({
 
 type Unit = {
   id: string;
-  name: string;
+  title: string;
   size_sqft: number;
   monthly_price_pence: number;
   weekly_price_pence: number;
+  groupCode?: string;
+  groupTitle?: string;
 };
 type Tier = {
   id: string;
@@ -40,7 +42,7 @@ function DetailsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [unitId, setUnitId] = useState<string | null>(null);
+  const [unit, setUnit] = useState<Unit | null>(null);
   const [moveInDate, setMoveInDate] = useState<Date | undefined>(new Date());
   const [tierId, setTierId] = useState<string | null>(null);
 
@@ -53,7 +55,14 @@ function DetailsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    setUnitId(sessionStorage.getItem("pending_unit_id"));
+    const raw = sessionStorage.getItem("pending_unit");
+    if (raw) {
+      try {
+        setUnit(JSON.parse(raw) as Unit);
+      } catch {
+        // ignore
+      }
+    }
   }, []);
 
   // Pre-fill profile
@@ -75,20 +84,6 @@ function DetailsPage() {
         }
       });
   }, [user]);
-
-  const { data: unit } = useQuery({
-    queryKey: ["unit", unitId],
-    enabled: !!unitId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("units")
-        .select("id,name,size_sqft,monthly_price_pence,weekly_price_pence")
-        .eq("id", unitId!)
-        .single();
-      if (error) throw error;
-      return data as Unit;
-    },
-  });
 
   const { data: tiers } = useQuery({
     queryKey: ["tiers"],
