@@ -125,12 +125,13 @@ function DetailsPage() {
       return toast.error(profileError.message);
     }
 
-    // Create booking
+    // Create booking with snapshot of the Storeganise unit
     const { data: booking, error } = await supabase
       .from("bookings")
       .insert({
         user_id: user.id,
         unit_id: unit.id,
+        unit_snapshot: unit as unknown as Record<string, unknown>,
         protect_tier_id: tierId,
         move_in_date: format(moveInDate, "yyyy-MM-dd"),
         total_pence: total,
@@ -146,7 +147,7 @@ function DetailsPage() {
     navigate({ to: "/book/payment" });
   };
 
-  if (!unitId) {
+  if (!unit) {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
