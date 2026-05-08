@@ -14,16 +14,210 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string
+          id: string
+          move_in_date: string
+          protect_tier_id: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+          stripe_payment_intent_id: string | null
+          stripe_verification_session_id: string | null
+          total_pence: number
+          unit_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          move_in_date: string
+          protect_tier_id?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          stripe_payment_intent_id?: string | null
+          stripe_verification_session_id?: string | null
+          total_pence?: number
+          unit_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          move_in_date?: string
+          protect_tier_id?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          stripe_payment_intent_id?: string | null
+          stripe_verification_session_id?: string | null
+          total_pence?: number
+          unit_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_protect_tier_id_fkey"
+            columns: ["protect_tier_id"]
+            isOneToOne: false
+            referencedRelation: "protect_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          postcode: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          postcode?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          postcode?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      protect_tiers: {
+        Row: {
+          cover_value_pence: number
+          id: string
+          label: string
+          monthly_fee_pence: number
+          sort_order: number
+        }
+        Insert: {
+          cover_value_pence: number
+          id?: string
+          label: string
+          monthly_fee_pence: number
+          sort_order?: number
+        }
+        Update: {
+          cover_value_pence?: number
+          id?: string
+          label?: string
+          monthly_fee_pence?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      units: {
+        Row: {
+          available: boolean
+          created_at: string
+          features: string[]
+          id: string
+          image_url: string | null
+          monthly_price_pence: number
+          name: string
+          offer_label: string | null
+          size_group: Database["public"]["Enums"]["size_group"]
+          size_sqft: number
+          sort_order: number
+          vat_rate: number
+          weekly_price_pence: number
+        }
+        Insert: {
+          available?: boolean
+          created_at?: string
+          features?: string[]
+          id?: string
+          image_url?: string | null
+          monthly_price_pence: number
+          name: string
+          offer_label?: string | null
+          size_group: Database["public"]["Enums"]["size_group"]
+          size_sqft: number
+          sort_order?: number
+          vat_rate?: number
+          weekly_price_pence: number
+        }
+        Update: {
+          available?: boolean
+          created_at?: string
+          features?: string[]
+          id?: string
+          image_url?: string | null
+          monthly_price_pence?: number
+          name?: string
+          offer_label?: string | null
+          size_group?: Database["public"]["Enums"]["size_group"]
+          size_sqft?: number
+          sort_order?: number
+          vat_rate?: number
+          weekly_price_pence?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "customer"
+      booking_status:
+        | "pending_payment"
+        | "pending_verification"
+        | "active"
+        | "cancelled"
+      size_group: "small" | "medium" | "large"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +344,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "customer"],
+      booking_status: [
+        "pending_payment",
+        "pending_verification",
+        "active",
+        "cancelled",
+      ],
+      size_group: ["small", "medium", "large"],
+    },
   },
 } as const
