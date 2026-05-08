@@ -25,6 +25,7 @@ export type Database = {
           stripe_verification_session_id: string | null
           total_pence: number
           unit_id: string
+          unit_snapshot: Json | null
           updated_at: string
           user_id: string
         }
@@ -38,6 +39,7 @@ export type Database = {
           stripe_verification_session_id?: string | null
           total_pence?: number
           unit_id: string
+          unit_snapshot?: Json | null
           updated_at?: string
           user_id: string
         }
@@ -51,6 +53,7 @@ export type Database = {
           stripe_verification_session_id?: string | null
           total_pence?: number
           unit_id?: string
+          unit_snapshot?: Json | null
           updated_at?: string
           user_id?: string
         }
@@ -60,13 +63,6 @@ export type Database = {
             columns: ["protect_tier_id"]
             isOneToOne: false
             referencedRelation: "protect_tiers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
