@@ -7,6 +7,8 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/hooks/use-auth";
 
 import appCss from "../styles.css?url";
 
@@ -72,11 +74,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Big Top Self Storage — Reserve a unit in Basildon" },
+      {
+        name: "description",
+        content:
+          "Reserve self storage in Basildon. 24/7 CCTV, smart entry, modern units. Open 7 days a week. £1 for 6 weeks opening offer.",
+      },
+      { name: "author", content: "Big Top Self Storage" },
+      { property: "og:title", content: "Big Top Self Storage — Reserve a unit in Basildon" },
+      {
+        property: "og:description",
+        content:
+          "Reserve self storage in Basildon. 24/7 CCTV, smart entry, modern units. £1 for 6 weeks opening offer.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -113,7 +123,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <AuthProvider>
+        <Outlet />
+        <Toaster richColors position="top-center" />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -9,38 +9,148 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedBookVerifyRouteImport } from './routes/_authenticated/book/verify'
+import { Route as AuthenticatedBookSuccessRouteImport } from './routes/_authenticated/book/success'
+import { Route as AuthenticatedBookPaymentRouteImport } from './routes/_authenticated/book/payment'
+import { Route as AuthenticatedBookDetailsRouteImport } from './routes/_authenticated/book/details'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedBookVerifyRoute = AuthenticatedBookVerifyRouteImport.update({
+  id: '/book/verify',
+  path: '/book/verify',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedBookSuccessRoute =
+  AuthenticatedBookSuccessRouteImport.update({
+    id: '/book/success',
+    path: '/book/success',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedBookPaymentRoute =
+  AuthenticatedBookPaymentRouteImport.update({
+    id: '/book/payment',
+    path: '/book/payment',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedBookDetailsRoute =
+  AuthenticatedBookDetailsRouteImport.update({
+    id: '/book/details',
+    path: '/book/details',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/book/details': typeof AuthenticatedBookDetailsRoute
+  '/book/payment': typeof AuthenticatedBookPaymentRoute
+  '/book/success': typeof AuthenticatedBookSuccessRoute
+  '/book/verify': typeof AuthenticatedBookVerifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/book/details': typeof AuthenticatedBookDetailsRoute
+  '/book/payment': typeof AuthenticatedBookPaymentRoute
+  '/book/success': typeof AuthenticatedBookSuccessRoute
+  '/book/verify': typeof AuthenticatedBookVerifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/_authenticated/book/details': typeof AuthenticatedBookDetailsRoute
+  '/_authenticated/book/payment': typeof AuthenticatedBookPaymentRoute
+  '/_authenticated/book/success': typeof AuthenticatedBookSuccessRoute
+  '/_authenticated/book/verify': typeof AuthenticatedBookVerifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/book/details'
+    | '/book/payment'
+    | '/book/success'
+    | '/book/verify'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/book/details'
+    | '/book/payment'
+    | '/book/success'
+    | '/book/verify'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/signup'
+    | '/_authenticated/book/details'
+    | '/_authenticated/book/payment'
+    | '/_authenticated/book/success'
+    | '/_authenticated/book/verify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +158,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/book/verify': {
+      id: '/_authenticated/book/verify'
+      path: '/book/verify'
+      fullPath: '/book/verify'
+      preLoaderRoute: typeof AuthenticatedBookVerifyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/book/success': {
+      id: '/_authenticated/book/success'
+      path: '/book/success'
+      fullPath: '/book/success'
+      preLoaderRoute: typeof AuthenticatedBookSuccessRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/book/payment': {
+      id: '/_authenticated/book/payment'
+      path: '/book/payment'
+      fullPath: '/book/payment'
+      preLoaderRoute: typeof AuthenticatedBookPaymentRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/book/details': {
+      id: '/_authenticated/book/details'
+      path: '/book/details'
+      fullPath: '/book/details'
+      preLoaderRoute: typeof AuthenticatedBookDetailsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedBookDetailsRoute: typeof AuthenticatedBookDetailsRoute
+  AuthenticatedBookPaymentRoute: typeof AuthenticatedBookPaymentRoute
+  AuthenticatedBookSuccessRoute: typeof AuthenticatedBookSuccessRoute
+  AuthenticatedBookVerifyRoute: typeof AuthenticatedBookVerifyRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedBookDetailsRoute: AuthenticatedBookDetailsRoute,
+  AuthenticatedBookPaymentRoute: AuthenticatedBookPaymentRoute,
+  AuthenticatedBookSuccessRoute: AuthenticatedBookSuccessRoute,
+  AuthenticatedBookVerifyRoute: AuthenticatedBookVerifyRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
