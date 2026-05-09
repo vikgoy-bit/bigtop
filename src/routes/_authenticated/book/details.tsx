@@ -53,6 +53,7 @@ function DetailsPage() {
   const [city, setCity] = useState("");
   const [postcode, setPostcode] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("pending_unit");
