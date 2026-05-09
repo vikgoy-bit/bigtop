@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Phone, Mail, MapPin, Facebook, Youtube, Linkedin } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import bigtopLogo from "@/assets/bigtop-logo.png";
+import bigtopLogo from "@/assets/bigtop-logo.svg";
 
 const MARKETING = "https://www.bigtopselfstorage.com";
 
