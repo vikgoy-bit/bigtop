@@ -257,10 +257,8 @@ function UnitCard({
               <span className="ml-1 text-sm font-medium text-muted-foreground">/mo</span>
             </div>
             <div className="mt-1 text-xs font-semibold text-accent">
-              {formatGBPRound(weekly)}/week
-              <span className="ml-1 font-normal text-muted-foreground">
-                · {vatMode === "inc" ? "incl." : "excl."} 20% VAT
-              </span>
+              {formatGBPRound(weekly)}/week {vatMode === "inc" ? "inc" : "ex"} VAT
+              <span className="ml-1 font-normal text-muted-foreground">· billed monthly</span>
             </div>
           </div>
           <Button onClick={onSelect} size="sm" className="shrink-0">
