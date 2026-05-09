@@ -36,6 +36,7 @@ const FILTERS = [
 
 function SelectUnitPage() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("all");
+  const [vatMode, setVatMode] = useState<"inc" | "ex">("inc");
   const { user } = useAuth();
   const navigate = useNavigate();
   const fetchUnits = useServerFn(getStoreganiseUnits);
@@ -110,23 +111,45 @@ function SelectUnitPage() {
           </p>
         </div>
 
-        {/* Filter pills */}
+        {/* Filter pills + VAT toggle */}
         <div className="sticky top-16 z-30 -mx-4 mt-6 border-b bg-background/90 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:px-3">
-          <div className="flex gap-2 overflow-x-auto">
-            {FILTERS.map((f) => (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex gap-2 overflow-x-auto">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  className={cn(
+                    "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition",
+                    filter === f.key
+                      ? "bg-primary text-primary-foreground shadow"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <div className="inline-flex shrink-0 rounded-full border bg-muted p-0.5 text-xs font-semibold">
               <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
+                onClick={() => setVatMode("inc")}
                 className={cn(
-                  "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition",
-                  filter === f.key
-                    ? "bg-primary text-primary-foreground shadow"
-                    : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  "rounded-full px-3 py-1 transition",
+                  vatMode === "inc" ? "bg-background text-foreground shadow" : "text-muted-foreground"
                 )}
               >
-                {f.label}
+                Inc VAT
               </button>
-            ))}
+              <button
+                onClick={() => setVatMode("ex")}
+                className={cn(
+                  "rounded-full px-3 py-1 transition",
+                  vatMode === "ex" ? "bg-background text-foreground shadow" : "text-muted-foreground"
+                )}
+              >
+                Ex VAT
+              </button>
+            </div>
           </div>
         </div>
 
@@ -136,7 +159,7 @@ function SelectUnitPage() {
               <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />
             ))}
           {filtered.map((unit) => (
-            <UnitCard key={unit.id} unit={unit} onSelect={() => handleSelect(unit)} />
+            <UnitCard key={unit.id} unit={unit} onSelect={() => handleSelect(unit)} vatMode={vatMode} />
           ))}
         </div>
 
@@ -185,7 +208,18 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
   "Drive-up access": <ShieldCheck className="h-3.5 w-3.5" />,
 };
 
-function UnitCard({ unit, onSelect }: { unit: Unit; onSelect: () => void }) {
+function UnitCard({
+  unit,
+  onSelect,
+  vatMode,
+}: {
+  unit: Unit;
+  onSelect: () => void;
+  vatMode: "inc" | "ex";
+}) {
+  const factor = vatMode === "inc" ? 1 : 0.8;
+  const monthly = Math.round(unit.monthly_price_pence * factor);
+  const weekly = Math.round(unit.weekly_price_pence * factor);
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card shadow-sm ring-1 ring-border/50 transition hover:-translate-y-0.5 hover:shadow-lg">
       {unit.offer_label && (
@@ -219,11 +253,11 @@ function UnitCard({ unit, onSelect }: { unit: Unit; onSelect: () => void }) {
         <div className="mt-auto flex items-end justify-between gap-2">
           <div>
             <div className="font-display text-3xl font-extrabold leading-none">
-              {formatGBPRound(unit.monthly_price_pence)}
+              {formatGBPRound(monthly)}
               <span className="ml-1 text-sm font-medium text-muted-foreground">/mo</span>
             </div>
             <div className="mt-1 text-xs text-muted-foreground">
-              {formatGBPRound(unit.weekly_price_pence)}/week · incl. 20% VAT
+              {formatGBPRound(weekly)}/week · {vatMode === "inc" ? "incl." : "excl."} 20% VAT
             </div>
           </div>
           <Button onClick={onSelect} size="sm" className="shrink-0">
