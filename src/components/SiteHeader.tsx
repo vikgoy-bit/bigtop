@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Phone, Mail, MapPin, Facebook, Youtube, Linkedin } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import bigtopLogo from "@/assets/bigtop-logo.png";
 
 const MARKETING = "https://www.bigtopselfstorage.com";
 
@@ -64,18 +65,14 @@ export function SiteHeader() {
       {/* Main nav */}
       <div className="border-b border-border bg-background">
         <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#0b3a8c] text-white font-display font-extrabold">
-              BT
-            </div>
-            <div className="leading-tight">
-              <div className="font-display text-lg font-extrabold tracking-tight text-[#0b3a8c]">
-                BIG TOP
-              </div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Self Storage
-              </div>
-            </div>
+          <Link to="/" className="flex items-center" aria-label="Big Top Self Storage">
+            <img
+              src={bigtopLogo}
+              alt="Big Top Self Storage"
+              className="h-12 w-auto sm:h-14"
+              width={1100}
+              height={327}
+            />
           </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
