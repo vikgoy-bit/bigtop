@@ -105,10 +105,14 @@ function DetailsPage() {
 
   const tier = tiers?.find((t) => t.id === tierId);
   const total = (unit?.monthly_price_pence ?? 0) + (tier?.monthly_fee_pence ?? 0);
+  const isNoCover = tier?.cover_value_pence === 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !unit || !moveInDate || !tierId) return;
+    if (isNoCover && !coverFile) {
+      return toast.error("Please upload a copy of your existing cover.");
+    }
     setSubmitting(true);
 
     // Save profile
@@ -126,6 +130,21 @@ function DetailsPage() {
       return toast.error(profileError.message);
     }
 
+    // Upload cover proof if "no cover required" is selected
+    let coverPath: string | null = null;
+    if (isNoCover && coverFile) {
+      const ext = coverFile.name.split(".").pop() ?? "pdf";
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("cover-documents")
+        .upload(path, coverFile, { upsert: false });
+      if (upErr) {
+        setSubmitting(false);
+        return toast.error(upErr.message);
+      }
+      coverPath = path;
+    }
+
     // Create booking with snapshot of the Storeganise unit
     const { data: booking, error } = await supabase
       .from("bookings")
@@ -137,6 +156,7 @@ function DetailsPage() {
         move_in_date: format(moveInDate, "yyyy-MM-dd"),
         total_pence: total,
         status: "pending_payment",
+        cover_document_path: coverPath,
       })
       .select("id")
       .single();
