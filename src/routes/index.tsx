@@ -111,23 +111,45 @@ function SelectUnitPage() {
           </p>
         </div>
 
-        {/* Filter pills */}
+        {/* Filter pills + VAT toggle */}
         <div className="sticky top-16 z-30 -mx-4 mt-6 border-b bg-background/90 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:px-3">
-          <div className="flex gap-2 overflow-x-auto">
-            {FILTERS.map((f) => (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex gap-2 overflow-x-auto">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  className={cn(
+                    "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition",
+                    filter === f.key
+                      ? "bg-primary text-primary-foreground shadow"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <div className="inline-flex shrink-0 rounded-full border bg-muted p-0.5 text-xs font-semibold">
               <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
+                onClick={() => setVatMode("inc")}
                 className={cn(
-                  "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition",
-                  filter === f.key
-                    ? "bg-primary text-primary-foreground shadow"
-                    : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  "rounded-full px-3 py-1 transition",
+                  vatMode === "inc" ? "bg-background text-foreground shadow" : "text-muted-foreground"
                 )}
               >
-                {f.label}
+                Inc VAT
               </button>
-            ))}
+              <button
+                onClick={() => setVatMode("ex")}
+                className={cn(
+                  "rounded-full px-3 py-1 transition",
+                  vatMode === "ex" ? "bg-background text-foreground shadow" : "text-muted-foreground"
+                )}
+              >
+                Ex VAT
+              </button>
+            </div>
           </div>
         </div>
 
@@ -137,7 +159,7 @@ function SelectUnitPage() {
               <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />
             ))}
           {filtered.map((unit) => (
-            <UnitCard key={unit.id} unit={unit} onSelect={() => handleSelect(unit)} />
+            <UnitCard key={unit.id} unit={unit} onSelect={() => handleSelect(unit)} vatMode={vatMode} />
           ))}
         </div>
 
