@@ -53,6 +53,7 @@ function DetailsPage() {
   const [city, setCity] = useState("");
   const [postcode, setPostcode] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("pending_unit");
@@ -104,10 +105,14 @@ function DetailsPage() {
 
   const tier = tiers?.find((t) => t.id === tierId);
   const total = (unit?.monthly_price_pence ?? 0) + (tier?.monthly_fee_pence ?? 0);
+  const isNoCover = tier?.cover_value_pence === 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !unit || !moveInDate || !tierId) return;
+    if (isNoCover && !coverFile) {
+      return toast.error("Please upload a copy of your existing cover.");
+    }
     setSubmitting(true);
 
     // Save profile
@@ -125,6 +130,21 @@ function DetailsPage() {
       return toast.error(profileError.message);
     }
 
+    // Upload cover proof if "no cover required" is selected
+    let coverPath: string | null = null;
+    if (isNoCover && coverFile) {
+      const ext = coverFile.name.split(".").pop() ?? "pdf";
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("cover-documents")
+        .upload(path, coverFile, { upsert: false });
+      if (upErr) {
+        setSubmitting(false);
+        return toast.error(upErr.message);
+      }
+      coverPath = path;
+    }
+
     // Create booking with snapshot of the Storeganise unit
     const { data: booking, error } = await supabase
       .from("bookings")
@@ -136,6 +156,7 @@ function DetailsPage() {
         move_in_date: format(moveInDate, "yyyy-MM-dd"),
         total_pence: total,
         status: "pending_payment",
+        cover_document_path: coverPath,
       })
       .select("id")
       .single();
@@ -269,7 +290,7 @@ function DetailsPage() {
                       <div className="font-medium">{t.label}</div>
                       <div className="text-xs text-muted-foreground">
                         {t.cover_value_pence === 0
-                          ? "No insurance — covered by other means"
+                          ? "Covered elsewhere. Please upload a copy of your cover and ensure it states the cover is for Big Top Self Storage Basildon. If you don't have this ready, select the relevant cover below — we'll pro-rata refund the fee once you supply it."
                           : `Up to ${formatGBPRound(t.cover_value_pence)} of contents covered`}
                       </div>
                     </div>
@@ -285,6 +306,27 @@ function DetailsPage() {
                 </Label>
               ))}
             </RadioGroup>
+
+            {isNoCover && (
+              <div className="space-y-2 rounded-xl border border-accent/40 bg-accent/5 p-4">
+                <Label htmlFor="coverDoc" className="text-sm font-semibold">
+                  Upload your cover document <span className="text-destructive">*</span>
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  PDF, JPG or PNG. Must state the cover is for Big Top Self Storage Basildon.
+                </p>
+                <Input
+                  id="coverDoc"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  required
+                  onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)}
+                />
+                {coverFile && (
+                  <p className="text-xs text-foreground">Selected: {coverFile.name}</p>
+                )}
+              </div>
+            )}
           </section>
 
           <Button type="submit" size="lg" className="w-full" disabled={submitting}>
