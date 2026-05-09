@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Phone, Mail, MapPin, Facebook, Youtube, Linkedin } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import bigtopLogo from "@/assets/bigtop-logo.png";
+import bigtopLogo from "@/assets/bigtop-logo.svg";
 
 const MARKETING = "https://www.bigtopselfstorage.com";
 
@@ -69,9 +69,9 @@ export function SiteHeader() {
             <img
               src={bigtopLogo}
               alt="Big Top Self Storage"
-              className="h-12 w-auto sm:h-14"
-              width={1100}
-              height={327}
+              className="h-16 w-auto sm:h-20"
+              width={549}
+              height={162}
             />
           </Link>
 
