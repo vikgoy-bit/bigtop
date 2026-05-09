@@ -60,7 +60,7 @@ export const getStoreganiseUnits = createServerFn({ method: "GET" }).handler(asy
       const monthlyPounds = u.price ?? 0;
       const weeklyPence = Math.round((monthlyPounds * 100) / 4.333);
       const offer =
-        u.annotations?.find((a) => a.type === "text")?.text?.en?.replace(/\*\*/g, "").trim() ?? null;
+        u.annotations?.find((a) => a.type === "ribbon")?.text?.en?.replace(/\*\*/g, "").trim() ?? null;
       const subtitle = u.subtitle?.en ?? "";
       const features = subtitle
         .split("||")
