@@ -69,9 +69,9 @@ export function SiteHeader() {
             <img
               src={bigtopLogo}
               alt="Big Top Self Storage"
-              className="h-12 w-auto sm:h-14"
-              width={1100}
-              height={327}
+              className="h-16 w-auto sm:h-20"
+              width={549}
+              height={162}
             />
           </Link>
 
