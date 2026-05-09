@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { CalendarIcon, ShieldCheck, UserPlus, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Stepper } from "@/components/booking/Stepper";
