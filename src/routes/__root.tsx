@@ -110,13 +110,30 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+const GTM_IDS = ["GTM-P9GNH4K6", "GTM-PXBPMCGF"] as const;
+const GTM_INLINE = GTM_IDS.map(
+  (id) =>
+    `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${id}');`
+).join("\n");
+
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: GTM_INLINE }} />
       </head>
       <body>
+        {GTM_IDS.map((id) => (
+          <noscript key={id}>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${id}`}
+              height={0}
+              width={0}
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        ))}
         {children}
         <Scripts />
       </body>
