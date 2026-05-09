@@ -74,7 +74,7 @@ export const getStoreganiseUnits = createServerFn({ method: "GET" }).handler(asy
         title: u.title?.en ?? `${sqft} sq ft`,
         size_sqft: sqft,
         monthly_price_pence: monthlyPounds * 100,
-        weekly_price_pence: Math.round(weeklyPounds * 100),
+        weekly_price_pence: weeklyPence,
         available: u.availability?.available ?? 0,
         total: u.availability?.total ?? 0,
         features,
