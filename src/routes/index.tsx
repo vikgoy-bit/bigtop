@@ -208,7 +208,18 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
   "Drive-up access": <ShieldCheck className="h-3.5 w-3.5" />,
 };
 
-function UnitCard({ unit, onSelect }: { unit: Unit; onSelect: () => void }) {
+function UnitCard({
+  unit,
+  onSelect,
+  vatMode,
+}: {
+  unit: Unit;
+  onSelect: () => void;
+  vatMode: "inc" | "ex";
+}) {
+  const factor = vatMode === "inc" ? 1 : 0.8;
+  const monthly = Math.round(unit.monthly_price_pence * factor);
+  const weekly = Math.round(unit.weekly_price_pence * factor);
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card shadow-sm ring-1 ring-border/50 transition hover:-translate-y-0.5 hover:shadow-lg">
       {unit.offer_label && (
@@ -242,11 +253,11 @@ function UnitCard({ unit, onSelect }: { unit: Unit; onSelect: () => void }) {
         <div className="mt-auto flex items-end justify-between gap-2">
           <div>
             <div className="font-display text-3xl font-extrabold leading-none">
-              {formatGBPRound(unit.monthly_price_pence)}
+              {formatGBPRound(monthly)}
               <span className="ml-1 text-sm font-medium text-muted-foreground">/mo</span>
             </div>
             <div className="mt-1 text-xs text-muted-foreground">
-              {formatGBPRound(unit.weekly_price_pence)}/week · incl. 20% VAT
+              {formatGBPRound(weekly)}/week · {vatMode === "inc" ? "incl." : "excl."} 20% VAT
             </div>
           </div>
           <Button onClick={onSelect} size="sm" className="shrink-0">
