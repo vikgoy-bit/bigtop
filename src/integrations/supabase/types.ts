@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          cover_document_path: string | null
           created_at: string
           id: string
           move_in_date: string
@@ -30,6 +31,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cover_document_path?: string | null
           created_at?: string
           id?: string
           move_in_date: string
@@ -44,6 +46,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cover_document_path?: string | null
           created_at?: string
           id?: string
           move_in_date?: string
