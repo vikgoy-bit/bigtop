@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarIcon, ShieldCheck } from "lucide-react";
+import { CalendarIcon, ShieldCheck, UserPlus, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatGBPRound } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/book/details")({
+export const Route = createFileRoute("/book/details")({
   head: () => ({ meta: [{ title: "Your details — Big Top Self Storage" }] }),
   component: DetailsPage,
 });
@@ -46,6 +46,11 @@ function DetailsPage() {
   const [moveInDate, setMoveInDate] = useState<Date | undefined>(new Date());
   const [tierId, setTierId] = useState<string | null>(null);
 
+  // Auth fields (only used when no current user)
+  const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address1, setAddress1] = useState("");
@@ -66,9 +71,10 @@ function DetailsPage() {
     }
   }, []);
 
-  // Pre-fill profile
+  // Pre-fill profile when already signed in
   useEffect(() => {
     if (!user) return;
+    setEmail(user.email ?? "");
     supabase
       .from("profiles")
       .select("full_name,phone,address_line1,address_line2,city,postcode")
@@ -98,7 +104,6 @@ function DetailsPage() {
     },
   });
 
-  // Auto-select first tier
   useEffect(() => {
     if (tiers && !tierId) setTierId(tiers[0].id);
   }, [tiers, tierId]);
@@ -109,15 +114,50 @@ function DetailsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !unit || !moveInDate || !tierId) return;
+    if (!unit || !moveInDate || !tierId) return;
     if (isNoCover && !coverFile) {
       return toast.error("Please upload a copy of your existing cover.");
     }
     setSubmitting(true);
 
-    // Save profile
+    // 1. Authenticate (sign up new account or sign in)
+    let userId = user?.id ?? null;
+    if (!userId) {
+      if (authMode === "signup") {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/book/details`,
+            data: { full_name: fullName },
+          },
+        });
+        if (error) {
+          setSubmitting(false);
+          return toast.error(error.message);
+        }
+        userId = data.user?.id ?? null;
+        if (!userId) {
+          setSubmitting(false);
+          return toast.error("Account created. Please check your email and try again.");
+        }
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          setSubmitting(false);
+          return toast.error(error.message);
+        }
+        userId = data.user?.id ?? null;
+      }
+    }
+    if (!userId) {
+      setSubmitting(false);
+      return toast.error("Could not sign you in. Please try again.");
+    }
+
+    // 2. Save profile
     const { error: profileError } = await supabase.from("profiles").upsert({
-      id: user.id,
+      id: userId,
       full_name: fullName,
       phone,
       address_line1: address1,
@@ -130,11 +170,11 @@ function DetailsPage() {
       return toast.error(profileError.message);
     }
 
-    // Upload cover proof if "no cover required" is selected
+    // 3. Upload cover proof if "no cover required" is selected
     let coverPath: string | null = null;
     if (isNoCover && coverFile) {
       const ext = coverFile.name.split(".").pop() ?? "pdf";
-      const path = `${user.id}/${Date.now()}.${ext}`;
+      const path = `${userId}/${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("cover-documents")
         .upload(path, coverFile, { upsert: false });
@@ -145,11 +185,11 @@ function DetailsPage() {
       coverPath = path;
     }
 
-    // Create booking with snapshot of the Storeganise unit
+    // 4. Create booking
     const { data: booking, error } = await supabase
       .from("bookings")
       .insert({
-        user_id: user.id,
+        user_id: userId,
         unit_id: unit.id,
         unit_snapshot: unit as never,
         protect_tier_id: tierId,
@@ -197,6 +237,59 @@ function DetailsPage() {
               Your details & move-in
             </h1>
           </header>
+
+          {/* Account (only when not signed in) */}
+          {!user && (
+            <section className="space-y-4 rounded-xl border bg-secondary/30 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="font-display text-lg font-bold">
+                  {authMode === "signup" ? "Create your account" : "Sign in to your account"}
+                </h2>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAuthMode(authMode === "signup" ? "signin" : "signup")}
+                  className="gap-1.5"
+                >
+                  {authMode === "signup" ? (
+                    <>
+                      <LogIn className="h-3.5 w-3.5" /> I have an account
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-3.5 w-3.5" /> Create one instead
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    autoComplete={authMode === "signup" ? "new-password" : "current-password"}
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Move-in date */}
           <section className="space-y-2">
@@ -347,11 +440,7 @@ function DetailsPage() {
                 />
               )}
               <div className="border-t pt-3">
-                <Row
-                  label="Monthly total"
-                  value={formatGBPRound(total)}
-                  bold
-                />
+                <Row label="Monthly total" value={formatGBPRound(total)} bold />
                 <p className="mt-1 text-xs text-muted-foreground">
                   Includes 20% VAT. £1 for first 6 weeks where applicable.
                 </p>
