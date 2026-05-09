@@ -36,6 +36,7 @@ const FILTERS = [
 
 function SelectUnitPage() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("all");
+  const [vatMode, setVatMode] = useState<"inc" | "ex">("inc");
   const { user } = useAuth();
   const navigate = useNavigate();
   const fetchUnits = useServerFn(getStoreganiseUnits);
