@@ -290,7 +290,7 @@ function DetailsPage() {
                       <div className="font-medium">{t.label}</div>
                       <div className="text-xs text-muted-foreground">
                         {t.cover_value_pence === 0
-                          ? "No insurance — covered by other means"
+                          ? "Covered elsewhere. Please upload a copy of your cover and ensure it states the cover is for Big Top Self Storage Basildon. If you don't have this ready, select the relevant cover below — we'll pro-rata refund the fee once you supply it."
                           : `Up to ${formatGBPRound(t.cover_value_pence)} of contents covered`}
                       </div>
                     </div>
@@ -306,6 +306,27 @@ function DetailsPage() {
                 </Label>
               ))}
             </RadioGroup>
+
+            {isNoCover && (
+              <div className="space-y-2 rounded-xl border border-accent/40 bg-accent/5 p-4">
+                <Label htmlFor="coverDoc" className="text-sm font-semibold">
+                  Upload your cover document <span className="text-destructive">*</span>
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  PDF, JPG or PNG. Must state the cover is for Big Top Self Storage Basildon.
+                </p>
+                <Input
+                  id="coverDoc"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  required
+                  onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)}
+                />
+                {coverFile && (
+                  <p className="text-xs text-foreground">Selected: {coverFile.name}</p>
+                )}
+              </div>
+            )}
           </section>
 
           <Button type="submit" size="lg" className="w-full" disabled={submitting}>
