@@ -13,10 +13,10 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BookDetailsRouteImport } from './routes/book.details'
 import { Route as AuthenticatedBookVerifyRouteImport } from './routes/_authenticated/book/verify'
 import { Route as AuthenticatedBookSuccessRouteImport } from './routes/_authenticated/book/success'
 import { Route as AuthenticatedBookPaymentRouteImport } from './routes/_authenticated/book/payment'
-import { Route as AuthenticatedBookDetailsRouteImport } from './routes/_authenticated/book/details'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -37,6 +37,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookDetailsRoute = BookDetailsRouteImport.update({
+  id: '/book/details',
+  path: '/book/details',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedBookVerifyRoute = AuthenticatedBookVerifyRouteImport.update({
   id: '/book/verify',
   path: '/book/verify',
@@ -54,18 +59,12 @@ const AuthenticatedBookPaymentRoute =
     path: '/book/payment',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedBookDetailsRoute =
-  AuthenticatedBookDetailsRouteImport.update({
-    id: '/book/details',
-    path: '/book/details',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/book/details': typeof AuthenticatedBookDetailsRoute
+  '/book/details': typeof BookDetailsRoute
   '/book/payment': typeof AuthenticatedBookPaymentRoute
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
@@ -74,7 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/book/details': typeof AuthenticatedBookDetailsRoute
+  '/book/details': typeof BookDetailsRoute
   '/book/payment': typeof AuthenticatedBookPaymentRoute
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
@@ -85,7 +84,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/_authenticated/book/details': typeof AuthenticatedBookDetailsRoute
+  '/book/details': typeof BookDetailsRoute
   '/_authenticated/book/payment': typeof AuthenticatedBookPaymentRoute
   '/_authenticated/book/success': typeof AuthenticatedBookSuccessRoute
   '/_authenticated/book/verify': typeof AuthenticatedBookVerifyRoute
@@ -115,7 +114,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/signup'
-    | '/_authenticated/book/details'
+    | '/book/details'
     | '/_authenticated/book/payment'
     | '/_authenticated/book/success'
     | '/_authenticated/book/verify'
@@ -126,6 +125,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  BookDetailsRoute: typeof BookDetailsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -158,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/book/details': {
+      id: '/book/details'
+      path: '/book/details'
+      fullPath: '/book/details'
+      preLoaderRoute: typeof BookDetailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/book/verify': {
       id: '/_authenticated/book/verify'
       path: '/book/verify'
@@ -179,25 +186,16 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookPaymentRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/book/details': {
-      id: '/_authenticated/book/details'
-      path: '/book/details'
-      fullPath: '/book/details'
-      preLoaderRoute: typeof AuthenticatedBookDetailsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedBookDetailsRoute: typeof AuthenticatedBookDetailsRoute
   AuthenticatedBookPaymentRoute: typeof AuthenticatedBookPaymentRoute
   AuthenticatedBookSuccessRoute: typeof AuthenticatedBookSuccessRoute
   AuthenticatedBookVerifyRoute: typeof AuthenticatedBookVerifyRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedBookDetailsRoute: AuthenticatedBookDetailsRoute,
   AuthenticatedBookPaymentRoute: AuthenticatedBookPaymentRoute,
   AuthenticatedBookSuccessRoute: AuthenticatedBookSuccessRoute,
   AuthenticatedBookVerifyRoute: AuthenticatedBookVerifyRoute,
@@ -212,7 +210,18 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  BookDetailsRoute: BookDetailsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

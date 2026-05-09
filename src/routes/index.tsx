@@ -58,11 +58,7 @@ function SelectUnitPage() {
   const handleSelect = (unit: Unit) => {
     sessionStorage.setItem("pending_unit_id", unit.id);
     sessionStorage.setItem("pending_unit", JSON.stringify(unit));
-    if (user) {
-      navigate({ to: "/book/details" });
-    } else {
-      navigate({ to: "/login", search: { redirect: "/book/details" } });
-    }
+    navigate({ to: "/book/details" });
   };
 
   return (
