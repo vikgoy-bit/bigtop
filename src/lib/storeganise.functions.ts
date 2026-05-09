@@ -57,8 +57,8 @@ export const getStoreganiseUnits = createServerFn({ method: "GET" }).handler(asy
       const group = groupById.get(u.groupId);
       const groupCode = (group?.code ?? "small").toLowerCase();
       const sqft = parseInt(u.code.replace(/\D/g, ""), 10) || 0;
-      const weeklyPounds = u.price ?? 0;
-      const monthlyPounds = Math.round(weeklyPounds * 4.333);
+      const monthlyPounds = u.price ?? 0;
+      const weeklyPence = Math.round((monthlyPounds * 100) / 4.333);
       const offer =
         u.annotations?.find((a) => a.type === "text")?.text?.en?.replace(/\*\*/g, "").trim() ?? null;
       const subtitle = u.subtitle?.en ?? "";
@@ -74,7 +74,7 @@ export const getStoreganiseUnits = createServerFn({ method: "GET" }).handler(asy
         title: u.title?.en ?? `${sqft} sq ft`,
         size_sqft: sqft,
         monthly_price_pence: monthlyPounds * 100,
-        weekly_price_pence: Math.round(weeklyPounds * 100),
+        weekly_price_pence: weeklyPence,
         available: u.availability?.available ?? 0,
         total: u.availability?.total ?? 0,
         features,
