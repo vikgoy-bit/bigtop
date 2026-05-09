@@ -90,6 +90,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Big Top Self Storage — Reserve a unit in Basildon" },
+      { name: "description", content: "Streamlines self-storage unit booking with an integrated, multi-step online application." },
+      { property: "og:description", content: "Streamlines self-storage unit booking with an integrated, multi-step online application." },
+      { name: "twitter:description", content: "Streamlines self-storage unit booking with an integrated, multi-step online application." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a7ad20b7-7820-4c86-8473-2ec290a1c3f5/id-preview-802bf176--8238eee0-8806-4c3f-87d4-28569a4c2d00.lovable.app-1778331032403.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a7ad20b7-7820-4c86-8473-2ec290a1c3f5/id-preview-802bf176--8238eee0-8806-4c3f-87d4-28569a4c2d00.lovable.app-1778331032403.png" },
     ],
     links: [
       {
