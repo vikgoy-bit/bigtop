@@ -551,6 +551,30 @@ function DetailsPage() {
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-accent" />
               <h2 className="font-display text-lg font-bold">BIGProtect goods cover</h2>
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="More info about BIGProtect goods cover"
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs text-sm">
+                    A tailored protection policy designed specifically to cover your goods while they are in self-storage. More info available at{" "}
+                    <a
+                      href="https://www.bigtopselfstorage.com/self-storage-insurance/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      bigtopselfstorage.com/self-storage-insurance
+                    </a>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <p className="text-sm text-muted-foreground">
               Choose the cover level that matches the value of items you're storing. The fee
