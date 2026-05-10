@@ -227,14 +227,25 @@ function UnitCard({
           <Badge className="bg-offer text-offer-foreground hover:bg-offer">{unit.offer_label}</Badge>
         </div>
       )}
-      <div className="flex aspect-[16/10] items-end justify-start bg-gradient-to-br from-primary/10 via-secondary to-accent/15 p-5">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="relative flex aspect-[16/10] items-end justify-start overflow-hidden bg-gradient-to-br from-primary/10 via-secondary to-accent/15 p-5">
+        {unit.image && (
+          <img
+            src={unit.image}
+            alt={`${unit.groupTitle || unit.groupCode} ${unit.size_sqft} sq ft storage unit`}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+        {unit.image && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        )}
+        <div className="relative z-[1]">
+          <div className={`text-xs font-semibold uppercase tracking-wider ${unit.image ? "text-white/80" : "text-muted-foreground"}`}>
             {unit.groupTitle || unit.groupCode} unit
           </div>
-          <div className="mt-1 font-display text-4xl font-extrabold leading-none">
+          <div className={`mt-1 font-display text-4xl font-extrabold leading-none ${unit.image ? "text-white" : ""}`}>
             {unit.size_sqft}
-            <span className="ml-1 text-base font-bold text-muted-foreground">sq ft</span>
+            <span className={`ml-1 text-base font-bold ${unit.image ? "text-white/80" : "text-muted-foreground"}`}>sq ft</span>
           </div>
         </div>
       </div>
