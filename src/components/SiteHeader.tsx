@@ -64,12 +64,12 @@ export function SiteHeader() {
 
       {/* Main nav */}
       <div className="border-b border-border bg-background">
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center" aria-label="Big Top Self Storage">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+          <Link to="/" className="flex items-center py-1" aria-label="Big Top Self Storage">
             <img
               src={bigtopLogo}
               alt="Big Top Self Storage"
-              className="h-16 w-auto sm:h-20"
+              className="h-14 w-auto sm:h-16"
               width={549}
               height={162}
             />
