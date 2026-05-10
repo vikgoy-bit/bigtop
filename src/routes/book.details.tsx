@@ -453,16 +453,74 @@ function DetailsPage() {
               </div>
               <div>
                 <Label htmlFor="postcode">Postcode</Label>
-                <Input
-                  id="postcode"
-                  required
-                  value={postcode}
-                  onChange={(e) => setPostcode(e.target.value)}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="postcode"
+                    required
+                    value={postcode}
+                    onChange={(e) => setPostcode(e.target.value.toUpperCase())}
+                    placeholder="e.g. SS13 1ET"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={lookupPostcode}
+                    disabled={pcLoading}
+                    className="shrink-0"
+                  >
+                    {pcLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                    <span className="ml-1 hidden sm:inline">Find</span>
+                  </Button>
+                </div>
               </div>
-              <div className="sm:col-span-2">
+              <div className="relative sm:col-span-2">
                 <Label htmlFor="address1">Address line 1</Label>
-                <Input id="address1" required value={address1} onChange={(e) => setAddress1(e.target.value)} />
+                <Input
+                  id="address1"
+                  required
+                  value={address1}
+                  placeholder="Start typing your address…"
+                  onChange={(e) => {
+                    setAddress1(e.target.value);
+                    setAddrQuery(e.target.value);
+                  }}
+                  onFocus={() => addrSuggestions.length > 0 && setAddrOpen(true)}
+                  onBlur={() => setTimeout(() => setAddrOpen(false), 150)}
+                  autoComplete="off"
+                />
+                {addrLoading && (
+                  <Loader2 className="absolute right-3 top-9 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+                {addrOpen && addrSuggestions.length > 0 && (
+                  <ul className="absolute left-0 right-0 z-50 mt-1 max-h-72 overflow-auto rounded-lg border bg-popover p-1 shadow-lg">
+                    {addrSuggestions.map((s, i) => (
+                      <li key={i}>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            pickSuggestion(s);
+                          }}
+                          className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                        >
+                          {s.display_name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Address search by{" "}
+                  <a
+                    href="https://www.openstreetmap.org/copyright"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline"
+                  >
+                    OpenStreetMap
+                  </a>
+                </p>
               </div>
               <div className="sm:col-span-2">
                 <Label htmlFor="address2">Address line 2 (optional)</Label>
