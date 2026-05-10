@@ -264,19 +264,34 @@ function DetailsPage() {
                   )}
                 </Button>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={async () => {
-                  const result = await lovable.auth.signInWithOAuth("google", {
-                    redirect_uri: window.location.origin + "/book/details",
-                  });
-                  if (result.error) toast.error("Google sign-in failed");
-                }}
-              >
-                Continue with Google
-              </Button>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={async () => {
+                    const result = await lovable.auth.signInWithOAuth("google", {
+                      redirect_uri: window.location.origin + "/book/details",
+                    });
+                    if (result.error) toast.error("Google sign-in failed");
+                  }}
+                >
+                  Continue with Google
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={async () => {
+                    const result = await lovable.auth.signInWithOAuth("apple", {
+                      redirect_uri: window.location.origin + "/book/details",
+                    });
+                    if (result.error) toast.error("Apple sign-in failed");
+                  }}
+                >
+                  Continue with Apple
+                </Button>
+              </div>
               <div className="flex items-center gap-3 text-xs uppercase text-muted-foreground">
                 <div className="h-px flex-1 bg-border" />
                 or {authMode === "signup" ? "sign up" : "sign in"} with email
