@@ -185,12 +185,24 @@ function DetailsPage() {
         .select("id,label,cover_value_pence,monthly_fee_pence")
         .order("sort_order");
       if (error) throw error;
-      return data as Tier[];
+      // Move "no cover" (cover_value_pence === 0) to the bottom of the list
+      const rows = (data as Tier[]) ?? [];
+      return [
+        ...rows.filter((t) => t.cover_value_pence !== 0),
+        ...rows.filter((t) => t.cover_value_pence === 0),
+      ];
     },
   });
 
   useEffect(() => {
-    if (tiers && !tierId) setTierId(tiers[0].id);
+    if (tiers && !tierId) {
+      // Default to the £2,000 cover tier when present, otherwise first non-zero tier
+      const defaultTier =
+        tiers.find((t) => t.cover_value_pence === 200000) ??
+        tiers.find((t) => t.cover_value_pence !== 0) ??
+        tiers[0];
+      if (defaultTier) setTierId(defaultTier.id);
+    }
   }, [tiers, tierId]);
 
   const tier = tiers?.find((t) => t.id === tierId);
@@ -566,7 +578,7 @@ function DetailsPage() {
                   </div>
                   <div className="text-right">
                     <div className="font-display text-base font-bold">
-                      {t.monthly_fee_pence === 0 ? "Free" : `+${formatGBPRound(t.monthly_fee_pence)}`}
+                      {t.monthly_fee_pence === 0 ? "£0" : `+${formatGBPRound(t.monthly_fee_pence)}`}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       per month
