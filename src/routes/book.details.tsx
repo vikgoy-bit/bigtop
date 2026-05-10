@@ -578,7 +578,7 @@ function DetailsPage() {
                   </div>
                   <div className="text-right">
                     <div className="font-display text-base font-bold">
-                      {t.monthly_fee_pence === 0 ? "Free" : `+${formatGBPRound(t.monthly_fee_pence)}`}
+                      {t.monthly_fee_pence === 0 ? "£0" : `+${formatGBPRound(t.monthly_fee_pence)}`}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       per month
