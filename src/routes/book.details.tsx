@@ -58,6 +58,90 @@ function DetailsPage() {
   const [address2, setAddress2] = useState("");
   const [city, setCity] = useState("");
   const [postcode, setPostcode] = useState("");
+
+  // Address autocomplete (free OpenStreetMap Nominatim)
+  type AddrSuggestion = {
+    display_name: string;
+    address?: {
+      house_number?: string;
+      road?: string;
+      pedestrian?: string;
+      neighbourhood?: string;
+      suburb?: string;
+      village?: string;
+      town?: string;
+      city?: string;
+      postcode?: string;
+    };
+  };
+  const [addrQuery, setAddrQuery] = useState("");
+  const [addrSuggestions, setAddrSuggestions] = useState<AddrSuggestion[]>([]);
+  const [addrOpen, setAddrOpen] = useState(false);
+  const [addrLoading, setAddrLoading] = useState(false);
+  const [pcLoading, setPcLoading] = useState(false);
+
+  useEffect(() => {
+    const q = addrQuery.trim();
+    if (q.length < 3) {
+      setAddrSuggestions([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setAddrLoading(true);
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&countrycodes=gb&limit=6&q=${encodeURIComponent(q)}`;
+        const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } });
+        if (res.ok) {
+          const data = (await res.json()) as AddrSuggestion[];
+          setAddrSuggestions(data);
+          setAddrOpen(true);
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setAddrLoading(false);
+      }
+    }, 350);
+    return () => {
+      ctrl.abort();
+      clearTimeout(t);
+    };
+  }, [addrQuery]);
+
+  const pickSuggestion = (s: AddrSuggestion) => {
+    const a = s.address ?? {};
+    const street = [a.house_number, a.road ?? a.pedestrian ?? a.neighbourhood ?? a.suburb]
+      .filter(Boolean)
+      .join(" ");
+    setAddress1(street || s.display_name.split(",")[0]);
+    setCity(a.city ?? a.town ?? a.village ?? a.suburb ?? "");
+    if (a.postcode) setPostcode(a.postcode);
+    setAddrQuery(street || s.display_name.split(",")[0]);
+    setAddrOpen(false);
+  };
+
+  const lookupPostcode = async () => {
+    const pc = postcode.trim();
+    if (!pc) return toast.error("Enter a postcode first");
+    setPcLoading(true);
+    try {
+      const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`);
+      const json = await res.json();
+      if (!res.ok || json.status !== 200) {
+        toast.error("Postcode not found");
+        return;
+      }
+      const r = json.result;
+      setCity(r.post_town ?? r.admin_district ?? "");
+      setPostcode(r.postcode);
+      toast.success(`Found ${r.post_town}. Add your house number/street above.`);
+    } catch {
+      toast.error("Lookup failed");
+    } finally {
+      setPcLoading(false);
+    }
+  };
   const [submitting, setSubmitting] = useState(false);
   const [coverFile, setCoverFile] = useState<File | null>(null);
 
