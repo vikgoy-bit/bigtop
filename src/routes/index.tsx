@@ -68,30 +68,13 @@ function SelectUnitPage() {
 
       {/* Site info strip */}
       <section className="border-b bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-          <div className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
-            Selected location
-          </div>
-          <h1 className="mt-2 font-display text-4xl font-extrabold leading-tight sm:text-5xl">
-            Big Top Self Storage
-            <span className="block text-accent">Basildon</span>
-          </h1>
-          <div className="mt-6 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+          <div className="grid gap-4 text-sm sm:grid-cols-2">
             <InfoTile icon={<MapPin className="h-4 w-4" />} title="Address">
               Harvey Road, Basildon, Essex, SS13 1ET
             </InfoTile>
             <InfoTile icon={<Clock className="h-4 w-4" />} title="Opening hours">
               Mon–Sun · 08:00–20:00
-            </InfoTile>
-            <InfoTile icon={<Phone className="h-4 w-4" />} title="Call us">
-              <a href="tel:01268230230" className="underline-offset-2 hover:underline">
-                01268 230 230
-              </a>
-            </InfoTile>
-            <InfoTile icon={<Mail className="h-4 w-4" />} title="Email">
-              <a href="mailto:hi@bigtopselfstorage.com" className="underline-offset-2 hover:underline">
-                hi@bigtopselfstorage.com
-              </a>
             </InfoTile>
           </div>
         </div>
