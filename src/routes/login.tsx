@@ -55,10 +55,10 @@ function LoginPage() {
           <Button
             type="button"
             variant="outline"
-            className="mt-6 w-full"
+            className="mt-6 w-full gap-2"
             onClick={handleGoogle}
           >
-            Continue with Google
+            <GoogleIcon /> Continue with Google
           </Button>
 
           <div className="my-6 flex items-center gap-3 text-xs uppercase text-muted-foreground">
