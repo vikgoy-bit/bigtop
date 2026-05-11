@@ -424,8 +424,8 @@ function DetailsPage() {
           )}
 
           {/* Move-in date */}
-          <section className="space-y-2">
-            <Label>Move-in date</Label>
+          <section className="space-y-3">
+            <Label className="block">Move-in date</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
