@@ -494,13 +494,13 @@ function DetailsPage() {
                   id="address1"
                   required
                   value={address1}
-                  placeholder="Start typing your address…"
+                  placeholder="Start typing your street or postcode…"
                   onChange={(e) => {
                     setAddress1(e.target.value);
                     setAddrQuery(e.target.value);
                   }}
                   onFocus={() => addrSuggestions.length > 0 && setAddrOpen(true)}
-                  onBlur={() => setTimeout(() => setAddrOpen(false), 150)}
+                  onBlur={() => setTimeout(() => setAddrOpen(false), 200)}
                   autoComplete="off"
                 />
                 {addrLoading && (
@@ -512,7 +512,7 @@ function DetailsPage() {
                       <li key={i}>
                         <button
                           type="button"
-                          onMouseDown={(e) => {
+                          onPointerDown={(e) => {
                             e.preventDefault();
                             pickSuggestion(s);
                           }}
@@ -525,11 +525,11 @@ function DetailsPage() {
                   </ul>
                 )}
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Address search by{" "}
+                  Tip: enter your postcode then click <strong>Find</strong>, or type your street here. Address search by{" "}
                   <a
                     href="https://www.openstreetmap.org/copyright"
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="underline"
                   >
                     OpenStreetMap
