@@ -125,14 +125,42 @@ function DetailsPage() {
 
   const pickSuggestion = (s: AddrSuggestion) => {
     const a = s.address ?? {};
-    const street = [a.house_number, a.road ?? a.pedestrian ?? a.neighbourhood ?? a.suburb]
-      .filter(Boolean)
-      .join(" ");
-    setAddress1(street || s.display_name.split(",")[0]);
-    setCity(a.city ?? a.town ?? a.village ?? a.suburb ?? "");
+    // Parse display_name as a reliable fallback. Nominatim returns it as
+    // "Building/House, Road, Suburb, City, County, Postcode, Country".
+    const parts = s.display_name.split(",").map((p) => p.trim()).filter(Boolean);
+    // Drop trailing country and postcode-ish parts so we can find the city.
+    const isPostcode = (v: string) => /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i.test(v);
+
+    const road = a.road ?? a.pedestrian ?? a.footway ?? a.residential ?? "";
+    const houseOrName = a.house_number ?? a.building ?? a.shop ?? a.amenity ?? "";
+    let line1 = [houseOrName, road].filter(Boolean).join(" ").trim();
+    if (!line1) line1 = parts[0] ?? "";
+    // If road is present but no house number, and parts[0] looks like a name/number, prepend it.
+    if (road && !a.house_number && parts[0] && parts[0] !== road && !line1.includes(parts[0])) {
+      line1 = `${parts[0]} ${road}`.trim();
+    }
+
+    const line2 = a.neighbourhood ?? a.suburb ?? a.hamlet ?? "";
+
+    const cityFromAddr = a.city ?? a.town ?? a.village ?? a.municipality ?? a.county ?? "";
+    let cityVal = cityFromAddr;
+    if (!cityVal) {
+      // Walk display_name parts from the end, skip country + postcode, take next.
+      const trimmed = [...parts];
+      if (trimmed.length && a.country && trimmed[trimmed.length - 1] === a.country) trimmed.pop();
+      while (trimmed.length && (isPostcode(trimmed[trimmed.length - 1]) || /^\d/.test(trimmed[trimmed.length - 1]))) {
+        trimmed.pop();
+      }
+      cityVal = trimmed[trimmed.length - 1] ?? "";
+    }
+
+    setAddress1(line1);
+    setAddress2(line2 && line2 !== line1 ? line2 : "");
+    setCity(cityVal);
     if (a.postcode) setPostcode(a.postcode);
-    setAddrQuery(street || s.display_name.split(",")[0]);
+    setAddrQuery(line1);
     setAddrOpen(false);
+    setAddrSuggestions([]);
   };
 
   const lookupPostcode = async () => {
