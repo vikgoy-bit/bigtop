@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
+import { GoogleIcon } from "@/components/auth/ProviderIcons";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
