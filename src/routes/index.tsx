@@ -68,12 +68,12 @@ function SelectUnitPage() {
 
       {/* Site info strip */}
       <section className="border-b bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-          <div className="grid gap-4 text-sm sm:grid-cols-2">
-            <InfoTile icon={<MapPin className="h-4 w-4" />} title="Address">
+        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4">
+          <div className="grid gap-2 text-sm sm:grid-cols-2">
+            <InfoTile icon={<MapPin className="h-3.5 w-3.5" />} title="Address">
               Harvey Road, Basildon, Essex, SS13 1ET
             </InfoTile>
-            <InfoTile icon={<Clock className="h-4 w-4" />} title="Opening hours">
+            <InfoTile icon={<Clock className="h-3.5 w-3.5" />} title="Opening hours">
               Mon–Sun · 08:00–20:00
             </InfoTile>
           </div>
@@ -90,8 +90,9 @@ function SelectUnitPage() {
             Select your <span className="text-accent">unit</span>
           </h2>
           <p className="text-sm text-muted-foreground">
-            Every unit includes 24/7 CCTV, smart entry and modern interiors. Cancel anytime.
+            Every unit includes 24/7 CCTV, smart entry and modern interiors. Cancel anytime*.
           </p>
+          <p className="text-[11px] text-muted-foreground">*One month's notice required.</p>
         </div>
 
         {/* Filter pills + VAT toggle */}
