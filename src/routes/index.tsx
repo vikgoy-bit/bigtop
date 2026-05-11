@@ -175,12 +175,12 @@ function InfoTile({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl bg-primary-foreground/10 p-4 ring-1 ring-primary-foreground/15">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground/70">
+    <div className="flex items-center gap-3 rounded-lg bg-primary-foreground/10 px-3 py-2 ring-1 ring-primary-foreground/15">
+      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/70">
         {icon}
         {title}
       </div>
-      <div className="mt-1.5 text-sm font-medium text-primary-foreground">{children}</div>
+      <div className="text-xs font-medium text-primary-foreground">{children}</div>
     </div>
   );
 }
