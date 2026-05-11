@@ -48,6 +48,7 @@ function DetailsPage() {
   const [unit, setUnit] = useState<Unit | null>(null);
   const [moveInDate, setMoveInDate] = useState<Date | undefined>(new Date());
   const [tierId, setTierId] = useState<string | null>(null);
+  const [showExcVat, setShowExcVat] = useState(false);
 
   // Auth fields (only used when no current user)
   const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
