@@ -235,15 +235,17 @@ function UnitCard({
       </div>
       <div className="flex flex-1 flex-col gap-4 p-5">
         <ul className="flex flex-wrap gap-1.5">
-          {unit.features.map((f) => (
-            <li
-              key={f}
-              className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground"
-            >
-              {FEATURE_ICONS[f]}
-              {f}
-            </li>
-          ))}
+          {unit.features
+            .filter((f) => f.toLowerCase() !== "modern")
+            .map((f) => (
+              <li
+                key={f}
+                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground"
+              >
+                {FEATURE_ICONS[f]}
+                {f}
+              </li>
+            ))}
         </ul>
         <div className="mt-auto flex items-end justify-between gap-2">
           <div>
