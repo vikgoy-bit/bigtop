@@ -67,14 +67,24 @@ function DetailsPage() {
     display_name: string;
     address?: {
       house_number?: string;
+      building?: string;
+      shop?: string;
+      amenity?: string;
       road?: string;
       pedestrian?: string;
+      footway?: string;
+      residential?: string;
       neighbourhood?: string;
+      hamlet?: string;
       suburb?: string;
       village?: string;
       town?: string;
       city?: string;
+      municipality?: string;
+      county?: string;
+      state?: string;
       postcode?: string;
+      country?: string;
     };
   };
   const [addrQuery, setAddrQuery] = useState("");
