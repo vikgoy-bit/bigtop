@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader } from "@/components/SiteHeader";
+import { GoogleIcon, AppleIcon } from "@/components/auth/ProviderIcons";
 import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -365,7 +366,7 @@ function DetailsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full gap-2"
                   onClick={async () => {
                     const result = await lovable.auth.signInWithOAuth("google", {
                       redirect_uri: window.location.origin + "/book/details",
@@ -373,12 +374,12 @@ function DetailsPage() {
                     if (result.error) toast.error("Google sign-in failed");
                   }}
                 >
-                  Continue with Google
+                  <GoogleIcon /> Continue with Google
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full gap-2"
                   onClick={async () => {
                     const result = await lovable.auth.signInWithOAuth("apple", {
                       redirect_uri: window.location.origin + "/book/details",
@@ -386,7 +387,7 @@ function DetailsPage() {
                     if (result.error) toast.error("Apple sign-in failed");
                   }}
                 >
-                  Continue with Apple
+                  <AppleIcon /> Continue with Apple
                 </Button>
               </div>
               <div className="flex items-center gap-3 text-xs uppercase text-muted-foreground">
@@ -423,8 +424,8 @@ function DetailsPage() {
           )}
 
           {/* Move-in date */}
-          <section className="space-y-2">
-            <Label>Move-in date</Label>
+          <section className="space-y-3">
+            <Label className="block">Move-in date</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -493,13 +494,13 @@ function DetailsPage() {
                   id="address1"
                   required
                   value={address1}
-                  placeholder="Start typing your address…"
+                  placeholder="Start typing your street or postcode…"
                   onChange={(e) => {
                     setAddress1(e.target.value);
                     setAddrQuery(e.target.value);
                   }}
                   onFocus={() => addrSuggestions.length > 0 && setAddrOpen(true)}
-                  onBlur={() => setTimeout(() => setAddrOpen(false), 150)}
+                  onBlur={() => setTimeout(() => setAddrOpen(false), 200)}
                   autoComplete="off"
                 />
                 {addrLoading && (
@@ -511,7 +512,7 @@ function DetailsPage() {
                       <li key={i}>
                         <button
                           type="button"
-                          onMouseDown={(e) => {
+                          onPointerDown={(e) => {
                             e.preventDefault();
                             pickSuggestion(s);
                           }}
@@ -524,11 +525,11 @@ function DetailsPage() {
                   </ul>
                 )}
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Address search by{" "}
+                  Tip: enter your postcode then click <strong>Find</strong>, or type your street here. Address search by{" "}
                   <a
                     href="https://www.openstreetmap.org/copyright"
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="underline"
                   >
                     OpenStreetMap

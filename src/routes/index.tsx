@@ -68,12 +68,12 @@ function SelectUnitPage() {
 
       {/* Site info strip */}
       <section className="border-b bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-          <div className="grid gap-4 text-sm sm:grid-cols-2">
-            <InfoTile icon={<MapPin className="h-4 w-4" />} title="Address">
+        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4">
+          <div className="grid gap-2 text-sm sm:grid-cols-2">
+            <InfoTile icon={<MapPin className="h-3.5 w-3.5" />} title="Address">
               Harvey Road, Basildon, Essex, SS13 1ET
             </InfoTile>
-            <InfoTile icon={<Clock className="h-4 w-4" />} title="Opening hours">
+            <InfoTile icon={<Clock className="h-3.5 w-3.5" />} title="Opening hours">
               Mon–Sun · 08:00–20:00
             </InfoTile>
           </div>
@@ -90,8 +90,9 @@ function SelectUnitPage() {
             Select your <span className="text-accent">unit</span>
           </h2>
           <p className="text-sm text-muted-foreground">
-            Every unit includes 24/7 CCTV, smart entry and modern interiors. Cancel anytime.
+            Every unit includes 24/7 CCTV, smart entry and modern interiors. Cancel anytime*.
           </p>
+          <p className="text-[11px] text-muted-foreground">*One month's notice required.</p>
         </div>
 
         {/* Filter pills + VAT toggle */}
@@ -174,12 +175,12 @@ function InfoTile({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl bg-primary-foreground/10 p-4 ring-1 ring-primary-foreground/15">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground/70">
+    <div className="flex items-center gap-3 rounded-lg bg-primary-foreground/10 px-3 py-2 ring-1 ring-primary-foreground/15">
+      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/70">
         {icon}
         {title}
       </div>
-      <div className="mt-1.5 text-sm font-medium text-primary-foreground">{children}</div>
+      <div className="text-xs font-medium text-primary-foreground">{children}</div>
     </div>
   );
 }
@@ -234,15 +235,17 @@ function UnitCard({
       </div>
       <div className="flex flex-1 flex-col gap-4 p-5">
         <ul className="flex flex-wrap gap-1.5">
-          {unit.features.map((f) => (
-            <li
-              key={f}
-              className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground"
-            >
-              {FEATURE_ICONS[f]}
-              {f}
-            </li>
-          ))}
+          {unit.features
+            .filter((f) => f.toLowerCase() !== "modern")
+            .map((f) => (
+              <li
+                key={f}
+                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground"
+              >
+                {FEATURE_ICONS[f]}
+                {f}
+              </li>
+            ))}
         </ul>
         <div className="mt-auto flex items-end justify-between gap-2">
           <div>

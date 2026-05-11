@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
+import { GoogleIcon } from "@/components/auth/ProviderIcons";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
@@ -59,8 +60,8 @@ function SignupPage() {
             One quick step to reserve your unit.
           </p>
 
-          <Button type="button" variant="outline" className="mt-6 w-full" onClick={handleGoogle}>
-            Continue with Google
+          <Button type="button" variant="outline" className="mt-6 w-full gap-2" onClick={handleGoogle}>
+            <GoogleIcon /> Continue with Google
           </Button>
 
           <div className="my-6 flex items-center gap-3 text-xs uppercase text-muted-foreground">

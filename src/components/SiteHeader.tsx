@@ -11,52 +11,52 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 bg-background">
       {/* Top contact bar */}
-      <div className="bg-[#0b3a8c] text-white text-xs sm:text-sm">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-2 px-4 py-2 sm:px-6">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-            <a href="tel:01268230230" className="flex items-center gap-2 hover:underline">
-              <Phone className="h-4 w-4" />
+      <div className="bg-[#0b3a8c] text-white text-[11px] sm:text-xs">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-1 px-4 py-1.5 sm:px-6">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+            <a href="tel:01268230230" className="flex items-center gap-1.5 hover:underline">
+              <Phone className="h-3 w-3" />
               <span>01268 230 230</span>
             </a>
             <a
               href="mailto:hi@bigtopselfstorage.com"
-              className="flex items-center gap-2 hover:underline"
+              className="flex items-center gap-1.5 hover:underline"
             >
-              <Mail className="h-4 w-4" />
+              <Mail className="h-3 w-3" />
               <span>hi@bigtopselfstorage.com</span>
             </a>
-            <span className="hidden items-center gap-2 md:flex">
-              <MapPin className="h-4 w-4" />
+            <span className="hidden items-center gap-1.5 md:flex">
+              <MapPin className="h-3 w-3" />
               Big Top Self Storage, Harvey Road, Basildon, SS13 1ET
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <a
               href="https://facebook.com"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               aria-label="Facebook"
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
             >
-              <Facebook className="h-3.5 w-3.5" />
+              <Facebook className="h-3 w-3" />
             </a>
             <a
               href="https://youtube.com"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               aria-label="YouTube"
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
             >
-              <Youtube className="h-3.5 w-3.5" />
+              <Youtube className="h-3 w-3" />
             </a>
             <a
               href="https://linkedin.com"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               aria-label="LinkedIn"
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
             >
-              <Linkedin className="h-3.5 w-3.5" />
+              <Linkedin className="h-3 w-3" />
             </a>
           </div>
         </div>
@@ -64,34 +64,34 @@ export function SiteHeader() {
 
       {/* Main nav */}
       <div className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-          <Link to="/" className="flex items-center py-1" aria-label="Big Top Self Storage">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2 sm:px-6">
+          <Link to="/" className="flex items-center py-0.5" aria-label="Big Top Self Storage">
             <img
               src={bigtopLogo}
               alt="Big Top Self Storage"
-              className="h-14 w-auto sm:h-16"
+              className="h-9 w-auto sm:h-10"
               width={549}
               height={162}
             />
           </Link>
 
-          <nav className="hidden items-center gap-8 md:flex">
-            <a href={`${MARKETING}/about`} className="text-sm font-semibold text-foreground hover:text-[#0b3a8c]">
+          <nav className="hidden items-center gap-7 md:flex">
+            <a href={`${MARKETING}/about`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-foreground hover:text-[#0b3a8c]">
               About
             </a>
-            <a href={`${MARKETING}/offers`} className="text-sm font-semibold text-foreground hover:text-[#0b3a8c]">
+            <a href={`${MARKETING}/offers`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-foreground hover:text-[#0b3a8c]">
               Offers
             </a>
-            <a href={`${MARKETING}/pricing`} className="text-sm font-semibold text-foreground hover:text-[#0b3a8c]">
+            <a href={`${MARKETING}/pricing`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-foreground hover:text-[#0b3a8c]">
               Pricing
             </a>
-            <a href={`${MARKETING}/contact`} className="text-sm font-semibold text-foreground hover:text-[#0b3a8c]">
+            <a href={`${MARKETING}/contact`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-foreground hover:text-[#0b3a8c]">
               Contact
             </a>
           </nav>
 
           <div className="flex items-center gap-2">
-            {user ? (
+            {user && (
               <>
                 <span className="hidden text-sm text-muted-foreground lg:inline">
                   {user.email}
@@ -100,10 +100,6 @@ export function SiteHeader() {
                   Sign out
                 </Button>
               </>
-            ) : (
-              <Button asChild size="sm" className="bg-[#0b3a8c] hover:bg-[#092e6f] text-white font-bold tracking-wide">
-                <Link to="/">GET A QUOTE</Link>
-              </Button>
             )}
           </div>
         </div>

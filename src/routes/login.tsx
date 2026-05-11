@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
+import { GoogleIcon } from "@/components/auth/ProviderIcons";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -54,10 +55,10 @@ function LoginPage() {
           <Button
             type="button"
             variant="outline"
-            className="mt-6 w-full"
+            className="mt-6 w-full gap-2"
             onClick={handleGoogle}
           >
-            Continue with Google
+            <GoogleIcon /> Continue with Google
           </Button>
 
           <div className="my-6 flex items-center gap-3 text-xs uppercase text-muted-foreground">
