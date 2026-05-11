@@ -82,6 +82,7 @@ function DetailsPage() {
   const [addrOpen, setAddrOpen] = useState(false);
   const [addrLoading, setAddrLoading] = useState(false);
   const [pcLoading, setPcLoading] = useState(false);
+  const suggestionsRef = useRef<HTMLUListElement | null>(null);
 
   useEffect(() => {
     const q = addrQuery.trim();
