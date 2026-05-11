@@ -643,20 +643,53 @@ function DetailsPage() {
 
         {/* Order summary */}
         <aside className="h-fit rounded-2xl border bg-card p-6 lg:sticky lg:top-24">
-          <h3 className="font-display text-lg font-bold">Order summary</h3>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-display text-lg font-bold">Order summary</h3>
+            <div className="inline-flex rounded-full border bg-muted/40 p-0.5 text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => setShowExcVat(false)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 transition",
+                  !showExcVat ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
+                )}
+              >
+                inc VAT
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowExcVat(true)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 transition",
+                  showExcVat ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
+                )}
+              >
+                exc VAT
+              </button>
+            </div>
+          </div>
           {unit && (
             <div className="mt-4 space-y-3 text-sm">
-              <Row label={`${unit.size_sqft} sq ft unit`} value={formatGBPRound(unit.monthly_price_pence)} />
+              <Row
+                label={`${unit.size_sqft} sq ft unit`}
+                value={formatGBPRound(showExcVat ? Math.round(unit.monthly_price_pence / 1.2) : unit.monthly_price_pence)}
+              />
               {tier && tier.monthly_fee_pence > 0 && (
                 <Row
                   label={`BIGProtect (${tier.label})`}
-                  value={`+${formatGBPRound(tier.monthly_fee_pence)}`}
+                  value={`+${formatGBPRound(showExcVat ? Math.round(tier.monthly_fee_pence / 1.2) : tier.monthly_fee_pence)}`}
                 />
               )}
               <div className="border-t pt-3">
-                <Row label="Monthly total" value={formatGBPRound(total)} bold />
+                <Row
+                  label={`Monthly total (${showExcVat ? "exc" : "inc"} VAT)`}
+                  value={formatGBPRound(showExcVat ? Math.round(total / 1.2) : total)}
+                  bold
+                />
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Includes 20% VAT. £1 for first 6 weeks where applicable.
+                  {showExcVat
+                    ? "Displayed excluding 20% VAT. Payment is taken inc VAT."
+                    : "Includes 20% VAT. £1 for first 6 weeks where applicable."}
                 </p>
               </div>
             </div>
