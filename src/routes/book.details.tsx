@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader } from "@/components/SiteHeader";
+import { GoogleIcon, AppleIcon } from "@/components/auth/ProviderIcons";
 import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
