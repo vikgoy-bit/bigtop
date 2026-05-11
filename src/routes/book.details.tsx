@@ -366,7 +366,7 @@ function DetailsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full gap-2"
                   onClick={async () => {
                     const result = await lovable.auth.signInWithOAuth("google", {
                       redirect_uri: window.location.origin + "/book/details",
@@ -374,12 +374,12 @@ function DetailsPage() {
                     if (result.error) toast.error("Google sign-in failed");
                   }}
                 >
-                  Continue with Google
+                  <GoogleIcon /> Continue with Google
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full gap-2"
                   onClick={async () => {
                     const result = await lovable.auth.signInWithOAuth("apple", {
                       redirect_uri: window.location.origin + "/book/details",
@@ -387,7 +387,7 @@ function DetailsPage() {
                     if (result.error) toast.error("Apple sign-in failed");
                   }}
                 >
-                  Continue with Apple
+                  <AppleIcon /> Continue with Apple
                 </Button>
               </div>
               <div className="flex items-center gap-3 text-xs uppercase text-muted-foreground">
