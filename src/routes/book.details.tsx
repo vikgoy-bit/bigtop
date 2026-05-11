@@ -500,23 +500,31 @@ function DetailsPage() {
                     setAddress1(e.target.value);
                     setAddrQuery(e.target.value);
                   }}
-                  onFocus={() => addrSuggestions.length > 0 && setAddrOpen(true)}
-                  onBlur={() => setTimeout(() => setAddrOpen(false), 200)}
+                 onFocus={() => addrSuggestions.length > 0 && setAddrOpen(true)}
+                  onBlur={(e) => {
+                    // Don't close if focus moved into the suggestions list
+                    const next = e.relatedTarget as Node | null;
+                    if (next && suggestionsRef.current?.contains(next)) return;
+                    setTimeout(() => setAddrOpen(false), 150);
+                  }}
                   autoComplete="off"
                 />
                 {addrLoading && (
                   <Loader2 className="absolute right-3 top-9 h-4 w-4 animate-spin text-muted-foreground" />
                 )}
                 {addrOpen && addrSuggestions.length > 0 && (
-                  <ul className="absolute left-0 right-0 z-50 mt-1 max-h-72 overflow-auto rounded-lg border bg-popover p-1 shadow-lg">
+                  <ul
+                    ref={suggestionsRef}
+                    className="absolute left-0 right-0 z-50 mt-1 max-h-72 overflow-auto rounded-lg border bg-popover p-1 shadow-lg"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                  >
                     {addrSuggestions.map((s, i) => (
                       <li key={i}>
                         <button
                           type="button"
-                          onPointerDown={(e) => {
-                            e.preventDefault();
-                            pickSuggestion(s);
-                          }}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => pickSuggestion(s)}
                           className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
                         >
                           {s.display_name}
