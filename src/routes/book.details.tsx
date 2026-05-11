@@ -596,7 +596,7 @@ function DetailsPage() {
                       <div className="font-medium">{t.label}</div>
                       <div className="text-xs text-muted-foreground">
                         {t.cover_value_pence === 0
-                          ? "Covered elsewhere. Please upload a copy of your cover and ensure it states the cover is for Big Top Self Storage Basildon. If you don't have this ready, select the relevant cover below — we'll pro-rata refund the fee once you supply it."
+                          ? "Covered elsewhere. Please upload a copy of your cover and ensure it states the cover is for Big Top Self Storage Basildon. If you don't have this ready, select the relevant cover above — we'll pro-rata refund the fee once you supply it."
                           : `Up to ${formatGBPRound(t.cover_value_pence)} of contents covered`}
                       </div>
                     </div>
