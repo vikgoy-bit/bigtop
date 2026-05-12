@@ -41,17 +41,20 @@ function PaymentPage() {
     },
   });
 
+  const startPayment = useServerFn(startMolliePayment);
+
   const handleContinue = async () => {
     if (!bookingId) return;
     setSubmitting(true);
-    // TODO: Stripe Checkout integration. For now, mark as paid and continue.
-    const { error } = await supabase
-      .from("bookings")
-      .update({ status: "pending_verification" })
-      .eq("id", bookingId);
-    setSubmitting(false);
-    if (error) return toast.error(error.message);
-    navigate({ to: "/book/verify" });
+    try {
+      const { checkoutUrl } = await startPayment({
+        data: { bookingId },
+      });
+      window.location.href = checkoutUrl;
+    } catch (e) {
+      setSubmitting(false);
+      toast.error(e instanceof Error ? e.message : "Could not start payment");
+    }
   };
 
   return (
@@ -93,10 +96,10 @@ function PaymentPage() {
 
           <div className="mt-6 rounded-xl border-2 border-dashed border-border p-6 text-center">
             <CreditCard className="mx-auto h-8 w-8 text-muted-foreground" />
-            <p className="mt-3 text-sm font-medium">Card payment coming next</p>
+            <p className="mt-3 text-sm font-medium">Secure checkout by Mollie</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Secure card capture powered by Stripe will appear here once payments are
-              enabled. For now, continue to ID verification.
+              You'll be redirected to Mollie to choose iDEAL, card, Apple Pay or another
+              method. We'll set up your monthly mandate at the same time.
             </p>
           </div>
 
@@ -107,7 +110,7 @@ function PaymentPage() {
             disabled={submitting || !bookingId}
           >
             <Lock className="mr-2 h-4 w-4" />
-            {submitting ? "Saving…" : "Continue to ID verification"}
+            {submitting ? "Redirecting…" : "Continue to secure payment"}
           </Button>
         </div>
       </div>
