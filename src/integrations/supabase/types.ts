@@ -27,6 +27,8 @@ export type Database = {
           move_in_date: string
           protect_tier_id: string | null
           status: Database["public"]["Enums"]["booking_status"]
+          storeganise_order_id: string | null
+          storeganise_user_id: string | null
           stripe_payment_intent_id: string | null
           stripe_verification_session_id: string | null
           total_pence: number
@@ -47,6 +49,8 @@ export type Database = {
           move_in_date: string
           protect_tier_id?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
+          storeganise_order_id?: string | null
+          storeganise_user_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_verification_session_id?: string | null
           total_pence?: number
@@ -67,6 +71,8 @@ export type Database = {
           move_in_date?: string
           protect_tier_id?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
+          storeganise_order_id?: string | null
+          storeganise_user_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_verification_session_id?: string | null
           total_pence?: number
