@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
         const query = supabaseAdmin
           .from("bookings")
           .select(
-            "id,user_id,unit_id,total_pence,move_in_date,storeganise_user_id,storeganise_order_id",
+            "id,user_id,unit_id,total_pence,move_in_date,protect_tier_id,storeganise_user_id,storeganise_order_id",
           )
           .limit(1);
         const { data: rows } = metaBookingId
