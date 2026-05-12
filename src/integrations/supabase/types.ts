@@ -19,6 +19,11 @@ export type Database = {
           cover_document_path: string | null
           created_at: string
           id: string
+          mollie_customer_id: string | null
+          mollie_mandate_id: string | null
+          mollie_payment_id: string | null
+          mollie_status: string | null
+          mollie_subscription_id: string | null
           move_in_date: string
           protect_tier_id: string | null
           status: Database["public"]["Enums"]["booking_status"]
@@ -34,6 +39,11 @@ export type Database = {
           cover_document_path?: string | null
           created_at?: string
           id?: string
+          mollie_customer_id?: string | null
+          mollie_mandate_id?: string | null
+          mollie_payment_id?: string | null
+          mollie_status?: string | null
+          mollie_subscription_id?: string | null
           move_in_date: string
           protect_tier_id?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
@@ -49,6 +59,11 @@ export type Database = {
           cover_document_path?: string | null
           created_at?: string
           id?: string
+          mollie_customer_id?: string | null
+          mollie_mandate_id?: string | null
+          mollie_payment_id?: string | null
+          mollie_status?: string | null
+          mollie_subscription_id?: string | null
           move_in_date?: string
           protect_tier_id?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
