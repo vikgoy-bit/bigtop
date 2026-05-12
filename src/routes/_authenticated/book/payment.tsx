@@ -71,8 +71,8 @@ function PaymentPage() {
             Add a payment method
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Pay just <strong>£1</strong> for your first 6 weeks of storage, plus your BIGProtect cover.
-            We'll set up your monthly mandate at the same time so billing carries on automatically after the promo.
+            Pay just <strong>£1</strong> for your first month of storage, plus your BIGProtect cover.
+            We'll set up your monthly mandate at the same time so billing carries on automatically.
           </p>
 
           {booking && (

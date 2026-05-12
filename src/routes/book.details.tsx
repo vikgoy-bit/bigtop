@@ -739,10 +739,10 @@ function DetailsPage() {
 
               <div className="rounded-xl bg-accent/10 p-3 ring-1 ring-accent/30">
                 <div className="text-xs font-semibold uppercase tracking-wider text-accent">
-                  6 weeks for £1 offer
+                  £1 first month offer
                 </div>
                 <div className="mt-2 space-y-1.5">
-                  <Row label="Unit (first 6 weeks)" value="£1.00" />
+                  <Row label="Unit (first month)" value="£1.00" />
                   {tier && tier.monthly_fee_pence > 0 && (
                     <Row
                       label="BIGProtect (first month)"
@@ -758,8 +758,7 @@ function DetailsPage() {
                   />
                 </div>
                 <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-                  After the 6-week promo, your next bill is prorated to the end of that month, then{" "}
-                  {formatGBPRound(monthlyTotal)} per month thereafter. Cancel anytime.
+                  Standard monthly billing of {formatGBPRound(monthlyTotal)} begins from month two onwards. Cancel anytime.
                 </p>
               </div>
             </div>
