@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BookDetailsRouteImport } from './routes/book.details'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicMollieWebhookRouteImport } from './routes/api/public/mollie-webhook'
 import { Route as AuthenticatedBookVerifyRouteImport } from './routes/_authenticated/book/verify'
 import { Route as AuthenticatedBookSuccessRouteImport } from './routes/_authenticated/book/success'
@@ -42,6 +43,11 @@ const IndexRoute = IndexRouteImport.update({
 const BookDetailsRoute = BookDetailsRouteImport.update({
   id: '/book/details',
   path: '/book/details',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicMollieWebhookRoute = ApiPublicMollieWebhookRouteImport.update({
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/book/payment/return': typeof AuthenticatedBookPaymentReturnRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/book/payment/return': typeof AuthenticatedBookPaymentReturnRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/_authenticated/book/success': typeof AuthenticatedBookSuccessRoute
   '/_authenticated/book/verify': typeof AuthenticatedBookVerifyRoute
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/_authenticated/book/payment/return': typeof AuthenticatedBookPaymentReturnRoute
 }
 export interface FileRouteTypes {
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/book/success'
     | '/book/verify'
     | '/api/public/mollie-webhook'
+    | '/api/public/stripe-webhook'
     | '/book/payment/return'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/book/success'
     | '/book/verify'
     | '/api/public/mollie-webhook'
+    | '/api/public/stripe-webhook'
     | '/book/payment/return'
   id:
     | '__root__'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/_authenticated/book/success'
     | '/_authenticated/book/verify'
     | '/api/public/mollie-webhook'
+    | '/api/public/stripe-webhook'
     | '/_authenticated/book/payment/return'
   fileRoutesById: FileRoutesById
 }
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   BookDetailsRoute: typeof BookDetailsRoute
   ApiPublicMollieWebhookRoute: typeof ApiPublicMollieWebhookRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -189,6 +202,13 @@ declare module '@tanstack/react-router' {
       path: '/book/details'
       fullPath: '/book/details'
       preLoaderRoute: typeof BookDetailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/mollie-webhook': {
@@ -266,7 +286,18 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   BookDetailsRoute: BookDetailsRoute,
   ApiPublicMollieWebhookRoute: ApiPublicMollieWebhookRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
