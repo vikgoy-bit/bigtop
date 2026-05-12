@@ -248,7 +248,9 @@ function DetailsPage() {
   }, [tiers, tierId]);
 
   const tier = tiers?.find((t) => t.id === tierId);
-  const total = (unit?.monthly_price_pence ?? 0) + (tier?.monthly_fee_pence ?? 0);
+  const PROMO_FIRST_CHARGE_PENCE = 100; // £1 for first 6 weeks
+  const monthlyTotal = (unit?.monthly_price_pence ?? 0) + (tier?.monthly_fee_pence ?? 0);
+  const firstChargeTotal = PROMO_FIRST_CHARGE_PENCE + (tier?.monthly_fee_pence ?? 0);
   const isNoCover = tier?.cover_value_pence === 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -333,7 +335,7 @@ function DetailsPage() {
         unit_snapshot: unit as never,
         protect_tier_id: tierId,
         move_in_date: format(moveInDate, "yyyy-MM-dd"),
-        total_pence: total,
+        total_pence: firstChargeTotal,
         status: "pending_payment",
         cover_document_path: coverPath,
       })
@@ -730,14 +732,34 @@ function DetailsPage() {
               )}
               <div className="border-t pt-3">
                 <Row
-                  label={`Monthly total (${showExcVat ? "exc" : "inc"} VAT)`}
-                  value={formatGBPRound(showExcVat ? Math.round(total / 1.2) : total)}
-                  bold
+                  label={`Standard monthly (${showExcVat ? "exc" : "inc"} VAT)`}
+                  value={formatGBPRound(showExcVat ? Math.round(monthlyTotal / 1.2) : monthlyTotal)}
                 />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {showExcVat
-                    ? "Displayed excluding 20% VAT. Payment is taken inc VAT."
-                    : "Includes 20% VAT. £1 for first 6 weeks where applicable."}
+              </div>
+
+              <div className="rounded-xl bg-accent/10 p-3 ring-1 ring-accent/30">
+                <div className="text-xs font-semibold uppercase tracking-wider text-accent">
+                  6 weeks for £1 offer
+                </div>
+                <div className="mt-2 space-y-1.5">
+                  <Row label="Unit (first 6 weeks)" value="£1.00" />
+                  {tier && tier.monthly_fee_pence > 0 && (
+                    <Row
+                      label="BIGProtect (first month)"
+                      value={`+${formatGBPRound(showExcVat ? Math.round(tier.monthly_fee_pence / 1.2) : tier.monthly_fee_pence)}`}
+                    />
+                  )}
+                </div>
+                <div className="mt-2 border-t border-accent/30 pt-2">
+                  <Row
+                    label="Pay today"
+                    value={formatGBPRound(showExcVat ? Math.round(firstChargeTotal / 1.2) : firstChargeTotal)}
+                    bold
+                  />
+                </div>
+                <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+                  After the 6-week promo, your next bill is prorated to the end of that month, then{" "}
+                  {formatGBPRound(monthlyTotal)} per month thereafter. Cancel anytime.
                 </p>
               </div>
             </div>

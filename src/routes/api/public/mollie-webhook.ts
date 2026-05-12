@@ -90,11 +90,37 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
                 updates.storeganise_user_id = sgUserId;
               }
 
+              // Compute promo end date (move-in + 6 weeks = 42 days) and the
+              // start of the next calendar month after that, so Storeganise
+              // staff can apply the prorated bill correctly.
+              const moveIn = new Date(booking.move_in_date as string);
+              const promoEnd = new Date(moveIn);
+              promoEnd.setDate(promoEnd.getDate() + 42);
+              const nextMonthStart = new Date(
+                promoEnd.getFullYear(),
+                promoEnd.getMonth() + 1,
+                1,
+              );
+              const fmt = (d: Date) => d.toISOString().slice(0, 10);
+              const proratedDays = Math.max(
+                0,
+                Math.round(
+                  (nextMonthStart.getTime() - promoEnd.getTime()) /
+                    (1000 * 60 * 60 * 24),
+                ),
+              );
+
               const order = await createStoreganiseUnitOrder({
                 userId: sgUserId,
                 unitTypeId: booking.unit_id,
                 startDate: booking.move_in_date as string,
-                notes: `Booking ${booking.id} — first payment taken via Mollie (${payment.id}). Mandate ${payment.mandateId ?? "n/a"}.`,
+                notes: [
+                  `Booking ${booking.id}`,
+                  `First payment taken via Mollie (${payment.id}) — £${(booking.total_pence / 100).toFixed(2)} (£1 promo + BIGProtect).`,
+                  `Mandate: ${payment.mandateId ?? "n/a"} (Mollie customer ${payment.customerId ?? "n/a"}).`,
+                  `PROMO: 6 weeks for £1. Move-in ${fmt(moveIn)} → promo ends ${fmt(promoEnd)}.`,
+                  `NEXT BILL: prorate ${proratedDays} days (${fmt(promoEnd)} → ${fmt(nextMonthStart)}), then full monthly cycle from ${fmt(nextMonthStart)}.`,
+                ].join("\n"),
               });
               updates.storeganise_order_id = order.id;
             } catch (e) {
