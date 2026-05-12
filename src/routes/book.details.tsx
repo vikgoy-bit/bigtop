@@ -493,7 +493,7 @@ function DetailsPage() {
           {/* Move-in date */}
           <section className="space-y-3">
             <Label className="block">Move-in date</Label>
-            <Popover>
+            <Popover open={dateOpen} onOpenChange={setDateOpen}>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
@@ -511,7 +511,10 @@ function DetailsPage() {
                 <Calendar
                   mode="single"
                   selected={moveInDate}
-                  onSelect={setMoveInDate}
+                  onSelect={(d) => {
+                    setMoveInDate(d);
+                    if (d) setDateOpen(false);
+                  }}
                   disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
