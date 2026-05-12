@@ -1,11 +1,12 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { ShieldCheck, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
+import { startIdentityVerification } from "@/lib/stripe.functions";
 
 export const Route = createFileRoute("/_authenticated/book/verify")({
   head: () => ({ meta: [{ title: "Verify your ID — Big Top Self Storage" }] }),
@@ -13,9 +14,9 @@ export const Route = createFileRoute("/_authenticated/book/verify")({
 });
 
 function VerifyPage() {
-  const navigate = useNavigate();
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const startVerification = useServerFn(startIdentityVerification);
 
   useEffect(() => {
     setBookingId(sessionStorage.getItem("pending_booking_id"));
@@ -24,14 +25,13 @@ function VerifyPage() {
   const handleVerify = async () => {
     if (!bookingId) return;
     setSubmitting(true);
-    // TODO: Stripe Identity verification session. For now, mark as active and continue.
-    const { error } = await supabase
-      .from("bookings")
-      .update({ status: "active" })
-      .eq("id", bookingId);
-    setSubmitting(false);
-    if (error) return toast.error(error.message);
-    navigate({ to: "/book/success" });
+    try {
+      const { url } = await startVerification({ data: { bookingId } });
+      window.location.href = url;
+    } catch (e) {
+      setSubmitting(false);
+      toast.error(e instanceof Error ? e.message : "Could not start verification");
+    }
   };
 
   return (
