@@ -71,8 +71,8 @@ function PaymentPage() {
             Add a payment method
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            We'll charge your first month plus BIGProtect on your move-in date. Cancel
-            anytime, no long contracts.
+            Pay just <strong>£1</strong> for your first 6 weeks of storage, plus your BIGProtect cover.
+            We'll set up your monthly mandate at the same time so billing carries on automatically after the promo.
           </p>
 
           {booking && (
@@ -85,12 +85,31 @@ function PaymentPage() {
                 <span className="text-muted-foreground">Move-in</span>
                 <span className="font-medium">{(booking as any).move_in_date}</span>
               </div>
+              <div className="mt-3 space-y-1 border-t pt-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Unit (first 6 weeks)</span>
+                  <span className="font-medium">£1.00</span>
+                </div>
+                {(booking as any).tier?.monthly_fee_pence > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">
+                      BIGProtect ({(booking as any).tier.label})
+                    </span>
+                    <span className="font-medium">
+                      +{formatGBPRound((booking as any).tier.monthly_fee_pence)}
+                    </span>
+                  </div>
+                )}
+              </div>
               <div className="mt-3 flex items-baseline justify-between border-t pt-3">
-                <span className="font-medium">Monthly total</span>
+                <span className="font-medium">Pay today</span>
                 <span className="font-display text-2xl font-extrabold">
                   {formatGBPRound((booking as any).total_pence)}
                 </span>
               </div>
+              <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+                After 6 weeks, your next bill is prorated to the end of that month, then standard monthly billing begins.
+              </p>
             </div>
           )}
 
