@@ -238,9 +238,9 @@ function DetailsPage() {
 
   useEffect(() => {
     if (tiers && !tierId) {
-      // Default to the £2,000 cover tier when present, otherwise first non-zero tier
+      // Default to the £4,000 cover tier (lowest available), otherwise first non-zero tier
       const defaultTier =
-        tiers.find((t) => t.cover_value_pence === 200000) ??
+        tiers.find((t) => t.cover_value_pence === 400000) ??
         tiers.find((t) => t.cover_value_pence !== 0) ??
         tiers[0];
       if (defaultTier) setTierId(defaultTier.id);
