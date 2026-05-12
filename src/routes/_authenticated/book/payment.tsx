@@ -71,8 +71,8 @@ function PaymentPage() {
             Add a payment method
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Pay just <strong>£1</strong> for your first 6 weeks of storage, plus your BIGProtect cover.
-            We'll set up your monthly mandate at the same time so billing carries on automatically after the promo.
+            Pay just <strong>£1</strong> for your first month of storage, plus your BIGProtect cover.
+            We'll set up your monthly mandate at the same time so billing carries on automatically.
           </p>
 
           {booking && (
@@ -87,7 +87,7 @@ function PaymentPage() {
               </div>
               <div className="mt-3 space-y-1 border-t pt-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Unit (first 6 weeks)</span>
+                  <span className="text-muted-foreground">Unit (first month)</span>
                   <span className="font-medium">£1.00</span>
                 </div>
                 {(booking as any).tier?.monthly_fee_pence > 0 && (
@@ -108,7 +108,7 @@ function PaymentPage() {
                 </span>
               </div>
               <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-                After 6 weeks, your next bill is prorated to the end of that month, then standard monthly billing begins.
+                Standard monthly billing begins from month two onwards.
               </p>
             </div>
           )}
