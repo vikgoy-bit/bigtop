@@ -36,14 +36,10 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
               metadata?: Record<string, string>;
             };
             const bookingId = session.metadata?.booking_id;
-            if (bookingId) {
-              const updates: Record<string, unknown> = {};
-              if (event.type === "identity.verification_session.verified") {
-                updates.status = "active";
-              }
+            if (bookingId && event.type === "identity.verification_session.verified") {
               await supabaseAdmin
                 .from("bookings")
-                .update(updates)
+                .update({ status: "active" })
                 .eq("id", bookingId)
                 .eq("stripe_verification_session_id", session.id);
             }
