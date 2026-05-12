@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BookDetailsRouteImport } from './routes/book.details'
+import { Route as ApiPublicMollieWebhookRouteImport } from './routes/api/public/mollie-webhook'
 import { Route as AuthenticatedBookVerifyRouteImport } from './routes/_authenticated/book/verify'
 import { Route as AuthenticatedBookSuccessRouteImport } from './routes/_authenticated/book/success'
 import { Route as AuthenticatedBookPaymentRouteImport } from './routes/_authenticated/book/payment'
@@ -42,6 +43,11 @@ const BookDetailsRoute = BookDetailsRouteImport.update({
   path: '/book/details',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMollieWebhookRoute = ApiPublicMollieWebhookRouteImport.update({
+  id: '/api/public/mollie-webhook',
+  path: '/api/public/mollie-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedBookVerifyRoute = AuthenticatedBookVerifyRouteImport.update({
   id: '/book/verify',
   path: '/book/verify',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/book/payment': typeof AuthenticatedBookPaymentRoute
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
+  '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/book/payment': typeof AuthenticatedBookPaymentRoute
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
+  '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/_authenticated/book/payment': typeof AuthenticatedBookPaymentRoute
   '/_authenticated/book/success': typeof AuthenticatedBookSuccessRoute
   '/_authenticated/book/verify': typeof AuthenticatedBookVerifyRoute
+  '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/book/payment'
     | '/book/success'
     | '/book/verify'
+    | '/api/public/mollie-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/book/payment'
     | '/book/success'
     | '/book/verify'
+    | '/api/public/mollie-webhook'
   id:
     | '__root__'
     | '/'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/_authenticated/book/payment'
     | '/_authenticated/book/success'
     | '/_authenticated/book/verify'
+    | '/api/public/mollie-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -126,6 +138,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   BookDetailsRoute: typeof BookDetailsRoute
+  ApiPublicMollieWebhookRoute: typeof ApiPublicMollieWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -163,6 +176,13 @@ declare module '@tanstack/react-router' {
       path: '/book/details'
       fullPath: '/book/details'
       preLoaderRoute: typeof BookDetailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mollie-webhook': {
+      id: '/api/public/mollie-webhook'
+      path: '/api/public/mollie-webhook'
+      fullPath: '/api/public/mollie-webhook'
+      preLoaderRoute: typeof ApiPublicMollieWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/book/verify': {
@@ -211,7 +231,18 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   BookDetailsRoute: BookDetailsRoute,
+  ApiPublicMollieWebhookRoute: ApiPublicMollieWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
