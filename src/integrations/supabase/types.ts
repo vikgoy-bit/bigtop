@@ -134,6 +134,7 @@ export type Database = {
           label: string
           monthly_fee_pence: number
           sort_order: number
+          storeganise_product_id: string | null
         }
         Insert: {
           cover_value_pence: number
@@ -141,6 +142,7 @@ export type Database = {
           label: string
           monthly_fee_pence: number
           sort_order?: number
+          storeganise_product_id?: string | null
         }
         Update: {
           cover_value_pence?: number
@@ -148,6 +150,7 @@ export type Database = {
           label?: string
           monthly_fee_pence?: number
           sort_order?: number
+          storeganise_product_id?: string | null
         }
         Relationships: []
       }

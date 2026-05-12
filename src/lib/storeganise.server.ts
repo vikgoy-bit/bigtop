@@ -82,6 +82,8 @@ export async function createStoreganiseUnitOrder(params: {
   unitTypeId: string;
   startDate: string; // YYYY-MM-DD
   notes?: string;
+  /** Map of Storeganise product id -> quantity (e.g. BIGProtect tier). */
+  products?: Record<string, number>;
 }): Promise<{ id: string }> {
   const siteId = await getSiteId();
   return sg<{ id: string }>(`/units/orders`, {
@@ -92,6 +94,9 @@ export async function createStoreganiseUnitOrder(params: {
       unitTypeId: params.unitTypeId,
       startDate: params.startDate,
       notes: params.notes,
+      ...(params.products && Object.keys(params.products).length > 0
+        ? { products: params.products }
+        : {}),
     }),
   });
 }
