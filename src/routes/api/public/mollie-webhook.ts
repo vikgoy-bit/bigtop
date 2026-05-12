@@ -46,9 +46,13 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
           return new Response("ok");
         }
 
-        const updates: Record<string, unknown> = {
-          mollie_status: payment.status,
-        };
+        const updates: {
+          mollie_status?: string;
+          mollie_customer_id?: string;
+          mollie_mandate_id?: string;
+          mollie_subscription_id?: string;
+          status?: "pending_payment" | "pending_verification" | "active" | "canceled";
+        } = { mollie_status: payment.status };
 
         if (payment.status === "paid") {
           updates.status = "pending_verification";
