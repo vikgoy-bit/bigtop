@@ -345,6 +345,31 @@ function DetailsPage() {
     setSubmitting(false);
     if (error) return toast.error(error.message);
 
+    // Notify ops about uploaded insurance proof (no-cover flow)
+    if (isNoCover && coverPath) {
+      try {
+        const { data: signed } = await supabase.storage
+          .from("cover-documents")
+          .createSignedUrl(coverPath, 60 * 60 * 24 * 7);
+        const { sendTransactionalEmail } = await import("@/lib/email/send");
+        await sendTransactionalEmail({
+          templateName: "insurance-cover",
+          recipientEmail: "hi@bigtopselfstorage.com",
+          idempotencyKey: `insurance-cover-${booking.id}`,
+          templateData: {
+            customerName: fullName,
+            customerEmail: email || user?.email,
+            customerPhone: phone,
+            unitTitle: `${unit.size_sqft} sq ft (${unit.title})`,
+            moveInDate: format(moveInDate, "yyyy-MM-dd"),
+            downloadUrl: signed?.signedUrl,
+          },
+        });
+      } catch (err) {
+        console.error("Failed to send insurance cover email", err);
+      }
+    }
+
     sessionStorage.setItem("pending_booking_id", booking.id);
     navigate({ to: "/book/payment" });
   };
