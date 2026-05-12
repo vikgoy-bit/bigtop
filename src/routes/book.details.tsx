@@ -47,6 +47,7 @@ function DetailsPage() {
 
   const [unit, setUnit] = useState<Unit | null>(null);
   const [moveInDate, setMoveInDate] = useState<Date | undefined>(new Date());
+  const [dateOpen, setDateOpen] = useState(false);
   const [tierId, setTierId] = useState<string | null>(null);
   const [showExcVat, setShowExcVat] = useState(false);
 
