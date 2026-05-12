@@ -99,6 +99,7 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
                   `First payment taken via Mollie (${payment.id}) — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`,
                   `Mandate: ${payment.mandateId ?? "n/a"} (Mollie customer ${payment.customerId ?? "n/a"}).`,
                   `PROMO: First month £1. Apply a manual prorata credit to next month's bill — staff to configure in Storeganise.`,
+                  `BILLING: Monthly cycle anchored to signup/move-in date (${booking.move_in_date}). Bill full months — do NOT sync to 1st-of-month or any fixed date.`,
                 ].join("\n"),
               });
               updates.storeganise_order_id = order.id;
