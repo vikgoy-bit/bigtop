@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getPayment } from "@/lib/mollie.server";
 import {
-  getPayment,
-  createSubscription,
-  penceToDecimalString,
-} from "@/lib/mollie.server";
+  ensureStoreganiseUser,
+  createStoreganiseUnitOrder,
+} from "@/lib/storeganise.server";
 
 export const Route = createFileRoute("/api/public/mollie-webhook")({
   server: {
@@ -22,11 +22,9 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
           payment = await getPayment(paymentId);
         } catch (e) {
           console.error("Mollie getPayment failed", e);
-          // Return 200 so Mollie doesn't retry forever on a bad ID
           return new Response("ok");
         }
 
-        // Find the booking. Prefer metadata.booking_id, fallback to stored mollie_payment_id.
         const metaBookingId =
           (payment.metadata as { booking_id?: string } | undefined)
             ?.booking_id || null;
@@ -34,7 +32,7 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
         const query = supabaseAdmin
           .from("bookings")
           .select(
-            "id,total_pence,move_in_date,mollie_customer_id,mollie_subscription_id",
+            "id,user_id,unit_id,total_pence,move_in_date,storeganise_user_id,storeganise_order_id",
           )
           .limit(1);
         const { data: rows } = metaBookingId
@@ -50,8 +48,13 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
           mollie_status?: string;
           mollie_customer_id?: string;
           mollie_mandate_id?: string;
-          mollie_subscription_id?: string;
-          status?: "pending_payment" | "pending_verification" | "active" | "cancelled";
+          storeganise_user_id?: string;
+          storeganise_order_id?: string;
+          status?:
+            | "pending_payment"
+            | "pending_verification"
+            | "active"
+            | "cancelled";
         } = { mollie_status: payment.status };
 
         if (payment.status === "paid") {
@@ -60,28 +63,43 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
             updates.mollie_customer_id = payment.customerId;
           if (payment.mandateId) updates.mollie_mandate_id = payment.mandateId;
 
-          // Set up monthly subscription using the new mandate
-          if (
-            payment.customerId &&
-            payment.mandateId &&
-            !booking.mollie_subscription_id
-          ) {
+          // Hand off to Storeganise. Storeganise owns recurring billing from
+          // here on — we do NOT create a Mollie subscription.
+          if (!booking.storeganise_order_id) {
             try {
-              const origin = new URL(request.url).origin;
-              const startDate = new Date(booking.move_in_date as string);
-              startDate.setMonth(startDate.getMonth() + 1);
-              const sub = await createSubscription({
-                customerId: payment.customerId,
-                amountValue: penceToDecimalString(booking.total_pence),
-                currency: "GBP",
-                description: `Big Top Storage monthly — ${booking.id.slice(0, 8)}`,
-                webhookUrl: `${origin}/api/public/mollie-webhook`,
-                startDate: startDate.toISOString().slice(0, 10),
-                metadata: { booking_id: booking.id },
+              // Look up the customer's email + profile details
+              const { data: userInfo } =
+                await supabaseAdmin.auth.admin.getUserById(booking.user_id);
+              const email = userInfo?.user?.email;
+              if (!email) throw new Error("No email on booking user");
+
+              const { data: profile } = await supabaseAdmin
+                .from("profiles")
+                .select("full_name,phone")
+                .eq("id", booking.user_id)
+                .maybeSingle();
+
+              let sgUserId = booking.storeganise_user_id;
+              if (!sgUserId) {
+                const sgUser = await ensureStoreganiseUser({
+                  email,
+                  name: profile?.full_name || undefined,
+                  phone: profile?.phone || undefined,
+                });
+                sgUserId = sgUser.id;
+                updates.storeganise_user_id = sgUserId;
+              }
+
+              const order = await createStoreganiseUnitOrder({
+                userId: sgUserId,
+                unitTypeId: booking.unit_id,
+                startDate: booking.move_in_date as string,
+                notes: `Booking ${booking.id} — first payment taken via Mollie (${payment.id}). Mandate ${payment.mandateId ?? "n/a"}.`,
               });
-              updates.mollie_subscription_id = sub.id;
+              updates.storeganise_order_id = order.id;
             } catch (e) {
-              console.error("Mollie subscription create failed", e);
+              console.error("Storeganise handoff failed", e);
+              // Don't block the booking; staff can reconcile manually.
             }
           }
         } else if (
