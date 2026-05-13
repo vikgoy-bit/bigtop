@@ -31,7 +31,7 @@ function extractAgreement(order: Record<string, unknown>): AgreementShape {
     ["contractUrl", "url"],
     ["agreementPdfUrl", "url"],
   ];
-  const out: AgreementShape = { html: null, text: null, url: null, raw: order };
+  const out: AgreementShape = { html: null, text: null, url: null };
   for (const [key, kind] of candidates) {
     const v = order[key];
     if (typeof v === "string" && v.length > 0) {
