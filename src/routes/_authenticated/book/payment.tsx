@@ -42,6 +42,7 @@ function PaymentPage() {
   });
 
   const startPayment = useServerFn(startMolliePayment);
+  const [autoStarted, setAutoStarted] = useState(false);
 
   const handleContinue = async () => {
     if (!bookingId) return;
@@ -72,6 +73,14 @@ function PaymentPage() {
     }
   };
 
+  useEffect(() => {
+    if (bookingId && booking && !autoStarted && !submitting) {
+      setAutoStarted(true);
+      handleContinue();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingId, booking, autoStarted]);
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -83,11 +92,12 @@ function PaymentPage() {
             Step 3 of 5
           </span>
           <h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">
-            Add a payment method
+            Redirecting to secure payment…
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Pay just <strong>£1</strong> for your first month of storage, plus your BIGProtect cover.
-            We'll set up your monthly mandate at the same time so billing carries on automatically.
+            Taking you to Mollie to pay just <strong>£1</strong> for your first month of storage,
+            plus your BIGProtect cover. We'll set up your monthly mandate at the same time so
+            billing carries on automatically.
           </p>
 
           {booking && (
