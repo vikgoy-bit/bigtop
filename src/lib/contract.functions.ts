@@ -99,8 +99,12 @@ async function buildAgreementTokens(args: {
       phone: profile?.phone ?? "",
     },
     unit: {
-      name: args.unitSnapshot?.name ?? "",
-      type: args.unitSnapshot?.size_group ?? "",
+      name: args.unitSnapshot?.name ?? args.unitSnapshot?.title ?? "",
+      type:
+        args.unitSnapshot?.size_group ??
+        args.unitSnapshot?.groupTitle ??
+        args.unitSnapshot?.groupCode ??
+        "",
     },
     startDate,
     rental: {
