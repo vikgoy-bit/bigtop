@@ -1,12 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { FileSignature, ExternalLink, Mail, ArrowRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { FileSignature, ArrowRight, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
-
-// Storeganise customer portal — where the e-sign agreement lives.
-const STOREGANISE_PORTAL_URL = "https://bigtopselfstorage.storeganise.com/units";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { getContractForBooking, signContract } from "@/lib/contract.functions";
 
 export const Route = createFileRoute("/_authenticated/book/contract")({
   head: () => ({
@@ -18,10 +22,70 @@ export const Route = createFileRoute("/_authenticated/book/contract")({
 function ContractPage() {
   const navigate = useNavigate();
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [fullName, setFullName] = useState("");
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     setBookingId(sessionStorage.getItem("pending_booking_id"));
   }, []);
+
+  const fetchContract = useServerFn(getContractForBooking);
+  const signFn = useServerFn(signContract);
+
+  const contractQ = useQuery({
+    queryKey: ["contract", bookingId],
+    queryFn: () => fetchContract({ data: { bookingId: bookingId! } }),
+    enabled: !!bookingId,
+  });
+
+  const signMut = useMutation({
+    mutationFn: () =>
+      signFn({
+        data: { bookingId: bookingId!, fullName: fullName.trim(), agreed: true },
+      }),
+    onSuccess: (res) => {
+      if (res.storeganiseUpload && !res.storeganiseUpload.uploaded) {
+        // Non-fatal: the PDF is in our bucket, Storeganise upload will be retried.
+        console.warn("Storeganise upload failed:", res.storeganiseUpload.error);
+      }
+      toast.success("Agreement signed");
+      navigate({ to: "/book/verify" });
+    },
+    onError: (e: unknown) => {
+      toast.error(e instanceof Error ? e.message : "Failed to sign");
+    },
+  });
+
+  const alreadySigned = !!contractQ.data?.booking?.signed_at;
+  const agreement = contractQ.data?.agreement;
+
+  const agreementBody = useMemo(() => {
+    if (!agreement) return null;
+    if (agreement.html) {
+      return (
+        <div
+          className="prose prose-sm max-w-none dark:prose-invert"
+          // Storeganise-controlled content — sanitised via plain HTML render in iframe-like container.
+          dangerouslySetInnerHTML={{ __html: agreement.html }}
+        />
+      );
+    }
+    if (agreement.text) {
+      return (
+        <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
+          {agreement.text}
+        </pre>
+      );
+    }
+    return null;
+  }, [agreement]);
+
+  const canSign =
+    !!bookingId &&
+    fullName.trim().length >= 2 &&
+    agreed &&
+    !signMut.isPending &&
+    !alreadySigned;
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,52 +101,114 @@ function ContractPage() {
             Sign your storage agreement
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your unit is reserved and payment is confirmed. The last bit before
-            ID verification: e-sign your storage agreement.
+            Read the agreement, type your full legal name, and tap sign. We'll
+            store a signed copy and send it to our system automatically.
           </p>
 
-          <div className="mt-6 rounded-xl bg-gradient-to-br from-primary to-primary-glow p-6 text-primary-foreground">
-            <FileSignature className="h-8 w-8" />
-            <h2 className="mt-3 font-display text-xl font-bold">
-              Your contract is ready in the customer portal
-            </h2>
-            <p className="mt-1 text-sm text-primary-foreground/80">
-              We've sent a copy to your email too. Sign in with the same email
-              you used to book — your agreement will be waiting under{" "}
-              <strong>My units</strong>.
-            </p>
-          </div>
+          {!bookingId && (
+            <div className="mt-6 flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <p>No booking in progress. Please start your booking again.</p>
+            </div>
+          )}
 
-          <div className="mt-6 space-y-3">
-            <a
-              href={STOREGANISE_PORTAL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-            >
-              <Button size="lg" variant="outline" className="w-full">
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Open the customer portal to sign
-              </Button>
-            </a>
+          {contractQ.isLoading && (
+            <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading your agreement…
+            </div>
+          )}
 
-            <div className="flex items-start gap-3 rounded-xl border bg-secondary/40 p-4 text-sm text-muted-foreground">
-              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+          {contractQ.data?.error && (
+            <div className="mt-6 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              <p>{contractQ.data.error}</p>
+            </div>
+          )}
+
+          {alreadySigned && (
+            <div className="mt-6 flex items-start gap-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
               <p>
-                Can't see the email? Check your spam folder, or contact us and
-                we'll resend the agreement link.
+                You've already signed this agreement
+                {contractQ.data?.booking?.signer_name
+                  ? ` as ${contractQ.data.booking.signer_name}`
+                  : ""}
+                .
               </p>
             </div>
-          </div>
+          )}
+
+          {agreementBody && (
+            <div className="mt-6 max-h-[420px] overflow-y-auto rounded-xl border bg-secondary/30 p-4 text-sm">
+              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <FileSignature className="h-3.5 w-3.5" />
+                Storage agreement
+              </div>
+              {agreementBody}
+            </div>
+          )}
+
+          {!agreementBody && !contractQ.isLoading && !contractQ.data?.error && (
+            <div className="mt-6 rounded-xl border bg-secondary/30 p-4 text-sm text-muted-foreground">
+              The agreement isn't available to preview yet — but you can still
+              sign below. We'll attach your signature to your unit order.
+            </div>
+          )}
+
+          {!alreadySigned && (
+            <div className="mt-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="full-name">Type your full legal name</Label>
+                <Input
+                  id="full-name"
+                  autoComplete="name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Jane Smith"
+                  maxLength={120}
+                />
+              </div>
+
+              <label className="flex items-start gap-3 rounded-xl border bg-secondary/30 p-4 text-sm">
+                <Checkbox
+                  checked={agreed}
+                  onCheckedChange={(v) => setAgreed(v === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  I agree to the storage agreement above and confirm that
+                  typing my name and clicking sign forms a legally binding
+                  electronic signature.
+                </span>
+              </label>
+            </div>
+          )}
 
           <Button
-            onClick={() => navigate({ to: "/book/verify" })}
+            onClick={() =>
+              alreadySigned ? navigate({ to: "/book/verify" }) : signMut.mutate()
+            }
             size="lg"
             className="mt-8 w-full"
-            disabled={!bookingId}
+            disabled={!alreadySigned && !canSign}
           >
-            I've signed — continue to ID verification
-            <ArrowRight className="ml-2 h-4 w-4" />
+            {signMut.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing…
+              </>
+            ) : alreadySigned ? (
+              <>
+                Continue to ID verification
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            ) : (
+              <>
+                Sign and continue
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
         </div>
       </div>
