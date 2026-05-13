@@ -251,12 +251,22 @@ export const signContract = createServerFn({ method: "POST" })
     if (!agreementText && agreement.html) {
       agreementText = htmlToPlainText(agreement.html);
     }
+    let agreementUrl = agreement.url;
+    if (!agreementText && !agreementUrl) {
+      try {
+        const settings = await getStoreganiseSettings();
+        if (typeof settings.termsUrl === "string") {
+          agreementUrl = settings.termsUrl as string;
+        }
+      } catch {
+        /* non-fatal */
+      }
+    }
     if (!agreementText) {
-      // Fall back to a minimal record so signing isn't blocked if Storeganise
-      // doesn't expose text — still produces a PDF with signer + booking ref.
-      agreementText =
-        "Agreement text was not available from Storeganise at the time of signing. " +
-        "The signer accepted the storage terms presented to them on the booking flow.";
+      agreementText = agreementUrl
+        ? `The signer accepted the storage terms and conditions published at ${agreementUrl} at the time of signing.`
+        : "Agreement text was not available from Storeganise at the time of signing. " +
+          "The signer accepted the storage terms presented to them on the booking flow.";
     }
 
     const signedAt = new Date();
