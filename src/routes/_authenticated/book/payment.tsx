@@ -53,6 +53,17 @@ function PaymentPage() {
         console.error("startMolliePayment returned invalid response", res);
         throw new Error("Payment provider did not return a checkout URL");
       }
+      // Break out of the Lovable preview iframe — Mollie refuses to load in iframes.
+      try {
+        if (window.top && window.top !== window.self) {
+          window.top.location.href = checkoutUrl;
+          return;
+        }
+      } catch {
+        // Cross-origin top — fall through to opening a new tab
+        window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
       window.location.href = checkoutUrl;
     } catch (e) {
       setSubmitting(false);
