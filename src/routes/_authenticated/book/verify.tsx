@@ -42,7 +42,7 @@ function VerifyPage() {
       <div className="mx-auto max-w-2xl px-4 pb-16 sm:px-6">
         <div className="rounded-2xl border bg-card p-6 sm:p-8">
           <span className="text-xs font-semibold uppercase tracking-widest text-accent">
-            Step 4 of 4
+            Step 5 of 5
           </span>
           <h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">
             Verify your identity
