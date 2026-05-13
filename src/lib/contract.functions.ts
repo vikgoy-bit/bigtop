@@ -4,50 +4,106 @@ import { z } from "zod";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { uploadSignedContractToStoreganise } from "./storeganise.server";
 import {
-  getStoreganiseOrder,
-  getStoreganiseSettings,
-  uploadSignedContractToStoreganise,
-} from "./storeganise.server";
+  renderAgreementHtml,
+  renderAgreementText,
+  type AgreementTokens,
+} from "./agreement-template";
 
-type AgreementShape = {
-  html: string | null;
-  text: string | null;
-  url: string | null;
+type UnitSnapshot = {
+  name?: string;
+  size_group?: string;
+  size_sqft?: number;
+  monthly_price_pence?: number;
 };
 
-/** Walk an order object looking for an agreement-like field. */
-function extractAgreement(order: Record<string, unknown>): AgreementShape {
-  const candidates: Array<[string, "html" | "text" | "url"]> = [
-    ["agreementHtml", "html"],
-    ["agreement_html", "html"],
-    ["contractHtml", "html"],
-    ["agreementText", "text"],
-    ["agreement_text", "text"],
-    ["contractText", "text"],
-    ["terms", "text"],
-    ["termsAndConditions", "text"],
-    ["agreementUrl", "url"],
-    ["agreement_url", "url"],
-    ["contractUrl", "url"],
-    ["agreementPdfUrl", "url"],
-  ];
-  const out: AgreementShape = { html: null, text: null, url: null };
-  for (const [key, kind] of candidates) {
-    const v = order[key];
-    if (typeof v === "string" && v.length > 0) {
-      if (out[kind] == null) out[kind] = v;
-    }
-  }
-  // Nested 'agreement' object
-  const nested = order.agreement;
-  if (nested && typeof nested === "object") {
-    const n = nested as Record<string, unknown>;
-    if (typeof n.html === "string" && !out.html) out.html = n.html;
-    if (typeof n.text === "string" && !out.text) out.text = n.text;
-    if (typeof n.url === "string" && !out.url) out.url = n.url;
-  }
-  return out;
+function splitName(full: string | null | undefined): {
+  firstName: string;
+  lastName: string;
+} {
+  const t = (full ?? "").trim();
+  if (!t) return { firstName: "", lastName: "" };
+  const parts = t.split(/\s+/);
+  if (parts.length === 1) return { firstName: parts[0], lastName: "" };
+  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
+
+function formatGBP(pence: number | null | undefined): string {
+  const n = typeof pence === "number" ? pence : 0;
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+  }).format(n / 100);
+}
+
+function formatDate(d: Date): string {
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatAddress(p: {
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  postcode: string | null;
+}): string {
+  return [p.address_line1, p.address_line2, p.city, p.postcode]
+    .map((x) => (x ?? "").trim())
+    .filter(Boolean)
+    .join(", ");
+}
+
+async function buildAgreementTokens(args: {
+  supabase: ReturnType<typeof supabaseAdmin.from> extends never
+    ? never
+    : typeof supabaseAdmin;
+  userId: string;
+  email: string;
+  unitSnapshot: UnitSnapshot | null;
+  moveInDate: string;
+  monthlyPence: number | null;
+  signedAt?: Date;
+}): Promise<AgreementTokens> {
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("full_name,phone,address_line1,address_line2,city,postcode")
+    .eq("id", args.userId)
+    .maybeSingle();
+
+  const { firstName, lastName } = splitName(profile?.full_name ?? null);
+  const startDate = formatDate(new Date(`${args.moveInDate}T00:00:00`));
+  const monthly =
+    args.monthlyPence ?? args.unitSnapshot?.monthly_price_pence ?? 0;
+
+  return {
+    user: {
+      firstName,
+      lastName,
+      email: args.email,
+      address: profile
+        ? formatAddress({
+            address_line1: profile.address_line1,
+            address_line2: profile.address_line2,
+            city: profile.city,
+            postcode: profile.postcode,
+          })
+        : "",
+      phone: profile?.phone ?? "",
+    },
+    unit: {
+      name: args.unitSnapshot?.name ?? "",
+      type: args.unitSnapshot?.size_group ?? "",
+    },
+    startDate,
+    rental: {
+      price: `${formatGBP(monthly)} per month`,
+    },
+    signatureDate: formatDate(args.signedAt ?? new Date()),
+  };
 }
 
 export const getContractForBooking = createServerFn({ method: "GET" })
@@ -56,7 +112,7 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     z.object({ bookingId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId, claims } = context;
     const { data: booking, error } = await supabase
       .from("bookings")
       .select(
@@ -67,59 +123,27 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!booking) throw new Error("Booking not found");
 
-    if (!booking.storeganise_order_id) {
-      return {
-        booking,
-        agreement: null,
-        error:
-          "No Storeganise order is linked to this booking yet. Complete payment first.",
-      };
-    }
+    const tokens = await buildAgreementTokens({
+      supabase: supabaseAdmin,
+      userId,
+      email: (claims.email as string | undefined) ?? "",
+      unitSnapshot: booking.unit_snapshot as UnitSnapshot | null,
+      moveInDate: booking.move_in_date,
+      monthlyPence:
+        (booking.unit_snapshot as UnitSnapshot | null)?.monthly_price_pence ??
+        null,
+    });
 
-    try {
-      const order = await getStoreganiseOrder(booking.storeganise_order_id);
-      const agreement = extractAgreement(order);
-
-      // Storeganise on this account hosts the agreement externally — pull the
-      // public termsUrl from /settings as a fallback so users can read it.
-      if (!agreement.html && !agreement.text && !agreement.url) {
-        try {
-          const settings = await getStoreganiseSettings();
-          const termsUrl = settings.termsUrl;
-          if (typeof termsUrl === "string" && termsUrl.length > 0) {
-            agreement.url = termsUrl;
-          }
-        } catch (e) {
-          console.warn("Failed to fetch Storeganise settings for termsUrl", e);
-        }
-      }
-
-      return { booking, agreement, error: null as string | null };
-    } catch (e) {
-      return {
-        booking,
-        agreement: null,
-        error: e instanceof Error ? e.message : "Failed to load agreement",
-      };
-    }
+    return {
+      booking,
+      agreement: {
+        html: renderAgreementHtml(tokens),
+        text: null as string | null,
+        url: null as string | null,
+      },
+      error: null as string | null,
+    };
   });
-
-function htmlToPlainText(html: string): string {
-  return html
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<\/(p|div|h[1-6]|li|tr|br)>/gi, "\n")
-    .replace(/<br\s*\/?>(?!$)/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
 
 async function buildSignedPdf(params: {
   agreementText: string;
@@ -198,7 +222,7 @@ async function buildSignedPdf(params: {
     ["Signed at", params.signedAt.toISOString()],
     ["IP address", params.ip],
     ["Booking ref", params.bookingId],
-    ["Storeganise order", params.orderId],
+    ["Storeganise order", params.orderId || "(pending)"],
   ];
   for (const [k, v] of meta) {
     page.drawText(`${k}: `, { x: margin, y, size: 10, font: bold });
@@ -226,7 +250,7 @@ export const signContract = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId, claims } = context;
 
     const { data: booking, error } = await supabase
       .from("bookings")
@@ -240,36 +264,29 @@ export const signContract = createServerFn({ method: "POST" })
     if (booking.signed_at) {
       return { ok: true, alreadySigned: true };
     }
-    if (!booking.storeganise_order_id) {
-      throw new Error("Booking has no Storeganise order yet.");
-    }
-
-    // Fetch agreement text from Storeganise
-    const order = await getStoreganiseOrder(booking.storeganise_order_id);
-    const agreement = extractAgreement(order);
-    let agreementText = agreement.text;
-    if (!agreementText && agreement.html) {
-      agreementText = htmlToPlainText(agreement.html);
-    }
-    let agreementUrl = agreement.url;
-    if (!agreementText && !agreementUrl) {
-      try {
-        const settings = await getStoreganiseSettings();
-        if (typeof settings.termsUrl === "string") {
-          agreementUrl = settings.termsUrl as string;
-        }
-      } catch {
-        /* non-fatal */
-      }
-    }
-    if (!agreementText) {
-      agreementText = agreementUrl
-        ? `The signer accepted the storage terms and conditions published at ${agreementUrl} at the time of signing.`
-        : "Agreement text was not available from Storeganise at the time of signing. " +
-          "The signer accepted the storage terms presented to them on the booking flow.";
-    }
 
     const signedAt = new Date();
+
+    const tokens = await buildAgreementTokens({
+      supabase: supabaseAdmin,
+      userId,
+      email: (claims.email as string | undefined) ?? "",
+      unitSnapshot: booking.unit_snapshot as UnitSnapshot | null,
+      moveInDate: booking.move_in_date,
+      monthlyPence:
+        (booking.unit_snapshot as UnitSnapshot | null)?.monthly_price_pence ??
+        null,
+      signedAt,
+    });
+
+    // Use the typed-name on the agreement so the document records what the
+    // signer actually entered, not whatever was on the profile.
+    const { firstName, lastName } = splitName(data.fullName);
+    tokens.user.firstName = firstName;
+    tokens.user.lastName = lastName;
+
+    const agreementText = renderAgreementText(tokens);
+
     const ip =
       getRequestHeader("x-forwarded-for")?.split(",")[0]?.trim() ||
       getRequestHeader("x-real-ip") ||
@@ -281,13 +298,12 @@ export const signContract = createServerFn({ method: "POST" })
       signedAt,
       ip,
       bookingId: booking.id,
-      orderId: booking.storeganise_order_id,
+      orderId: booking.storeganise_order_id ?? "",
     });
 
     const fileName = `agreement-${booking.id}.pdf`;
     const objectPath = `${userId}/${fileName}`;
 
-    // Upload to our bucket via admin client (RLS-safe path: user-scoped folder).
     const buf = pdfBytes.buffer.slice(
       pdfBytes.byteOffset,
       pdfBytes.byteOffset + pdfBytes.byteLength,
@@ -300,14 +316,18 @@ export const signContract = createServerFn({ method: "POST" })
       });
     if (upErr) throw new Error(`Storage upload failed: ${upErr.message}`);
 
-    // Best-effort upload back to Storeganise.
-    const sgUpload = await uploadSignedContractToStoreganise({
-      orderId: booking.storeganise_order_id,
-      fileName,
-      pdf: pdfBytes,
-    });
+    let sgUpload: Awaited<ReturnType<typeof uploadSignedContractToStoreganise>> = {
+      uploaded: false,
+      error: "Skipped: no Storeganise order linked",
+    };
+    if (booking.storeganise_order_id) {
+      sgUpload = await uploadSignedContractToStoreganise({
+        orderId: booking.storeganise_order_id,
+        fileName,
+        pdf: pdfBytes,
+      });
+    }
 
-    // Mark booking signed
     const { error: updErr } = await supabase
       .from("bookings")
       .update({
