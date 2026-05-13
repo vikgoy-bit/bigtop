@@ -41,6 +41,11 @@ export async function getStoreganiseOrder(orderId: string): Promise<Record<strin
   return sg<Record<string, unknown>>(`/units/orders/${orderId}`);
 }
 
+/** Fetch the public business settings (terms URL, company name, etc.). */
+export async function getStoreganiseSettings(): Promise<Record<string, unknown>> {
+  return sg<Record<string, unknown>>(`/settings`);
+}
+
 /**
  * Try to attach a signed contract PDF to a unit order. Storeganise's document
  * endpoint isn't publicly documented, so we attempt a couple of best-guess
