@@ -398,7 +398,7 @@ function DetailsPage() {
         <form onSubmit={handleSubmit} className="space-y-8 rounded-2xl border bg-card p-6 sm:p-8">
           <header>
             <span className="text-xs font-semibold uppercase tracking-widest text-accent">
-              Step 2 of 4
+              Step 2 of 5
             </span>
             <h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">
               Your details & move-in
