@@ -174,15 +174,29 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!booking) throw new Error("Booking not found");
 
+    const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
+    const refreshedSnapshot = await refreshUnitSnapshot(
+      booking.storeganise_order_id,
+      baseSnapshot,
+    );
+
+    // Persist the enriched snapshot so the signed PDF and downstream views all
+    // see the assigned unit without another round-trip.
+    if (refreshedSnapshot && refreshedSnapshot !== baseSnapshot) {
+      await supabaseAdmin
+        .from("bookings")
+        .update({ unit_snapshot: refreshedSnapshot })
+        .eq("id", booking.id);
+    }
+
     const tokens = await buildAgreementTokens({
       supabase: supabaseAdmin,
       userId,
       email: (claims.email as string | undefined) ?? "",
-      unitSnapshot: booking.unit_snapshot as UnitSnapshot | null,
+      unitSnapshot: refreshedSnapshot,
       moveInDate: booking.move_in_date,
       monthlyPence:
-        (booking.unit_snapshot as UnitSnapshot | null)?.monthly_price_pence ??
-        null,
+        refreshedSnapshot?.monthly_price_pence ?? null,
     });
 
     return {
