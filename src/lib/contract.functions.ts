@@ -476,5 +476,6 @@ export const signContract = createServerFn({ method: "POST" })
       ok: true,
       alreadySigned: false,
       storeganiseUpload: sgUpload,
+      email: emailResult,
     };
   });
