@@ -47,12 +47,16 @@ function PaymentPage() {
     if (!bookingId) return;
     setSubmitting(true);
     try {
-      const { checkoutUrl } = await startPayment({
-        data: { bookingId },
-      });
+      const res = await startPayment({ data: { bookingId } });
+      const checkoutUrl = res?.checkoutUrl;
+      if (!checkoutUrl || typeof checkoutUrl !== "string" || !/^https?:\/\//.test(checkoutUrl)) {
+        console.error("startMolliePayment returned invalid response", res);
+        throw new Error("Payment provider did not return a checkout URL");
+      }
       window.location.href = checkoutUrl;
     } catch (e) {
       setSubmitting(false);
+      console.error("startMolliePayment error", e);
       toast.error(e instanceof Error ? e.message : "Could not start payment");
     }
   };
