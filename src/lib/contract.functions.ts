@@ -13,7 +13,6 @@ type AgreementShape = {
   html: string | null;
   text: string | null;
   url: string | null;
-  raw: Record<string, unknown>;
 };
 
 /** Walk an order object looking for an agreement-like field. */
