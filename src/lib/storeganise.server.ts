@@ -62,9 +62,13 @@ export async function uploadSignedContractToStoreganise(params: {
   for (const path of candidates) {
     try {
       const form = new FormData();
+      const buf = params.pdf.buffer.slice(
+        params.pdf.byteOffset,
+        params.pdf.byteOffset + params.pdf.byteLength,
+      ) as ArrayBuffer;
       form.append(
         "file",
-        new Blob([params.pdf], { type: "application/pdf" }),
+        new Blob([buf], { type: "application/pdf" }),
         params.fileName,
       );
       form.append("name", params.fileName);
