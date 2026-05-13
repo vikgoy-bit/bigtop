@@ -169,6 +169,15 @@ const value = {
   color: "#0b1f3a",
   margin: "0 0 4px",
 };
+const buttonSecondary = {
+  backgroundColor: "#0b1f3a",
+  color: "#ffffff",
+  borderRadius: "8px",
+  padding: "12px 22px",
+  fontSize: "14px",
+  fontWeight: 700,
+  textDecoration: "none",
+};
 const button = {
   backgroundColor: "#ffb500",
   color: "#0b1f3a",
