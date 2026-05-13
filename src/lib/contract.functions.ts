@@ -6,6 +6,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   getStoreganiseOrder,
+  getStoreganiseSettings,
   uploadSignedContractToStoreganise,
 } from "./storeganise.server";
 
@@ -78,6 +79,21 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     try {
       const order = await getStoreganiseOrder(booking.storeganise_order_id);
       const agreement = extractAgreement(order);
+
+      // Storeganise on this account hosts the agreement externally — pull the
+      // public termsUrl from /settings as a fallback so users can read it.
+      if (!agreement.html && !agreement.text && !agreement.url) {
+        try {
+          const settings = await getStoreganiseSettings();
+          const termsUrl = settings.termsUrl;
+          if (typeof termsUrl === "string" && termsUrl.length > 0) {
+            agreement.url = termsUrl;
+          }
+        } catch (e) {
+          console.warn("Failed to fetch Storeganise settings for termsUrl", e);
+        }
+      }
+
       return { booking, agreement, error: null as string | null };
     } catch (e) {
       return {
@@ -235,12 +251,22 @@ export const signContract = createServerFn({ method: "POST" })
     if (!agreementText && agreement.html) {
       agreementText = htmlToPlainText(agreement.html);
     }
+    let agreementUrl = agreement.url;
+    if (!agreementText && !agreementUrl) {
+      try {
+        const settings = await getStoreganiseSettings();
+        if (typeof settings.termsUrl === "string") {
+          agreementUrl = settings.termsUrl as string;
+        }
+      } catch {
+        /* non-fatal */
+      }
+    }
     if (!agreementText) {
-      // Fall back to a minimal record so signing isn't blocked if Storeganise
-      // doesn't expose text — still produces a PDF with signer + booking ref.
-      agreementText =
-        "Agreement text was not available from Storeganise at the time of signing. " +
-        "The signer accepted the storage terms presented to them on the booking flow.";
+      agreementText = agreementUrl
+        ? `The signer accepted the storage terms and conditions published at ${agreementUrl} at the time of signing.`
+        : "Agreement text was not available from Storeganise at the time of signing. " +
+          "The signer accepted the storage terms presented to them on the booking flow.";
     }
 
     const signedAt = new Date();

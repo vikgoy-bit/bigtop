@@ -77,6 +77,29 @@ function ContractPage() {
         </pre>
       );
     }
+    if (agreement.url) {
+      return (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Read the full storage terms and conditions below, or{" "}
+            <a
+              href={agreement.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-primary underline underline-offset-2"
+            >
+              open in a new tab
+            </a>
+            .
+          </p>
+          <iframe
+            src={agreement.url}
+            title="Storage agreement"
+            className="h-[480px] w-full rounded-lg border bg-background"
+          />
+        </div>
+      );
+    }
     return null;
   }, [agreement]);
 
@@ -140,7 +163,11 @@ function ContractPage() {
           )}
 
           {agreementBody && (
-            <div className="mt-6 max-h-[420px] overflow-y-auto rounded-xl border bg-secondary/30 p-4 text-sm">
+            <div
+              className={`mt-6 rounded-xl border bg-secondary/30 p-4 text-sm ${
+                agreement?.url ? "" : "max-h-[420px] overflow-y-auto"
+              }`}
+            >
               <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 <FileSignature className="h-3.5 w-3.5" />
                 Storage agreement
