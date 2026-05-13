@@ -148,12 +148,7 @@ export async function ensureStoreganiseUser(params: {
     const users = Array.isArray(found) ? found : (found.users ?? found.data ?? []);
     const existing = users.find((u) => u.email === params.email) ?? users[0];
     if (existing?.id) {
-      const password = createTemporaryPassword();
-      await sg<SgUser>(`/admin/users/${existing.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ password }),
-      });
-      return { ...existing, email: params.email, password };
+      return { ...existing, email: params.email };
     }
   } catch {
     // fall through to create
@@ -192,22 +187,38 @@ export async function createStoreganiseUnitOrder(params: {
   userPassword?: string;
 }): Promise<{ id: string }> {
   const siteId = await getSiteId();
-  const userToken = params.userEmail && params.userPassword
-    ? await authenticateStoreganiseUser(params.userEmail, params.userPassword)
-    : null;
-  return sg<{ id: string }>(`/units/orders`, {
-    method: "POST",
-    headers: userToken ? { Authorization: `Bearer ${userToken}` } : undefined,
-    body: JSON.stringify({
-      userId: params.userId,
-      siteId,
-      unitTypeId: params.unitTypeId,
-      startDate: params.startDate,
-      submitLater: true,
-      notes: params.notes,
-      ...(params.products && Object.keys(params.products).length > 0
-        ? { products: params.products }
-        : {}),
-    }),
-  });
+  try {
+    return await sg<{ id: string }>(`/units/orders`, {
+      method: "POST",
+      body: JSON.stringify({
+        userId: params.userId,
+        siteId,
+        unitTypeId: params.unitTypeId,
+        startDate: params.startDate,
+        submitLater: true,
+        notes: params.notes,
+        ...(params.products && Object.keys(params.products).length > 0
+          ? { products: params.products }
+          : {}),
+      }),
+    });
+  } catch (e) {
+    if (!(e instanceof Error) || !e.message.toLowerCase().includes("duplicate")) throw e;
+    const jobs = await sg<Array<Record<string, any>>>(
+      `/admin/jobs?userId=${encodeURIComponent(params.userId)}&limit=100`,
+    );
+    const existing = jobs.find((job) => {
+      const data = job.data ?? {};
+      const result = job.result ?? {};
+      return (
+        job.type === "unit_moveIn" &&
+        (data.unitTypeId === params.unitTypeId || result.unitTypeId === params.unitTypeId) &&
+        (data.siteId === siteId || result.siteId === siteId) &&
+        (data.startDate === params.startDate || result.startDate === params.startDate) &&
+        (result.orderState === "notSubmitted" || data.submitLater === true)
+      );
+    });
+    if (typeof existing?.id === "string") return { id: existing.id };
+    throw e;
+  }
 }
