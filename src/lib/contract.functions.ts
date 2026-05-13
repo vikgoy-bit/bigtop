@@ -4,7 +4,10 @@ import { z } from "zod";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { uploadSignedContractToStoreganise } from "./storeganise.server";
+import {
+  getStoreganiseOrder,
+  uploadSignedContractToStoreganise,
+} from "./storeganise.server";
 import {
   renderAgreementHtml,
   renderAgreementText,
