@@ -12,7 +12,12 @@ function AuthenticatedLayout() {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate({ to: "/login", search: { redirect: window.location.pathname } });
+      navigate({
+        to: "/login",
+        search: {
+          redirect: window.location.pathname + window.location.search + window.location.hash,
+        },
+      });
     }
   }, [user, loading, navigate]);
 
