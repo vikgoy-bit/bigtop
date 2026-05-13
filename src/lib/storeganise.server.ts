@@ -36,24 +36,6 @@ async function sg<T>(path: string, init: RequestInit = {}): Promise<T> {
   return json as T;
 }
 
-async function authenticateStoreganiseUser(email: string, password: string) {
-  const token = btoa(`${email}:${password}`);
-  const res = await fetch(`${BASE}/auth/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({}),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || !json.accessToken) {
-    throw new Error(`Storeganise auth failed: ${json?.error?.message ?? res.status}`);
-  }
-  return json.accessToken as string;
-}
-
 /** Fetch the full unit order object (includes any agreement/contract fields Storeganise exposes). */
 export async function getStoreganiseOrder(orderId: string): Promise<Record<string, unknown>> {
   return sg<Record<string, unknown>>(`/units/orders/${orderId}`);
@@ -148,12 +130,7 @@ export async function ensureStoreganiseUser(params: {
     const users = Array.isArray(found) ? found : (found.users ?? found.data ?? []);
     const existing = users.find((u) => u.email === params.email) ?? users[0];
     if (existing?.id) {
-      const password = createTemporaryPassword();
-      await sg<SgUser>(`/admin/users/${existing.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ password }),
-      });
-      return { ...existing, email: params.email, password };
+      return { ...existing, email: params.email };
     }
   } catch {
     // fall through to create
@@ -188,26 +165,40 @@ export async function createStoreganiseUnitOrder(params: {
   notes?: string;
   /** Map of Storeganise product id -> quantity (e.g. BIGProtect tier). */
   products?: Record<string, number>;
-  userEmail?: string;
-  userPassword?: string;
 }): Promise<{ id: string }> {
   const siteId = await getSiteId();
-  const userToken = params.userEmail && params.userPassword
-    ? await authenticateStoreganiseUser(params.userEmail, params.userPassword)
-    : null;
-  return sg<{ id: string }>(`/units/orders`, {
-    method: "POST",
-    headers: userToken ? { Authorization: `Bearer ${userToken}` } : undefined,
-    body: JSON.stringify({
-      userId: params.userId,
-      siteId,
-      unitTypeId: params.unitTypeId,
-      startDate: params.startDate,
-      submitLater: true,
-      notes: params.notes,
-      ...(params.products && Object.keys(params.products).length > 0
-        ? { products: params.products }
-        : {}),
-    }),
-  });
+  try {
+    return await sg<{ id: string }>(`/units/orders`, {
+      method: "POST",
+      body: JSON.stringify({
+        userId: params.userId,
+        siteId,
+        unitTypeId: params.unitTypeId,
+        startDate: params.startDate,
+        submitLater: true,
+        notes: params.notes,
+        ...(params.products && Object.keys(params.products).length > 0
+          ? { products: params.products }
+          : {}),
+      }),
+    });
+  } catch (e) {
+    if (!(e instanceof Error) || !e.message.toLowerCase().includes("duplicate")) throw e;
+    const jobs = await sg<Array<Record<string, any>>>(
+      `/admin/jobs?userId=${encodeURIComponent(params.userId)}&limit=100`,
+    );
+    const existing = jobs.find((job) => {
+      const data = job.data ?? {};
+      const result = job.result ?? {};
+      return (
+        job.type === "unit_moveIn" &&
+        (data.unitTypeId === params.unitTypeId || result.unitTypeId === params.unitTypeId) &&
+        (data.siteId === siteId || result.siteId === siteId) &&
+        (data.startDate === params.startDate || result.startDate === params.startDate) &&
+        (result.orderState === "notSubmitted" || data.submitLater === true)
+      );
+    });
+    if (typeof existing?.id === "string") return { id: existing.id };
+    throw e;
+  }
 }
