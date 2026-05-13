@@ -20,6 +20,7 @@ interface BookingConfirmationProps {
   moveInDate?: string;
   monthlyPrice?: string;
   contractUrl?: string;
+  coverDocumentUrl?: string;
   bookingRef?: string;
 }
 
@@ -30,6 +31,7 @@ const BookingConfirmationEmail = ({
   moveInDate,
   monthlyPrice,
   contractUrl,
+  coverDocumentUrl,
   bookingRef,
 }: BookingConfirmationProps) => (
   <Html lang="en" dir="ltr">
@@ -83,12 +85,25 @@ const BookingConfirmationEmail = ({
         </Section>
 
         {contractUrl ? (
-          <Section style={{ textAlign: "center", margin: "28px 0" }}>
+          <Section style={{ textAlign: "center", margin: "28px 0 12px" }}>
             <Button style={button} href={contractUrl}>
               Download your signed agreement
             </Button>
-            <Text style={hint}>This download link is valid for 30 days.</Text>
           </Section>
+        ) : null}
+
+        {coverDocumentUrl ? (
+          <Section style={{ textAlign: "center", margin: "0 0 12px" }}>
+            <Button style={buttonSecondary} href={coverDocumentUrl}>
+              Download your uploaded ID / cover document
+            </Button>
+          </Section>
+        ) : null}
+
+        {(contractUrl || coverDocumentUrl) ? (
+          <Text style={{ ...hint, textAlign: "center" as const }}>
+            These download links are valid for 30 days.
+          </Text>
         ) : null}
 
         <Text style={text}>
@@ -153,6 +168,15 @@ const value = {
   fontSize: "14px",
   color: "#0b1f3a",
   margin: "0 0 4px",
+};
+const buttonSecondary = {
+  backgroundColor: "#0b1f3a",
+  color: "#ffffff",
+  borderRadius: "8px",
+  padding: "12px 22px",
+  fontSize: "14px",
+  fontWeight: 700,
+  textDecoration: "none",
 };
 const button = {
   backgroundColor: "#ffb500",

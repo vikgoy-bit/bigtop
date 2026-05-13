@@ -332,7 +332,7 @@ export const signContract = createServerFn({ method: "POST" })
     const { data: booking, error } = await supabase
       .from("bookings")
       .select(
-        "id,user_id,storeganise_order_id,signed_at,unit_snapshot,move_in_date,total_pence",
+        "id,user_id,storeganise_order_id,signed_at,unit_snapshot,move_in_date,total_pence,cover_document_path",
       )
       .eq("id", data.bookingId)
       .maybeSingle();
@@ -451,6 +451,13 @@ export const signContract = createServerFn({ method: "POST" })
         const { data: signed } = await supabaseAdmin.storage
           .from("signed-contracts")
           .createSignedUrl(objectPath, 60 * 60 * 24 * 30);
+        let coverDocumentUrl: string | undefined;
+        if (booking.cover_document_path) {
+          const { data: coverSigned } = await supabaseAdmin.storage
+            .from("cover-documents")
+            .createSignedUrl(booking.cover_document_path, 60 * 60 * 24 * 30);
+          coverDocumentUrl = coverSigned?.signedUrl;
+        }
         emailResult = await sendTransactionalEmailServer({
           templateName: "booking-confirmation",
           recipientEmail: recipient,
@@ -466,6 +473,7 @@ export const signContract = createServerFn({ method: "POST" })
             moveInDate: tokens.startDate,
             monthlyPrice: tokens.rental.price,
             contractUrl: signed?.signedUrl,
+            coverDocumentUrl,
             bookingRef: booking.id.slice(0, 8),
           },
         });
