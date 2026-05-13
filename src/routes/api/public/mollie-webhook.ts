@@ -6,6 +6,81 @@ import {
   createStoreganiseUnitOrder,
 } from "@/lib/storeganise.server";
 
+async function linkStoreganiseOrder(booking: {
+  id: string;
+  user_id: string;
+  unit_id: string;
+  total_pence: number;
+  move_in_date: string;
+  protect_tier_id: string | null;
+  storeganise_user_id: string | null;
+  storeganise_order_id: string | null;
+}, payment: { id: string; customerId?: string; mandateId?: string }) {
+  if (booking.storeganise_order_id) return {};
+
+  const updates: { storeganise_user_id?: string; storeganise_order_id?: string } = {};
+  const { data: userInfo } = await supabaseAdmin.auth.admin.getUserById(booking.user_id);
+  const email = userInfo?.user?.email;
+  if (!email) throw new Error("No email on booking user");
+
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("full_name,phone")
+    .eq("id", booking.user_id)
+    .maybeSingle();
+
+  let sgUserId = booking.storeganise_user_id;
+  let sgUserPassword: string | undefined;
+  if (!sgUserId) {
+    const sgUser = await ensureStoreganiseUser({
+      email,
+      name: profile?.full_name || undefined,
+      phone: profile?.phone || undefined,
+    });
+    sgUserId = sgUser.id;
+    sgUserPassword = sgUser.password;
+    updates.storeganise_user_id = sgUserId;
+  } else {
+    const sgUser = await ensureStoreganiseUser({
+      email,
+      name: profile?.full_name || undefined,
+      phone: profile?.phone || undefined,
+    });
+    sgUserPassword = sgUser.password;
+  }
+
+  let sgProductId: string | null = null;
+  if (booking.protect_tier_id) {
+    const { data: tier } = await supabaseAdmin
+      .from("protect_tiers")
+      .select("storeganise_product_id")
+      .eq("id", booking.protect_tier_id)
+      .maybeSingle();
+    sgProductId = tier?.storeganise_product_id ?? null;
+  }
+
+  const order = await createStoreganiseUnitOrder({
+    userId: sgUserId,
+    unitTypeId: booking.unit_id,
+    startDate: booking.move_in_date,
+    products: sgProductId ? { [sgProductId]: 1 } : undefined,
+    userEmail: email,
+    userPassword: sgUserPassword,
+    notes: [
+      `Booking ${booking.id}`,
+      `First payment taken via Mollie (${payment.id}) — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`,
+      `Mandate: ${payment.mandateId ?? "n/a"} (Mollie customer ${payment.customerId ?? "n/a"}).`,
+      `PROMO: First month £1. Apply a manual prorata credit to next month's bill — staff to configure in Storeganise.`,
+      `BILLING: Monthly cycle anchored to signup/move-in date (${booking.move_in_date}). Bill full months — do NOT sync to 1st-of-month or any fixed date.`,
+      sgProductId
+        ? `BIGProtect product ${sgProductId} attached to order.`
+        : `No BIGProtect product attached (tier ${booking.protect_tier_id ?? "none"}).`,
+    ].join("\n"),
+  });
+  updates.storeganise_order_id = order.id;
+  return updates;
+}
+
 export const Route = createFileRoute("/api/public/mollie-webhook")({
   server: {
     handlers: {
@@ -67,57 +142,7 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
           // here on — we do NOT create a Mollie subscription.
           if (!booking.storeganise_order_id) {
             try {
-              // Look up the customer's email + profile details
-              const { data: userInfo } =
-                await supabaseAdmin.auth.admin.getUserById(booking.user_id);
-              const email = userInfo?.user?.email;
-              if (!email) throw new Error("No email on booking user");
-
-              const { data: profile } = await supabaseAdmin
-                .from("profiles")
-                .select("full_name,phone")
-                .eq("id", booking.user_id)
-                .maybeSingle();
-
-              let sgUserId = booking.storeganise_user_id;
-              if (!sgUserId) {
-                const sgUser = await ensureStoreganiseUser({
-                  email,
-                  name: profile?.full_name || undefined,
-                  phone: profile?.phone || undefined,
-                });
-                sgUserId = sgUser.id;
-                updates.storeganise_user_id = sgUserId;
-              }
-
-              // Look up the BIGProtect Storeganise product id for the chosen tier
-              let sgProductId: string | null = null;
-              if (booking.protect_tier_id) {
-                const { data: tier } = await supabaseAdmin
-                  .from("protect_tiers")
-                  .select("storeganise_product_id")
-                  .eq("id", booking.protect_tier_id)
-                  .maybeSingle();
-                sgProductId = tier?.storeganise_product_id ?? null;
-              }
-
-              const order = await createStoreganiseUnitOrder({
-                userId: sgUserId,
-                unitTypeId: booking.unit_id,
-                startDate: booking.move_in_date as string,
-                products: sgProductId ? { [sgProductId]: 1 } : undefined,
-                notes: [
-                  `Booking ${booking.id}`,
-                  `First payment taken via Mollie (${payment.id}) — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`,
-                  `Mandate: ${payment.mandateId ?? "n/a"} (Mollie customer ${payment.customerId ?? "n/a"}).`,
-                  `PROMO: First month £1. Apply a manual prorata credit to next month's bill — staff to configure in Storeganise.`,
-                  `BILLING: Monthly cycle anchored to signup/move-in date (${booking.move_in_date}). Bill full months — do NOT sync to 1st-of-month or any fixed date.`,
-                  sgProductId
-                    ? `BIGProtect product ${sgProductId} attached to order.`
-                    : `No BIGProtect product attached (tier ${booking.protect_tier_id ?? "none"}).`,
-                ].join("\n"),
-              });
-              updates.storeganise_order_id = order.id;
+              Object.assign(updates, await linkStoreganiseOrder(booking, payment));
             } catch (e) {
               console.error(
                 "Storeganise handoff failed",

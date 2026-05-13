@@ -11,7 +11,7 @@ function authHeaders(): HeadersInit {
   const key = process.env.STOREGANISE_API_KEY;
   if (!key) throw new Error("STOREGANISE_API_KEY is not set");
   return {
-    Authorization: `Bearer ${key}`,
+    Authorization: `ApiKey ${key}`,
     "Content-Type": "application/json",
     Accept: "application/json",
   };
@@ -34,6 +34,24 @@ async function sg<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new Error(msg);
   }
   return json as T;
+}
+
+async function authenticateStoreganiseUser(email: string, password: string) {
+  const token = btoa(`${email}:${password}`);
+  const res = await fetch(`${BASE}/auth/token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({}),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json.accessToken) {
+    throw new Error(`Storeganise auth failed: ${json?.error?.message ?? res.status}`);
+  }
+  return json.accessToken as string;
 }
 
 /** Fetch the full unit order object (includes any agreement/contract fields Storeganise exposes). */
@@ -78,7 +96,7 @@ export async function uploadSignedContractToStoreganise(params: {
       form.append("type", "agreement");
       const res = await fetch(`${BASE}${path}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
+        headers: { Authorization: `ApiKey ${key}`, Accept: "application/json" },
         body: form,
       });
       if (res.ok) return { uploaded: true, via: path, error: null };
@@ -99,6 +117,19 @@ async function getSiteId(): Promise<string> {
 }
 
 export type SgUser = { id: string; email?: string };
+export type EnsuredSgUser = SgUser & { password?: string };
+
+function splitName(name: string | undefined, email: string) {
+  const fallback = email.split("@")[0]?.replace(/[._-]+/g, " ").trim() || "Customer";
+  const parts = (name?.trim() || fallback).split(/\s+/).filter(Boolean);
+  const firstName = parts[0] || "Customer";
+  const lastName = parts.slice(1).join(" ") || firstName;
+  return { firstName, lastName };
+}
+
+function createTemporaryPassword() {
+  return `Bt!${crypto.randomUUID().replace(/-/g, "").slice(0, 24)}aA1`;
+}
 
 /**
  * Find an existing Storeganise user by email or create one.
@@ -108,26 +139,42 @@ export async function ensureStoreganiseUser(params: {
   email: string;
   name?: string;
   phone?: string;
-}): Promise<SgUser> {
+}): Promise<EnsuredSgUser> {
   // Try lookup first
   try {
-    const found = await sg<{ users?: SgUser[] }>(
-      `/users?email=${encodeURIComponent(params.email)}&limit=1`,
+    const found = await sg<SgUser[] | { data?: SgUser[]; users?: SgUser[] }>(
+      `/admin/users?search=${encodeURIComponent(params.email)}&limit=20`,
     );
-    const existing = found.users?.[0];
-    if (existing?.id) return existing;
+    const users = Array.isArray(found) ? found : (found.users ?? found.data ?? []);
+    const existing = users.find((u) => u.email === params.email) ?? users[0];
+    if (existing?.id) {
+      const password = createTemporaryPassword();
+      await sg<SgUser>(`/admin/users/${existing.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ password }),
+      });
+      return { ...existing, email: params.email, password };
+    }
   } catch {
     // fall through to create
   }
 
-  return sg<SgUser>(`/users`, {
+  const { firstName, lastName } = splitName(params.name, params.email);
+  const password = createTemporaryPassword();
+
+  const user = await sg<SgUser>(`/admin/users`, {
     method: "POST",
     body: JSON.stringify({
       email: params.email,
-      name: params.name,
+      firstName,
+      lastName,
       phone: params.phone,
+      password,
+      language: "en",
+      isActive: true,
     }),
   });
+  return { ...user, email: params.email, password };
 }
 
 /**
@@ -141,15 +188,22 @@ export async function createStoreganiseUnitOrder(params: {
   notes?: string;
   /** Map of Storeganise product id -> quantity (e.g. BIGProtect tier). */
   products?: Record<string, number>;
+  userEmail?: string;
+  userPassword?: string;
 }): Promise<{ id: string }> {
   const siteId = await getSiteId();
+  const userToken = params.userEmail && params.userPassword
+    ? await authenticateStoreganiseUser(params.userEmail, params.userPassword)
+    : null;
   return sg<{ id: string }>(`/units/orders`, {
     method: "POST",
+    headers: userToken ? { Authorization: `Bearer ${userToken}` } : undefined,
     body: JSON.stringify({
       userId: params.userId,
       siteId,
       unitTypeId: params.unitTypeId,
       startDate: params.startDate,
+      submitLater: true,
       notes: params.notes,
       ...(params.products && Object.keys(params.products).length > 0
         ? { products: params.products }
