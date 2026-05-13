@@ -435,6 +435,43 @@ export const signContract = createServerFn({ method: "POST" })
       .eq("id", booking.id);
     if (updErr) throw new Error(updErr.message);
 
+    // Send booking confirmation email with a download link to the signed PDF.
+    const recipient = (claims.email as string | undefined) ?? "";
+    let emailResult: Awaited<ReturnType<typeof sendTransactionalEmailServer>> = {
+      ok: false,
+      error: "Skipped: no recipient email",
+    };
+    if (recipient) {
+      try {
+        const { data: signed } = await supabaseAdmin.storage
+          .from("signed-contracts")
+          .createSignedUrl(objectPath, 60 * 60 * 24 * 30);
+        emailResult = await sendTransactionalEmailServer({
+          templateName: "booking-confirmation",
+          recipientEmail: recipient,
+          idempotencyKey: `booking-confirm-${booking.id}`,
+          templateData: {
+            customerName: tokens.user.firstName,
+            unitName: refreshedSnapshot?.name,
+            unitTitle:
+              refreshedSnapshot?.title ||
+              [refreshedSnapshot?.groupTitle, refreshedSnapshot?.size_group]
+                .filter(Boolean)
+                .join(" "),
+            moveInDate: tokens.startDate,
+            monthlyPrice: tokens.rental.price,
+            contractUrl: signed?.signedUrl,
+            bookingRef: booking.id.slice(0, 8),
+          },
+        });
+      } catch (e) {
+        emailResult = {
+          ok: false,
+          error: e instanceof Error ? e.message : String(e),
+        };
+      }
+    }
+
     return {
       ok: true,
       alreadySigned: false,
