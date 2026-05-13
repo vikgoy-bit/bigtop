@@ -20,6 +20,7 @@ interface BookingConfirmationProps {
   moveInDate?: string;
   monthlyPrice?: string;
   contractUrl?: string;
+  coverDocumentUrl?: string;
   bookingRef?: string;
 }
 
@@ -30,6 +31,7 @@ const BookingConfirmationEmail = ({
   moveInDate,
   monthlyPrice,
   contractUrl,
+  coverDocumentUrl,
   bookingRef,
 }: BookingConfirmationProps) => (
   <Html lang="en" dir="ltr">
