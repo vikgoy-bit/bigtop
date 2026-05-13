@@ -67,10 +67,9 @@ function formatAddress(p: {
 }
 
 /**
- * Storeganise allocates a specific unit to the order some time after creation
- * (often immediately, sometimes on move-in). Re-fetch the order and merge any
- * assigned unit details into the booking snapshot so the contract shows the
- * real unit number/type instead of "to be assigned".
+ * Storeganise allocates a specific unit after the deferred order is submitted.
+ * Re-fetch the order and merge any assigned unit details into the booking
+ * snapshot so downstream views can show the real unit number/type.
  */
 async function refreshUnitSnapshot(
   orderId: string | null | undefined,
@@ -87,27 +86,6 @@ async function refreshUnitSnapshot(
       (order.unitType as Record<string, any> | undefined) ??
       (order.result?.unitType as Record<string, any> | undefined) ??
       undefined;
-
-    // No specific unit allocated yet — Storeganise only allocates one when the
-    // unit_moveIn job is submitted. Submit it now (best-effort) and re-fetch.
-    if (!unit) {
-      const state =
-        (order.state as string | undefined) ??
-        (order.result?.orderState as string | undefined) ??
-        (order.orderState as string | undefined);
-      if (state === "notSubmitted" || order.submitLater === true) {
-        await submitStoreganiseUnitOrder(orderId);
-        order = (await getStoreganiseOrder(orderId)) as Record<string, any>;
-        unit =
-          (order.unit as Record<string, any> | undefined) ??
-          (order.result?.unit as Record<string, any> | undefined) ??
-          undefined;
-        unitType =
-          (order.unitType as Record<string, any> | undefined) ??
-          (order.result?.unitType as Record<string, any> | undefined) ??
-          unitType;
-      }
-    }
 
     if (!unit && !unitType) return current;
     return {
