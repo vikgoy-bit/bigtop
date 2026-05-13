@@ -64,8 +64,7 @@ function ContractPage() {
     if (agreement.html) {
       return (
         <div
-          className="prose prose-sm max-w-none dark:prose-invert"
-          // Storeganise-controlled content — sanitised via plain HTML render in iframe-like container.
+          className="agreement-doc"
           dangerouslySetInnerHTML={{ __html: agreement.html }}
         />
       );
