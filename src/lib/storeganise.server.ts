@@ -213,6 +213,7 @@ export async function createStoreganiseUnitOrder(params: {
     return await sg<{ id: string }>(`/units/orders`, {
       method: "POST",
       body: JSON.stringify({
+        submitLater: true,
         userId: params.userId,
         siteId,
         unitTypeId: params.unitTypeId,
