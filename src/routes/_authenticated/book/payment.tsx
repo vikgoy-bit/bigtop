@@ -73,6 +73,14 @@ function PaymentPage() {
     }
   };
 
+  useEffect(() => {
+    if (bookingId && booking && !autoStarted && !submitting) {
+      setAutoStarted(true);
+      handleContinue();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingId, booking, autoStarted]);
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
