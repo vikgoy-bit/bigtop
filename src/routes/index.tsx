@@ -84,7 +84,7 @@ function SelectUnitPage() {
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <div className="flex flex-col gap-2">
           <span className="text-xs font-semibold uppercase tracking-widest text-accent">
-            Step 1 of 4 · Choose your unit
+            Step 1 of 5 · Choose your unit
           </span>
           <h2 className="font-display text-3xl font-bold sm:text-4xl">
             Select your <span className="text-accent">unit</span>
