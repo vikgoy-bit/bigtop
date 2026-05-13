@@ -33,6 +33,60 @@ async function sg<T>(path: string, init: RequestInit = {}): Promise<T> {
   return json as T;
 }
 
+/** Fetch the full unit order object (includes any agreement/contract fields Storeganise exposes). */
+export async function getStoreganiseOrder(orderId: string): Promise<Record<string, unknown>> {
+  return sg<Record<string, unknown>>(`/units/orders/${orderId}`);
+}
+
+/**
+ * Try to attach a signed contract PDF to a unit order. Storeganise's document
+ * endpoint isn't publicly documented, so we attempt a couple of best-guess
+ * paths and return whichever succeeds. The PDF is also stored in our own
+ * bucket regardless of upload outcome so nothing is lost if every endpoint 404s.
+ */
+export async function uploadSignedContractToStoreganise(params: {
+  orderId: string;
+  fileName: string;
+  pdf: Uint8Array;
+}): Promise<{ uploaded: boolean; via: string | null; error: string | null }> {
+  const key = process.env.STOREGANISE_API_KEY;
+  if (!key) return { uploaded: false, via: null, error: "STOREGANISE_API_KEY not set" };
+
+  const candidates = [
+    `/units/orders/${params.orderId}/files`,
+    `/units/orders/${params.orderId}/documents`,
+    `/units/orders/${params.orderId}/attachments`,
+  ];
+
+  let lastError = "";
+  for (const path of candidates) {
+    try {
+      const form = new FormData();
+      const buf = params.pdf.buffer.slice(
+        params.pdf.byteOffset,
+        params.pdf.byteOffset + params.pdf.byteLength,
+      ) as ArrayBuffer;
+      form.append(
+        "file",
+        new Blob([buf], { type: "application/pdf" }),
+        params.fileName,
+      );
+      form.append("name", params.fileName);
+      form.append("type", "agreement");
+      const res = await fetch(`${BASE}${path}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
+        body: form,
+      });
+      if (res.ok) return { uploaded: true, via: path, error: null };
+      lastError = `${res.status} on ${path}: ${(await res.text()).slice(0, 200)}`;
+    } catch (e) {
+      lastError = `${path}: ${e instanceof Error ? e.message : String(e)}`;
+    }
+  }
+  return { uploaded: false, via: null, error: lastError };
+}
+
 let cachedSiteId: string | null = null;
 async function getSiteId(): Promise<string> {
   if (cachedSiteId) return cachedSiteId;
