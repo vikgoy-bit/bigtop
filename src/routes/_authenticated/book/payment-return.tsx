@@ -85,7 +85,7 @@ function PaymentReturnPage() {
               <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
               <h1 className="mt-4 font-display text-2xl font-bold">Payment received</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Taking you to ID verification…
+                Taking you to your contract…
               </p>
             </>
           )}
