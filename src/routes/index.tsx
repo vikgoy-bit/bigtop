@@ -64,7 +64,7 @@ function SelectUnitPage() {
   };
 
   return (
-    <TooltipProvider delayDuration={100}>
+    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
