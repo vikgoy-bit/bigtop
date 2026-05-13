@@ -123,10 +123,11 @@ export async function ensureStoreganiseUser(params: {
 }): Promise<SgUser> {
   // Try lookup first
   try {
-    const found = await sg<{ users?: SgUser[] }>(
-      `/users?email=${encodeURIComponent(params.email)}&limit=1`,
+    const found = await sg<SgUser[] | { data?: SgUser[]; users?: SgUser[] }>(
+      `/admin/users?search=${encodeURIComponent(params.email)}&limit=20`,
     );
-    const existing = found.users?.[0];
+    const users = Array.isArray(found) ? found : (found.users ?? found.data ?? []);
+    const existing = users.find((u) => u.email === params.email) ?? users[0];
     if (existing?.id) return existing;
   } catch {
     // fall through to create
@@ -134,15 +135,16 @@ export async function ensureStoreganiseUser(params: {
 
   const { firstName, lastName } = splitName(params.name, params.email);
 
-  return sg<SgUser>(`/users`, {
+  return sg<SgUser>(`/admin/users`, {
     method: "POST",
     body: JSON.stringify({
       email: params.email,
       firstName,
       lastName,
-      name: params.name,
       phone: params.phone,
       password: createTemporaryPassword(),
+      language: "en",
+      isActive: true,
     }),
   });
 }
