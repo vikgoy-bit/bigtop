@@ -41,6 +41,31 @@ export async function getStoreganiseOrder(orderId: string): Promise<Record<strin
   return sg<Record<string, unknown>>(`/units/orders/${orderId}`);
 }
 
+/**
+ * Submit a previously-deferred unit order so Storeganise allocates a specific
+ * unit to it. Orders are created with `submitLater: true` so we control the
+ * timing; this finalises them. Tries a couple of endpoint shapes because
+ * Storeganise's submit verb isn't publicly documented.
+ */
+export async function submitStoreganiseUnitOrder(
+  orderId: string,
+): Promise<{ submitted: boolean; via: string | null; error: string | null }> {
+  const candidates = [
+    `/units/orders/${orderId}/submit`,
+    `/admin/jobs/${orderId}/submit`,
+  ];
+  let lastError = "";
+  for (const path of candidates) {
+    try {
+      await sg<Record<string, unknown>>(path, { method: "POST", body: "{}" });
+      return { submitted: true, via: path, error: null };
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : String(e);
+    }
+  }
+  return { submitted: false, via: null, error: lastError };
+}
+
 /** Fetch the public business settings (terms URL, company name, etc.). */
 export async function getStoreganiseSettings(): Promise<Record<string, unknown>> {
   return sg<Record<string, unknown>>(`/settings`);
