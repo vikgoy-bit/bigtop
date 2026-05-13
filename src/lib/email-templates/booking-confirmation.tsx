@@ -85,12 +85,25 @@ const BookingConfirmationEmail = ({
         </Section>
 
         {contractUrl ? (
-          <Section style={{ textAlign: "center", margin: "28px 0" }}>
+          <Section style={{ textAlign: "center", margin: "28px 0 12px" }}>
             <Button style={button} href={contractUrl}>
               Download your signed agreement
             </Button>
-            <Text style={hint}>This download link is valid for 30 days.</Text>
           </Section>
+        ) : null}
+
+        {coverDocumentUrl ? (
+          <Section style={{ textAlign: "center", margin: "0 0 12px" }}>
+            <Button style={buttonSecondary} href={coverDocumentUrl}>
+              Download your uploaded ID / cover document
+            </Button>
+          </Section>
+        ) : null}
+
+        {(contractUrl || coverDocumentUrl) ? (
+          <Text style={{ ...hint, textAlign: "center" as const }}>
+            These download links are valid for 30 days.
+          </Text>
         ) : null}
 
         <Text style={text}>
