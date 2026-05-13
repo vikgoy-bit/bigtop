@@ -66,11 +66,20 @@ function formatAddress(p: {
     .join(", ");
 }
 
+function buildSignatureDataUrl(name: string, signedAt: Date): string {
+  const safeName = name
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="200" viewBox="0 0 560 200"><rect width="560" height="200" fill="white"/><text x="36" y="108" font-family="Georgia, 'Times New Roman', serif" font-size="42" fill="#111827">${safeName}</text><line x1="32" y1="142" x2="528" y2="142" stroke="#111827" stroke-width="2"/><text x="36" y="168" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">Signed electronically ${signedAt.toISOString()}</text></svg>`;
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
+
 /**
- * Storeganise allocates a specific unit to the order some time after creation
- * (often immediately, sometimes on move-in). Re-fetch the order and merge any
- * assigned unit details into the booking snapshot so the contract shows the
- * real unit number/type instead of "to be assigned".
+ * Storeganise allocates a specific unit after the deferred order is submitted.
+ * Re-fetch the order and merge any assigned unit details into the booking
+ * snapshot so downstream views can show the real unit number/type.
  */
 async function refreshUnitSnapshot(
   orderId: string | null | undefined,
@@ -87,27 +96,6 @@ async function refreshUnitSnapshot(
       (order.unitType as Record<string, any> | undefined) ??
       (order.result?.unitType as Record<string, any> | undefined) ??
       undefined;
-
-    // No specific unit allocated yet — Storeganise only allocates one when the
-    // unit_moveIn job is submitted. Submit it now (best-effort) and re-fetch.
-    if (!unit) {
-      const state =
-        (order.state as string | undefined) ??
-        (order.result?.orderState as string | undefined) ??
-        (order.orderState as string | undefined);
-      if (state === "notSubmitted" || order.submitLater === true) {
-        await submitStoreganiseUnitOrder(orderId);
-        order = (await getStoreganiseOrder(orderId)) as Record<string, any>;
-        unit =
-          (order.unit as Record<string, any> | undefined) ??
-          (order.result?.unit as Record<string, any> | undefined) ??
-          undefined;
-        unitType =
-          (order.unitType as Record<string, any> | undefined) ??
-          (order.result?.unitType as Record<string, any> | undefined) ??
-          unitType;
-      }
-    }
 
     if (!unit && !unitType) return current;
     return {
@@ -199,7 +187,7 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     if (!booking) throw new Error("Booking not found");
 
     const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
-    const refreshedSnapshot = await refreshUnitSnapshot(
+    let refreshedSnapshot = await refreshUnitSnapshot(
       booking.storeganise_order_id,
       baseSnapshot,
     );
@@ -357,7 +345,7 @@ export const signContract = createServerFn({ method: "POST" })
     const signedAt = new Date();
 
     const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
-    const refreshedSnapshot = await refreshUnitSnapshot(
+    let refreshedSnapshot = await refreshUnitSnapshot(
       booking.storeganise_order_id,
       baseSnapshot,
     );
@@ -422,6 +410,23 @@ export const signContract = createServerFn({ method: "POST" })
       });
     }
 
+    let sgSubmit: Awaited<ReturnType<typeof submitStoreganiseUnitOrder>> = {
+      submitted: false,
+      via: null,
+      error: "Skipped: no Storeganise order linked",
+    };
+    if (booking.storeganise_order_id) {
+      sgSubmit = await submitStoreganiseUnitOrder(booking.storeganise_order_id, {
+        signatureUrl: buildSignatureDataUrl(data.fullName, signedAt),
+      });
+      if (sgSubmit.submitted) {
+        refreshedSnapshot = await refreshUnitSnapshot(
+          booking.storeganise_order_id,
+          refreshedSnapshot,
+        );
+      }
+    }
+
     const { error: updErr } = await supabase
       .from("bookings")
       .update({
@@ -475,6 +480,7 @@ export const signContract = createServerFn({ method: "POST" })
     return {
       ok: true,
       alreadySigned: false,
+      storeganiseSubmit: sgSubmit,
       storeganiseUpload: sgUpload,
       email: emailResult,
     };

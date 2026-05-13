@@ -43,19 +43,31 @@ export async function getStoreganiseOrder(orderId: string): Promise<Record<strin
 
 /**
  * Submit a previously-deferred unit order so Storeganise allocates a specific
- * unit to it. Orders are created with `submitLater: true` so we control the
- * timing; this finalises them. Tries a couple of endpoint shapes because
- * Storeganise's submit verb isn't publicly documented.
+ * unit to it. Storeganise requires the e-signature to be stored on the order
+ * before the final `submitNow` update when move-in agreements are enabled.
  */
 export async function submitStoreganiseUnitOrder(
   orderId: string,
+  params: { signatureUrl?: string } = {},
 ): Promise<{ submitted: boolean; via: string | null; error: string | null }> {
-  const candidates = [
-    `/units/orders/${orderId}/submit`,
-    `/admin/jobs/${orderId}/submit`,
-  ];
   let lastError = "";
-  for (const path of candidates) {
+  try {
+    if (params.signatureUrl) {
+      await sg<Record<string, unknown>>(`/units/orders/${orderId}`, {
+        method: "PUT",
+        body: JSON.stringify({ signatureUrl: params.signatureUrl }),
+      });
+    }
+    await sg<Record<string, unknown>>(`/units/orders/${orderId}`, {
+      method: "PUT",
+      body: JSON.stringify({ submitNow: true }),
+    });
+    return { submitted: true, via: `/units/orders/${orderId}`, error: null };
+  } catch (e) {
+    lastError = e instanceof Error ? e.message : String(e);
+  }
+
+  for (const path of [`/units/orders/${orderId}/submit`, `/admin/jobs/${orderId}/submit`]) {
     try {
       await sg<Record<string, unknown>>(path, { method: "POST", body: "{}" });
       return { submitted: true, via: path, error: null };
@@ -201,6 +213,7 @@ export async function createStoreganiseUnitOrder(params: {
     return await sg<{ id: string }>(`/units/orders`, {
       method: "POST",
       body: JSON.stringify({
+        submitLater: true,
         userId: params.userId,
         siteId,
         unitTypeId: params.unitTypeId,
