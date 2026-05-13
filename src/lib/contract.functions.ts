@@ -99,11 +99,12 @@ async function buildAgreementTokens(args: {
       phone: profile?.phone ?? "",
     },
     unit: {
-      name: args.unitSnapshot?.name ?? args.unitSnapshot?.title ?? "",
+      name: args.unitSnapshot?.name ?? "To be assigned at move-in",
       type:
-        args.unitSnapshot?.size_group ??
-        args.unitSnapshot?.groupTitle ??
-        args.unitSnapshot?.groupCode ??
+        args.unitSnapshot?.title ??
+        [args.unitSnapshot?.groupTitle, args.unitSnapshot?.size_group]
+          .filter(Boolean)
+          .join(" ") ||
         "",
     },
     startDate,
