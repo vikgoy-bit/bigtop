@@ -66,6 +66,16 @@ function formatAddress(p: {
     .join(", ");
 }
 
+function buildSignatureDataUrl(name: string, signedAt: Date): string {
+  const safeName = name
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="200" viewBox="0 0 560 200"><rect width="560" height="200" fill="white"/><text x="36" y="108" font-family="Georgia, 'Times New Roman', serif" font-size="42" fill="#111827">${safeName}</text><line x1="32" y1="142" x2="528" y2="142" stroke="#111827" stroke-width="2"/><text x="36" y="168" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">Signed electronically ${signedAt.toISOString()}</text></svg>`;
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
+
 /**
  * Storeganise allocates a specific unit after the deferred order is submitted.
  * Re-fetch the order and merge any assigned unit details into the booking
