@@ -169,6 +169,7 @@ export async function createStoreganiseUnitOrder(params: {
       siteId,
       unitTypeId: params.unitTypeId,
       startDate: params.startDate,
+      submitLater: true,
       notes: params.notes,
       ...(params.products && Object.keys(params.products).length > 0
         ? { products: params.products }
