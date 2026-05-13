@@ -101,7 +101,7 @@ async function buildAgreementTokens(args: {
     unit: {
       name: args.unitSnapshot?.name ?? "To be assigned at move-in",
       type:
-        args.unitSnapshot?.title ??
+        args.unitSnapshot?.title ||
         [args.unitSnapshot?.groupTitle, args.unitSnapshot?.size_group]
           .filter(Boolean)
           .join(" ") ||
