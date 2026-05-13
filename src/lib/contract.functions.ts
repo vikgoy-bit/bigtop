@@ -4,7 +4,10 @@ import { z } from "zod";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { uploadSignedContractToStoreganise } from "./storeganise.server";
+import {
+  getStoreganiseOrder,
+  uploadSignedContractToStoreganise,
+} from "./storeganise.server";
 import {
   renderAgreementHtml,
   renderAgreementText,
@@ -59,6 +62,45 @@ function formatAddress(p: {
     .map((x) => (x ?? "").trim())
     .filter(Boolean)
     .join(", ");
+}
+
+/**
+ * Storeganise allocates a specific unit to the order some time after creation
+ * (often immediately, sometimes on move-in). Re-fetch the order and merge any
+ * assigned unit details into the booking snapshot so the contract shows the
+ * real unit number/type instead of "to be assigned".
+ */
+async function refreshUnitSnapshot(
+  orderId: string | null | undefined,
+  current: UnitSnapshot | null,
+): Promise<UnitSnapshot | null> {
+  if (!orderId) return current;
+  try {
+    const order = (await getStoreganiseOrder(orderId)) as Record<string, any>;
+    const unit =
+      (order.unit as Record<string, any> | undefined) ??
+      (order.result?.unit as Record<string, any> | undefined) ??
+      undefined;
+    const unitType =
+      (order.unitType as Record<string, any> | undefined) ??
+      (order.result?.unitType as Record<string, any> | undefined) ??
+      undefined;
+    if (!unit && !unitType) return current;
+    return {
+      ...(current ?? {}),
+      id: unit?.id ?? current?.id,
+      name: unit?.name ?? unit?.code ?? current?.name,
+      title: unit?.title ?? unitType?.title ?? current?.title,
+      groupTitle:
+        unit?.groupTitle ?? unitType?.groupTitle ?? current?.groupTitle,
+      groupCode: unit?.groupCode ?? unitType?.groupCode ?? current?.groupCode,
+      size_group:
+        unit?.sizeGroup ?? unitType?.sizeGroup ?? current?.size_group,
+      size_sqft: unit?.sizeSqft ?? unitType?.sizeSqft ?? current?.size_sqft,
+    };
+  } catch {
+    return current;
+  }
 }
 
 async function buildAgreementTokens(args: {
@@ -132,15 +174,29 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!booking) throw new Error("Booking not found");
 
+    const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
+    const refreshedSnapshot = await refreshUnitSnapshot(
+      booking.storeganise_order_id,
+      baseSnapshot,
+    );
+
+    // Persist the enriched snapshot so the signed PDF and downstream views all
+    // see the assigned unit without another round-trip.
+    if (refreshedSnapshot && refreshedSnapshot !== baseSnapshot) {
+      await supabaseAdmin
+        .from("bookings")
+        .update({ unit_snapshot: refreshedSnapshot })
+        .eq("id", booking.id);
+    }
+
     const tokens = await buildAgreementTokens({
       supabase: supabaseAdmin,
       userId,
       email: (claims.email as string | undefined) ?? "",
-      unitSnapshot: booking.unit_snapshot as UnitSnapshot | null,
+      unitSnapshot: refreshedSnapshot,
       moveInDate: booking.move_in_date,
       monthlyPence:
-        (booking.unit_snapshot as UnitSnapshot | null)?.monthly_price_pence ??
-        null,
+        refreshedSnapshot?.monthly_price_pence ?? null,
     });
 
     return {
@@ -276,15 +332,19 @@ export const signContract = createServerFn({ method: "POST" })
 
     const signedAt = new Date();
 
+    const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
+    const refreshedSnapshot = await refreshUnitSnapshot(
+      booking.storeganise_order_id,
+      baseSnapshot,
+    );
+
     const tokens = await buildAgreementTokens({
       supabase: supabaseAdmin,
       userId,
       email: (claims.email as string | undefined) ?? "",
-      unitSnapshot: booking.unit_snapshot as UnitSnapshot | null,
+      unitSnapshot: refreshedSnapshot,
       moveInDate: booking.move_in_date,
-      monthlyPence:
-        (booking.unit_snapshot as UnitSnapshot | null)?.monthly_price_pence ??
-        null,
+      monthlyPence: refreshedSnapshot?.monthly_price_pence ?? null,
       signedAt,
     });
 
@@ -344,6 +404,9 @@ export const signContract = createServerFn({ method: "POST" })
         signed_at: signedAt.toISOString(),
         signer_name: data.fullName,
         signed_contract_path: objectPath,
+        ...(refreshedSnapshot && refreshedSnapshot !== baseSnapshot
+          ? { unit_snapshot: refreshedSnapshot }
+          : {}),
       })
       .eq("id", booking.id);
     if (updErr) throw new Error(updErr.message);
