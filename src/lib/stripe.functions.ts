@@ -31,7 +31,7 @@ export const startIdentityVerification = createServerFn({ method: "POST" })
       return_url: returnUrl,
       options: {
         document: {
-          require_matching_selfie: true,
+          require_matching_selfie: false,
           require_live_capture: true,
           allowed_types: ["driving_license", "passport", "id_card"],
         },
