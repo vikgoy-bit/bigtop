@@ -10,10 +10,16 @@ import {
 } from "./mollie.server";
 
 function getOrigin(): string {
+  // Prefer explicit public base URL when set (useful for local dev with a tunnel)
+  const explicit = process.env.PUBLIC_BASE_URL;
+  if (explicit) return explicit.replace(/\/$/, "");
+
   const host = getRequestHost();
-  const proto =
-    getRequestHeader("x-forwarded-proto") ||
-    (host.includes("localhost") ? "http" : "https");
+  // Mollie cannot reach localhost — fall back to the stable preview URL
+  if (host.includes("localhost") || host.startsWith("127.")) {
+    return "https://project--8238eee0-8806-4c3f-87d4-28569a4c2d00-dev.lovable.app";
+  }
+  const proto = getRequestHeader("x-forwarded-proto") || "https";
   return `${proto}://${host}`;
 }
 
