@@ -77,15 +77,37 @@ async function refreshUnitSnapshot(
 ): Promise<UnitSnapshot | null> {
   if (!orderId) return current;
   try {
-    const order = (await getStoreganiseOrder(orderId)) as Record<string, any>;
-    const unit =
+    let order = (await getStoreganiseOrder(orderId)) as Record<string, any>;
+    let unit =
       (order.unit as Record<string, any> | undefined) ??
       (order.result?.unit as Record<string, any> | undefined) ??
       undefined;
-    const unitType =
+    let unitType =
       (order.unitType as Record<string, any> | undefined) ??
       (order.result?.unitType as Record<string, any> | undefined) ??
       undefined;
+
+    // No specific unit allocated yet — Storeganise only allocates one when the
+    // unit_moveIn job is submitted. Submit it now (best-effort) and re-fetch.
+    if (!unit) {
+      const state =
+        (order.state as string | undefined) ??
+        (order.result?.orderState as string | undefined) ??
+        (order.orderState as string | undefined);
+      if (state === "notSubmitted" || order.submitLater === true) {
+        await submitStoreganiseUnitOrder(orderId);
+        order = (await getStoreganiseOrder(orderId)) as Record<string, any>;
+        unit =
+          (order.unit as Record<string, any> | undefined) ??
+          (order.result?.unit as Record<string, any> | undefined) ??
+          undefined;
+        unitType =
+          (order.unitType as Record<string, any> | undefined) ??
+          (order.result?.unitType as Record<string, any> | undefined) ??
+          unitType;
+      }
+    }
+
     if (!unit && !unitType) return current;
     return {
       ...(current ?? {}),
