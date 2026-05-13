@@ -90,9 +90,21 @@ function SelectUnitPage() {
             Select your <span className="text-accent">unit</span>
           </h2>
           <p className="text-sm text-muted-foreground">
-            Every unit includes 24/7 CCTV, smart entry and modern interiors. Cancel anytime*.
+            Every unit includes 24/7 CCTV, smart entry and modern interiors. Cancel anytime
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="cursor-help align-baseline text-accent underline decoration-dotted underline-offset-2"
+                  aria-label="One month's notice required"
+                >
+                  *
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>One month's notice required.</TooltipContent>
+            </Tooltip>
+            .
           </p>
-          <p className="text-[11px] text-muted-foreground">*One month's notice required.</p>
         </div>
 
         {/* Filter pills + VAT toggle */}
