@@ -42,6 +42,7 @@ function PaymentPage() {
   });
 
   const startPayment = useServerFn(startMolliePayment);
+  const [autoStarted, setAutoStarted] = useState(false);
 
   const handleContinue = async () => {
     if (!bookingId) return;
