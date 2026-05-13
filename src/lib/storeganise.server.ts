@@ -23,11 +23,14 @@ async function sg<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers: { ...authHeaders(), ...(init.headers || {}) },
   });
   const text = await res.text();
-  const json = text ? JSON.parse(text) : {};
+  let json: any = {};
+  try { json = text ? JSON.parse(text) : {}; } catch { /* non-JSON body */ }
   if (!res.ok) {
-    const msg =
-      (json && (json.message || json.error)) ||
-      `Storeganise ${res.status} on ${path}`;
+    const detail =
+      (json && (json.message || json.error || json.errors)) ||
+      text.slice(0, 400) ||
+      `HTTP ${res.status}`;
+    const msg = `Storeganise ${res.status} on ${path}: ${typeof detail === "string" ? detail : JSON.stringify(detail)}`;
     throw new Error(msg);
   }
   return json as T;
