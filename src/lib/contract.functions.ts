@@ -318,6 +318,7 @@ export const signContract = createServerFn({ method: "POST" })
 
     let sgUpload: Awaited<ReturnType<typeof uploadSignedContractToStoreganise>> = {
       uploaded: false,
+      via: null,
       error: "Skipped: no Storeganise order linked",
     };
     if (booking.storeganise_order_id) {
