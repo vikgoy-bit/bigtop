@@ -107,8 +107,7 @@ const BookingConfirmationEmail = ({
         ) : null}
 
         <Text style={text}>
-          Bring photo ID on move-in day. If anything changes, just reply to this
-          email and the team will help.
+          If anything changes, just reply to this email and the team will help.
         </Text>
 
         <Text style={footer}>— The {SITE_NAME} team</Text>
