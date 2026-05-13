@@ -404,6 +404,9 @@ export const signContract = createServerFn({ method: "POST" })
         signed_at: signedAt.toISOString(),
         signer_name: data.fullName,
         signed_contract_path: objectPath,
+        ...(refreshedSnapshot && refreshedSnapshot !== baseSnapshot
+          ? { unit_snapshot: refreshedSnapshot }
+          : {}),
       })
       .eq("id", booking.id);
     if (updErr) throw new Error(updErr.message);
