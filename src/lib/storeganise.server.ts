@@ -36,24 +36,6 @@ async function sg<T>(path: string, init: RequestInit = {}): Promise<T> {
   return json as T;
 }
 
-async function authenticateStoreganiseUser(email: string, password: string) {
-  const token = btoa(`${email}:${password}`);
-  const res = await fetch(`${BASE}/auth/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({}),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || !json.accessToken) {
-    throw new Error(`Storeganise auth failed: ${json?.error?.message ?? res.status}`);
-  }
-  return json.accessToken as string;
-}
-
 /** Fetch the full unit order object (includes any agreement/contract fields Storeganise exposes). */
 export async function getStoreganiseOrder(orderId: string): Promise<Record<string, unknown>> {
   return sg<Record<string, unknown>>(`/units/orders/${orderId}`);
@@ -183,8 +165,6 @@ export async function createStoreganiseUnitOrder(params: {
   notes?: string;
   /** Map of Storeganise product id -> quantity (e.g. BIGProtect tier). */
   products?: Record<string, number>;
-  userEmail?: string;
-  userPassword?: string;
 }): Promise<{ id: string }> {
   const siteId = await getSiteId();
   try {
