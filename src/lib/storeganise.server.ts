@@ -11,7 +11,7 @@ function authHeaders(): HeadersInit {
   const key = process.env.STOREGANISE_API_KEY;
   if (!key) throw new Error("STOREGANISE_API_KEY is not set");
   return {
-    Authorization: `Bearer ${key}`,
+    Authorization: `ApiKey ${key}`,
     "Content-Type": "application/json",
     Accept: "application/json",
   };
@@ -78,7 +78,7 @@ export async function uploadSignedContractToStoreganise(params: {
       form.append("type", "agreement");
       const res = await fetch(`${BASE}${path}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
+        headers: { Authorization: `ApiKey ${key}`, Accept: "application/json" },
         body: form,
       });
       if (res.ok) return { uploaded: true, via: path, error: null };
