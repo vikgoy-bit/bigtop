@@ -79,6 +79,21 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     try {
       const order = await getStoreganiseOrder(booking.storeganise_order_id);
       const agreement = extractAgreement(order);
+
+      // Storeganise on this account hosts the agreement externally — pull the
+      // public termsUrl from /settings as a fallback so users can read it.
+      if (!agreement.html && !agreement.text && !agreement.url) {
+        try {
+          const settings = await getStoreganiseSettings();
+          const termsUrl = settings.termsUrl;
+          if (typeof termsUrl === "string" && termsUrl.length > 0) {
+            agreement.url = termsUrl;
+          }
+        } catch (e) {
+          console.warn("Failed to fetch Storeganise settings for termsUrl", e);
+        }
+      }
+
       return { booking, agreement, error: null as string | null };
     } catch (e) {
       return {
