@@ -30,7 +30,6 @@ async function linkStoreganiseOrder(booking: {
     .maybeSingle();
 
   let sgUserId = booking.storeganise_user_id;
-  let sgUserPassword: string | undefined;
   if (!sgUserId) {
     const sgUser = await ensureStoreganiseUser({
       email,
@@ -38,15 +37,13 @@ async function linkStoreganiseOrder(booking: {
       phone: profile?.phone || undefined,
     });
     sgUserId = sgUser.id;
-    sgUserPassword = sgUser.password;
     updates.storeganise_user_id = sgUserId;
   } else {
-    const sgUser = await ensureStoreganiseUser({
+    await ensureStoreganiseUser({
       email,
       name: profile?.full_name || undefined,
       phone: profile?.phone || undefined,
     });
-    sgUserPassword = sgUser.password;
   }
 
   let sgProductId: string | null = null;
