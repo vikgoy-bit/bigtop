@@ -451,6 +451,13 @@ export const signContract = createServerFn({ method: "POST" })
         const { data: signed } = await supabaseAdmin.storage
           .from("signed-contracts")
           .createSignedUrl(objectPath, 60 * 60 * 24 * 30);
+        let coverDocumentUrl: string | undefined;
+        if (booking.cover_document_path) {
+          const { data: coverSigned } = await supabaseAdmin.storage
+            .from("cover-documents")
+            .createSignedUrl(booking.cover_document_path, 60 * 60 * 24 * 30);
+          coverDocumentUrl = coverSigned?.signedUrl;
+        }
         emailResult = await sendTransactionalEmailServer({
           templateName: "booking-confirmation",
           recipientEmail: recipient,
