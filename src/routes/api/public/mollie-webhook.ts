@@ -119,7 +119,11 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
               });
               updates.storeganise_order_id = order.id;
             } catch (e) {
-              console.error("Storeganise handoff failed", e);
+              console.error(
+                "Storeganise handoff failed",
+                e instanceof Error ? e.message : String(e),
+                e instanceof Error ? e.stack : undefined,
+              );
               // Don't block the booking; staff can reconcile manually.
             }
           }
