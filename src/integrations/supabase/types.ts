@@ -26,6 +26,9 @@ export type Database = {
           mollie_subscription_id: string | null
           move_in_date: string
           protect_tier_id: string | null
+          signed_at: string | null
+          signed_contract_path: string | null
+          signer_name: string | null
           status: Database["public"]["Enums"]["booking_status"]
           storeganise_order_id: string | null
           storeganise_user_id: string | null
@@ -48,6 +51,9 @@ export type Database = {
           mollie_subscription_id?: string | null
           move_in_date: string
           protect_tier_id?: string | null
+          signed_at?: string | null
+          signed_contract_path?: string | null
+          signer_name?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
           storeganise_order_id?: string | null
           storeganise_user_id?: string | null
@@ -70,6 +76,9 @@ export type Database = {
           mollie_subscription_id?: string | null
           move_in_date?: string
           protect_tier_id?: string | null
+          signed_at?: string | null
+          signed_contract_path?: string | null
+          signer_name?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
           storeganise_order_id?: string | null
           storeganise_user_id?: string | null
