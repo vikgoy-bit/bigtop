@@ -345,7 +345,7 @@ export const signContract = createServerFn({ method: "POST" })
     const signedAt = new Date();
 
     const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
-    const refreshedSnapshot = await refreshUnitSnapshot(
+    let refreshedSnapshot = await refreshUnitSnapshot(
       booking.storeganise_order_id,
       baseSnapshot,
     );
