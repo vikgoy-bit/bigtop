@@ -64,8 +64,6 @@ async function linkStoreganiseOrder(booking: {
     unitTypeId: booking.unit_id,
     startDate: booking.move_in_date,
     products: sgProductId ? { [sgProductId]: 1 } : undefined,
-    userEmail: email,
-    userPassword: sgUserPassword,
     notes: [
       `Booking ${booking.id}`,
       `First payment taken via Mollie (${payment.id}) — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`,
