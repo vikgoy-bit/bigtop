@@ -5,6 +5,7 @@ const STEPS = [
   { key: "unit", label: "Unit" },
   { key: "details", label: "Details" },
   { key: "payment", label: "Payment" },
+  { key: "contract", label: "Contract" },
   { key: "verify", label: "Verify ID" },
 ] as const;
 
