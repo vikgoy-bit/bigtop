@@ -64,6 +64,45 @@ function formatAddress(p: {
     .join(", ");
 }
 
+/**
+ * Storeganise allocates a specific unit to the order some time after creation
+ * (often immediately, sometimes on move-in). Re-fetch the order and merge any
+ * assigned unit details into the booking snapshot so the contract shows the
+ * real unit number/type instead of "to be assigned".
+ */
+async function refreshUnitSnapshot(
+  orderId: string | null | undefined,
+  current: UnitSnapshot | null,
+): Promise<UnitSnapshot | null> {
+  if (!orderId) return current;
+  try {
+    const order = (await getStoreganiseOrder(orderId)) as Record<string, any>;
+    const unit =
+      (order.unit as Record<string, any> | undefined) ??
+      (order.result?.unit as Record<string, any> | undefined) ??
+      undefined;
+    const unitType =
+      (order.unitType as Record<string, any> | undefined) ??
+      (order.result?.unitType as Record<string, any> | undefined) ??
+      undefined;
+    if (!unit && !unitType) return current;
+    return {
+      ...(current ?? {}),
+      id: unit?.id ?? current?.id,
+      name: unit?.name ?? unit?.code ?? current?.name,
+      title: unit?.title ?? unitType?.title ?? current?.title,
+      groupTitle:
+        unit?.groupTitle ?? unitType?.groupTitle ?? current?.groupTitle,
+      groupCode: unit?.groupCode ?? unitType?.groupCode ?? current?.groupCode,
+      size_group:
+        unit?.sizeGroup ?? unitType?.sizeGroup ?? current?.size_group,
+      size_sqft: unit?.sizeSqft ?? unitType?.sizeSqft ?? current?.size_sqft,
+    };
+  } catch {
+    return current;
+  }
+}
+
 async function buildAgreementTokens(args: {
   supabase: ReturnType<typeof supabaseAdmin.from> extends never
     ? never
