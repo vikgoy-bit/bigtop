@@ -99,6 +99,7 @@ async function getSiteId(): Promise<string> {
 }
 
 export type SgUser = { id: string; email?: string };
+export type EnsuredSgUser = SgUser & { password?: string };
 
 function splitName(name: string | undefined, email: string) {
   const fallback = email.split("@")[0]?.replace(/[._-]+/g, " ").trim() || "Customer";
@@ -120,7 +121,7 @@ export async function ensureStoreganiseUser(params: {
   email: string;
   name?: string;
   phone?: string;
-}): Promise<SgUser> {
+}): Promise<EnsuredSgUser> {
   // Try lookup first
   try {
     const found = await sg<SgUser[] | { data?: SgUser[]; users?: SgUser[] }>(
@@ -134,19 +135,21 @@ export async function ensureStoreganiseUser(params: {
   }
 
   const { firstName, lastName } = splitName(params.name, params.email);
+  const password = createTemporaryPassword();
 
-  return sg<SgUser>(`/admin/users`, {
+  const user = await sg<SgUser>(`/admin/users`, {
     method: "POST",
     body: JSON.stringify({
       email: params.email,
       firstName,
       lastName,
       phone: params.phone,
-      password: createTemporaryPassword(),
+      password,
       language: "en",
       isActive: true,
     }),
   });
+  return { ...user, email: params.email, password };
 }
 
 /**
