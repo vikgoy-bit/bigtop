@@ -768,7 +768,7 @@ function DetailsPage() {
 
               <div className="rounded-xl bg-accent/10 p-3 ring-1 ring-accent/30">
                 <div className="text-xs font-semibold uppercase tracking-wider text-accent">
-                  £1 first month offer
+                  £1 first 6 weeks offer
                 </div>
                 <div className="mt-2 space-y-1.5">
                   <Row label="Unit (first month)" value="£1.00" />
