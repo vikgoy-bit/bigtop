@@ -74,7 +74,7 @@ export const startMolliePayment = createServerFn({ method: "POST" })
       amountValue: penceToDecimalString(booking.total_pence),
       currency: "GBP",
       description: `Big Top Storage — booking ${booking.id.slice(0, 8)}`,
-      redirectUrl: `${origin}/book/payment/return?booking=${booking.id}`,
+      redirectUrl: `${origin}/book/payment-return?booking=${booking.id}`,
       webhookUrl: `${origin}/api/public/mollie-webhook`,
       metadata: { booking_id: booking.id, user_id: userId },
     });

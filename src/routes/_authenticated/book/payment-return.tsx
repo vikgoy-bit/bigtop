@@ -7,7 +7,7 @@ import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
 import { checkMolliePayment } from "@/lib/mollie.functions";
 
-export const Route = createFileRoute("/_authenticated/book/payment/return")({
+export const Route = createFileRoute("/_authenticated/book/payment-return")({
   head: () => ({ meta: [{ title: "Confirming payment — Big Top Self Storage" }] }),
   validateSearch: (s: Record<string, unknown>) => ({
     booking: typeof s.booking === "string" ? s.booking : "",

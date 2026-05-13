@@ -20,6 +20,7 @@ import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/
 import { Route as ApiPublicMollieWebhookRouteImport } from './routes/api/public/mollie-webhook'
 import { Route as AuthenticatedBookVerifyRouteImport } from './routes/_authenticated/book/verify'
 import { Route as AuthenticatedBookSuccessRouteImport } from './routes/_authenticated/book/success'
+import { Route as AuthenticatedBookPaymentReturnRouteImport } from './routes/_authenticated/book/payment-return'
 import { Route as AuthenticatedBookPaymentRouteImport } from './routes/_authenticated/book/payment'
 import { Route as AuthenticatedBookContractRouteImport } from './routes/_authenticated/book/contract'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -27,7 +28,6 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
-import { Route as AuthenticatedBookPaymentReturnRouteImport } from './routes/_authenticated/book/payment.return'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -84,6 +84,12 @@ const AuthenticatedBookSuccessRoute =
     path: '/book/success',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedBookPaymentReturnRoute =
+  AuthenticatedBookPaymentReturnRouteImport.update({
+    id: '/book/payment-return',
+    path: '/book/payment-return',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedBookPaymentRoute =
   AuthenticatedBookPaymentRouteImport.update({
     id: '/book/payment',
@@ -124,12 +130,6 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedBookPaymentReturnRoute =
-  AuthenticatedBookPaymentReturnRouteImport.update({
-    id: '/return',
-    path: '/return',
-    getParentRoute: () => AuthenticatedBookPaymentRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,13 +138,13 @@ export interface FileRoutesByFullPath {
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/book/contract': typeof AuthenticatedBookContractRoute
-  '/book/payment': typeof AuthenticatedBookPaymentRouteWithChildren
+  '/book/payment': typeof AuthenticatedBookPaymentRoute
+  '/book/payment-return': typeof AuthenticatedBookPaymentReturnRoute
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/book/payment/return': typeof AuthenticatedBookPaymentReturnRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -158,13 +158,13 @@ export interface FileRoutesByTo {
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/book/contract': typeof AuthenticatedBookContractRoute
-  '/book/payment': typeof AuthenticatedBookPaymentRouteWithChildren
+  '/book/payment': typeof AuthenticatedBookPaymentRoute
+  '/book/payment-return': typeof AuthenticatedBookPaymentReturnRoute
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/book/payment/return': typeof AuthenticatedBookPaymentReturnRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -180,13 +180,13 @@ export interface FileRoutesById {
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/book/contract': typeof AuthenticatedBookContractRoute
-  '/_authenticated/book/payment': typeof AuthenticatedBookPaymentRouteWithChildren
+  '/_authenticated/book/payment': typeof AuthenticatedBookPaymentRoute
+  '/_authenticated/book/payment-return': typeof AuthenticatedBookPaymentReturnRoute
   '/_authenticated/book/success': typeof AuthenticatedBookSuccessRoute
   '/_authenticated/book/verify': typeof AuthenticatedBookVerifyRoute
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/_authenticated/book/payment/return': typeof AuthenticatedBookPaymentReturnRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -203,12 +203,12 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/book/contract'
     | '/book/payment'
+    | '/book/payment-return'
     | '/book/success'
     | '/book/verify'
     | '/api/public/mollie-webhook'
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
-    | '/book/payment/return'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -223,12 +223,12 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/book/contract'
     | '/book/payment'
+    | '/book/payment-return'
     | '/book/success'
     | '/book/verify'
     | '/api/public/mollie-webhook'
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
-    | '/book/payment/return'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -244,12 +244,12 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/_authenticated/book/contract'
     | '/_authenticated/book/payment'
+    | '/_authenticated/book/payment-return'
     | '/_authenticated/book/success'
     | '/_authenticated/book/verify'
     | '/api/public/mollie-webhook'
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
-    | '/_authenticated/book/payment/return'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -353,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookSuccessRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/book/payment-return': {
+      id: '/_authenticated/book/payment-return'
+      path: '/book/payment-return'
+      fullPath: '/book/payment-return'
+      preLoaderRoute: typeof AuthenticatedBookPaymentReturnRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/book/payment': {
       id: '/_authenticated/book/payment'
       path: '/book/payment'
@@ -402,40 +409,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/book/payment/return': {
-      id: '/_authenticated/book/payment/return'
-      path: '/return'
-      fullPath: '/book/payment/return'
-      preLoaderRoute: typeof AuthenticatedBookPaymentReturnRouteImport
-      parentRoute: typeof AuthenticatedBookPaymentRoute
-    }
   }
 }
-
-interface AuthenticatedBookPaymentRouteChildren {
-  AuthenticatedBookPaymentReturnRoute: typeof AuthenticatedBookPaymentReturnRoute
-}
-
-const AuthenticatedBookPaymentRouteChildren: AuthenticatedBookPaymentRouteChildren =
-  {
-    AuthenticatedBookPaymentReturnRoute: AuthenticatedBookPaymentReturnRoute,
-  }
-
-const AuthenticatedBookPaymentRouteWithChildren =
-  AuthenticatedBookPaymentRoute._addFileChildren(
-    AuthenticatedBookPaymentRouteChildren,
-  )
 
 interface AuthenticatedRouteChildren {
   AuthenticatedBookContractRoute: typeof AuthenticatedBookContractRoute
-  AuthenticatedBookPaymentRoute: typeof AuthenticatedBookPaymentRouteWithChildren
+  AuthenticatedBookPaymentRoute: typeof AuthenticatedBookPaymentRoute
+  AuthenticatedBookPaymentReturnRoute: typeof AuthenticatedBookPaymentReturnRoute
   AuthenticatedBookSuccessRoute: typeof AuthenticatedBookSuccessRoute
   AuthenticatedBookVerifyRoute: typeof AuthenticatedBookVerifyRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBookContractRoute: AuthenticatedBookContractRoute,
-  AuthenticatedBookPaymentRoute: AuthenticatedBookPaymentRouteWithChildren,
+  AuthenticatedBookPaymentRoute: AuthenticatedBookPaymentRoute,
+  AuthenticatedBookPaymentReturnRoute: AuthenticatedBookPaymentReturnRoute,
   AuthenticatedBookSuccessRoute: AuthenticatedBookSuccessRoute,
   AuthenticatedBookVerifyRoute: AuthenticatedBookVerifyRoute,
 }
