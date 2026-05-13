@@ -12,8 +12,12 @@ import {
 } from "./agreement-template";
 
 type UnitSnapshot = {
+  id?: string;
   name?: string;
+  title?: string;
   size_group?: string;
+  groupTitle?: string;
+  groupCode?: string;
   size_sqft?: number;
   monthly_price_pence?: number;
 };
