@@ -36,7 +36,7 @@ function PaymentReturnPage() {
         if (cancelled) return;
         if (res.status === "pending_verification" || res.mollieStatus === "paid") {
           setState("paid");
-          setTimeout(() => navigate({ to: "/book/verify" }), 800);
+          setTimeout(() => navigate({ to: "/book/contract" }), 800);
           return;
         }
         if (

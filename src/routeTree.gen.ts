@@ -21,6 +21,7 @@ import { Route as ApiPublicMollieWebhookRouteImport } from './routes/api/public/
 import { Route as AuthenticatedBookVerifyRouteImport } from './routes/_authenticated/book/verify'
 import { Route as AuthenticatedBookSuccessRouteImport } from './routes/_authenticated/book/success'
 import { Route as AuthenticatedBookPaymentRouteImport } from './routes/_authenticated/book/payment'
+import { Route as AuthenticatedBookContractRouteImport } from './routes/_authenticated/book/contract'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -89,6 +90,12 @@ const AuthenticatedBookPaymentRoute =
     path: '/book/payment',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedBookContractRoute =
+  AuthenticatedBookContractRouteImport.update({
+    id: '/book/contract',
+    path: '/book/contract',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -130,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/book/contract': typeof AuthenticatedBookContractRoute
   '/book/payment': typeof AuthenticatedBookPaymentRouteWithChildren
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
@@ -149,6 +157,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/book/contract': typeof AuthenticatedBookContractRoute
   '/book/payment': typeof AuthenticatedBookPaymentRouteWithChildren
   '/book/success': typeof AuthenticatedBookSuccessRoute
   '/book/verify': typeof AuthenticatedBookVerifyRoute
@@ -170,6 +179,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/_authenticated/book/contract': typeof AuthenticatedBookContractRoute
   '/_authenticated/book/payment': typeof AuthenticatedBookPaymentRouteWithChildren
   '/_authenticated/book/success': typeof AuthenticatedBookSuccessRoute
   '/_authenticated/book/verify': typeof AuthenticatedBookVerifyRoute
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/book/details'
     | '/email/unsubscribe'
+    | '/book/contract'
     | '/book/payment'
     | '/book/success'
     | '/book/verify'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/book/details'
     | '/email/unsubscribe'
+    | '/book/contract'
     | '/book/payment'
     | '/book/success'
     | '/book/verify'
@@ -230,6 +242,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/book/details'
     | '/email/unsubscribe'
+    | '/_authenticated/book/contract'
     | '/_authenticated/book/payment'
     | '/_authenticated/book/success'
     | '/_authenticated/book/verify'
@@ -347,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookPaymentRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/book/contract': {
+      id: '/_authenticated/book/contract'
+      path: '/book/contract'
+      fullPath: '/book/contract'
+      preLoaderRoute: typeof AuthenticatedBookContractRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -407,12 +427,14 @@ const AuthenticatedBookPaymentRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedBookContractRoute: typeof AuthenticatedBookContractRoute
   AuthenticatedBookPaymentRoute: typeof AuthenticatedBookPaymentRouteWithChildren
   AuthenticatedBookSuccessRoute: typeof AuthenticatedBookSuccessRoute
   AuthenticatedBookVerifyRoute: typeof AuthenticatedBookVerifyRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedBookContractRoute: AuthenticatedBookContractRoute,
   AuthenticatedBookPaymentRoute: AuthenticatedBookPaymentRouteWithChildren,
   AuthenticatedBookSuccessRoute: AuthenticatedBookSuccessRoute,
   AuthenticatedBookVerifyRoute: AuthenticatedBookVerifyRoute,
