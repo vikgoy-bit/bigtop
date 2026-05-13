@@ -420,10 +420,16 @@ export const signContract = createServerFn({ method: "POST" })
         signatureUrl: buildSignatureDataUrl(data.fullName, signedAt),
       });
       if (sgSubmit.submitted) {
-        refreshedSnapshot = await refreshUnitSnapshot(
-          booking.storeganise_order_id,
-          refreshedSnapshot,
-        );
+        // Poll briefly so Storeganise has time to allocate a specific unit
+        // before we render the confirmation email with the unit number.
+        for (let attempt = 0; attempt < 4; attempt++) {
+          refreshedSnapshot = await refreshUnitSnapshot(
+            booking.storeganise_order_id,
+            refreshedSnapshot,
+          );
+          if (refreshedSnapshot?.name) break;
+          await new Promise((r) => setTimeout(r, 750));
+        }
       }
     }
 
