@@ -12,8 +12,12 @@ import {
 } from "./agreement-template";
 
 type UnitSnapshot = {
+  id?: string;
   name?: string;
+  title?: string;
   size_group?: string;
+  groupTitle?: string;
+  groupCode?: string;
   size_sqft?: number;
   monthly_price_pence?: number;
 };
@@ -95,8 +99,13 @@ async function buildAgreementTokens(args: {
       phone: profile?.phone ?? "",
     },
     unit: {
-      name: args.unitSnapshot?.name ?? "",
-      type: args.unitSnapshot?.size_group ?? "",
+      name: args.unitSnapshot?.name ?? "To be assigned at move-in",
+      type:
+        args.unitSnapshot?.title ||
+        [args.unitSnapshot?.groupTitle, args.unitSnapshot?.size_group]
+          .filter(Boolean)
+          .join(" ") ||
+        "",
     },
     startDate,
     rental: {

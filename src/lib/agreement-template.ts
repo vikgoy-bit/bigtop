@@ -45,7 +45,6 @@ const TEMPLATE_HTML = `
 </table>
 
 <h2>Conditions of agreement</h2>
-<p><em>(A copy in a larger font size is available upon request.)</em></p>
 <p>These are the terms and conditions on which We supply Our services to You,
 and explain the rights, obligations and responsibilities of all parties.</p>
 
