@@ -176,6 +176,7 @@ function SelectUnitPage() {
         </p>
       </section>
     </div>
+    </TooltipProvider>
   );
 }
 
