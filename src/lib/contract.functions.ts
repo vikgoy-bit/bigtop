@@ -187,7 +187,7 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     if (!booking) throw new Error("Booking not found");
 
     const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
-    const refreshedSnapshot = await refreshUnitSnapshot(
+    let refreshedSnapshot = await refreshUnitSnapshot(
       booking.storeganise_order_id,
       baseSnapshot,
     );
@@ -410,6 +410,23 @@ export const signContract = createServerFn({ method: "POST" })
       });
     }
 
+    let sgSubmit: Awaited<ReturnType<typeof submitStoreganiseUnitOrder>> = {
+      submitted: false,
+      via: null,
+      error: "Skipped: no Storeganise order linked",
+    };
+    if (booking.storeganise_order_id) {
+      sgSubmit = await submitStoreganiseUnitOrder(booking.storeganise_order_id, {
+        signatureUrl: buildSignatureDataUrl(data.fullName, signedAt),
+      });
+      if (sgSubmit.submitted) {
+        refreshedSnapshot = await refreshUnitSnapshot(
+          booking.storeganise_order_id,
+          refreshedSnapshot,
+        );
+      }
+    }
+
     const { error: updErr } = await supabase
       .from("bookings")
       .update({
@@ -463,6 +480,7 @@ export const signContract = createServerFn({ method: "POST" })
     return {
       ok: true,
       alreadySigned: false,
+      storeganiseSubmit: sgSubmit,
       storeganiseUpload: sgUpload,
       email: emailResult,
     };
