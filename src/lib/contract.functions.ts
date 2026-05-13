@@ -332,7 +332,7 @@ export const signContract = createServerFn({ method: "POST" })
     const { data: booking, error } = await supabase
       .from("bookings")
       .select(
-        "id,user_id,storeganise_order_id,signed_at,unit_snapshot,move_in_date,total_pence",
+        "id,user_id,storeganise_order_id,signed_at,unit_snapshot,move_in_date,total_pence,cover_document_path",
       )
       .eq("id", data.bookingId)
       .maybeSingle();
