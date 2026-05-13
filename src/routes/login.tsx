@@ -34,7 +34,8 @@ function LoginPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Welcome back");
-    navigate({ to: (redirectTo as any) ?? "/" });
+    // Use full-page assign so query params (e.g. ?booking=...) are preserved.
+    window.location.assign(redirectTo && redirectTo.startsWith("/") ? redirectTo : "/");
   };
 
   const handleGoogle = async () => {
