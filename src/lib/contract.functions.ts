@@ -332,15 +332,19 @@ export const signContract = createServerFn({ method: "POST" })
 
     const signedAt = new Date();
 
+    const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
+    const refreshedSnapshot = await refreshUnitSnapshot(
+      booking.storeganise_order_id,
+      baseSnapshot,
+    );
+
     const tokens = await buildAgreementTokens({
       supabase: supabaseAdmin,
       userId,
       email: (claims.email as string | undefined) ?? "",
-      unitSnapshot: booking.unit_snapshot as UnitSnapshot | null,
+      unitSnapshot: refreshedSnapshot,
       moveInDate: booking.move_in_date,
-      monthlyPence:
-        (booking.unit_snapshot as UnitSnapshot | null)?.monthly_price_pence ??
-        null,
+      monthlyPence: refreshedSnapshot?.monthly_price_pence ?? null,
       signedAt,
     });
 
