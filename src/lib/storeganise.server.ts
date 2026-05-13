@@ -100,6 +100,18 @@ async function getSiteId(): Promise<string> {
 
 export type SgUser = { id: string; email?: string };
 
+function splitName(name: string | undefined, email: string) {
+  const fallback = email.split("@")[0]?.replace(/[._-]+/g, " ").trim() || "Customer";
+  const parts = (name?.trim() || fallback).split(/\s+/).filter(Boolean);
+  const firstName = parts[0] || "Customer";
+  const lastName = parts.slice(1).join(" ") || firstName;
+  return { firstName, lastName };
+}
+
+function createTemporaryPassword() {
+  return `Bt!${crypto.randomUUID().replace(/-/g, "").slice(0, 24)}aA1`;
+}
+
 /**
  * Find an existing Storeganise user by email or create one.
  * Field names follow the Storeganise user schema (email, name, phone).
@@ -120,12 +132,17 @@ export async function ensureStoreganiseUser(params: {
     // fall through to create
   }
 
+  const { firstName, lastName } = splitName(params.name, params.email);
+
   return sg<SgUser>(`/users`, {
     method: "POST",
     body: JSON.stringify({
       email: params.email,
+      firstName,
+      lastName,
       name: params.name,
       phone: params.phone,
+      password: createTemporaryPassword(),
     }),
   });
 }
