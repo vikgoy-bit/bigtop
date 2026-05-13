@@ -473,6 +473,7 @@ export const signContract = createServerFn({ method: "POST" })
             moveInDate: tokens.startDate,
             monthlyPrice: tokens.rental.price,
             contractUrl: signed?.signedUrl,
+            coverDocumentUrl,
             bookingRef: booking.id.slice(0, 8),
           },
         });
