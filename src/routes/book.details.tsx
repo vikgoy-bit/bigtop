@@ -786,8 +786,20 @@ function DetailsPage() {
                     bold
                   />
                 </div>
-                <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-                  Standard monthly billing of {formatGBPRound(monthlyTotal)} begins from month two onwards. Cancel anytime.
+                <p className="mt-2 inline-flex items-flex-start gap-1 text-[11px] leading-snug text-muted-foreground">
+                  <span>
+                    Monthly billing of {formatGBPRound(monthlyTotal)} begins after the promotional period, next month will be a prorata bill. Cancel anytime
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" className="ml-1 inline-flex align-middle text-muted-foreground hover:text-foreground" aria-label="Cancellation notice">
+                            <Info className="h-3 w-3" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="text-xs">1 month notice required</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </span>
                 </p>
               </div>
             </div>
