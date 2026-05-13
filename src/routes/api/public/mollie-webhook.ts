@@ -30,6 +30,7 @@ async function linkStoreganiseOrder(booking: {
     .maybeSingle();
 
   let sgUserId = booking.storeganise_user_id;
+  let sgUserPassword: string | undefined;
   if (!sgUserId) {
     const sgUser = await ensureStoreganiseUser({
       email,
@@ -37,7 +38,15 @@ async function linkStoreganiseOrder(booking: {
       phone: profile?.phone || undefined,
     });
     sgUserId = sgUser.id;
+    sgUserPassword = sgUser.password;
     updates.storeganise_user_id = sgUserId;
+  } else {
+    const sgUser = await ensureStoreganiseUser({
+      email,
+      name: profile?.full_name || undefined,
+      phone: profile?.phone || undefined,
+    });
+    sgUserPassword = sgUser.password;
   }
 
   let sgProductId: string | null = null;
@@ -55,6 +64,8 @@ async function linkStoreganiseOrder(booking: {
     unitTypeId: booking.unit_id,
     startDate: booking.move_in_date,
     products: sgProductId ? { [sgProductId]: 1 } : undefined,
+    userEmail: email,
+    userPassword: sgUserPassword,
     notes: [
       `Booking ${booking.id}`,
       `First payment taken via Mollie (${payment.id}) — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`,
