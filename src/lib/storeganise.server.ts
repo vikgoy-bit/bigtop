@@ -143,6 +143,10 @@ async function getSiteId(): Promise<string> {
 export type SgUser = { id: string; email?: string };
 export type EnsuredSgUser = SgUser & { password?: string };
 
+function pickArray<T>(value: T[] | { data?: T[]; jobs?: T[]; results?: T[] }): T[] {
+  return Array.isArray(value) ? value : (value.jobs ?? value.data ?? value.results ?? []);
+}
+
 function splitName(name: string | undefined, email: string) {
   const fallback = email.split("@")[0]?.replace(/[._-]+/g, " ").trim() || "Customer";
   const parts = (name?.trim() || fallback).split(/\s+/).filter(Boolean);
