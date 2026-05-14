@@ -399,12 +399,35 @@ export const signContract = createServerFn({ method: "POST" })
     booking.storeganise_order_id = storeganiseOrderId;
 
     const signedAt = new Date();
+    const signatureUrl = buildSignatureDataUrl(data.fullName, signedAt);
 
     const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
     let refreshedSnapshot = await refreshUnitSnapshot(
       booking.storeganise_order_id,
       baseSnapshot,
     );
+
+    let sgSubmit: Awaited<ReturnType<typeof submitStoreganiseUnitOrder>> = {
+      submitted: false,
+      via: null,
+      error: "Skipped: no Storeganise order linked",
+    };
+    if (booking.storeganise_order_id) {
+      sgSubmit = await submitStoreganiseUnitOrder(booking.storeganise_order_id, {
+        signatureUrl,
+      });
+      if (sgSubmit.submitted) {
+        // Allocate the exact Storeganise unit before rendering the signed PDF.
+        for (let attempt = 0; attempt < 8; attempt++) {
+          refreshedSnapshot = await refreshUnitSnapshot(
+            booking.storeganise_order_id,
+            refreshedSnapshot,
+          );
+          if (refreshedSnapshot?.name) break;
+          await new Promise((r) => setTimeout(r, 750));
+        }
+      }
+    }
 
     const tokens = await buildAgreementTokens({
       supabase: supabaseAdmin,
@@ -466,19 +489,12 @@ export const signContract = createServerFn({ method: "POST" })
       });
     }
 
-    let sgSubmit: Awaited<ReturnType<typeof submitStoreganiseUnitOrder>> = {
-      submitted: false,
-      via: null,
-      error: "Skipped: no Storeganise order linked",
-    };
-    if (booking.storeganise_order_id) {
+    if (booking.storeganise_order_id && !sgSubmit.submitted) {
       sgSubmit = await submitStoreganiseUnitOrder(booking.storeganise_order_id, {
-        signatureUrl: buildSignatureDataUrl(data.fullName, signedAt),
+        signatureUrl,
       });
       if (sgSubmit.submitted) {
-        // Poll briefly so Storeganise has time to allocate a specific unit
-        // before we render the confirmation email with the unit number.
-        for (let attempt = 0; attempt < 4; attempt++) {
+        for (let attempt = 0; attempt < 8; attempt++) {
           refreshedSnapshot = await refreshUnitSnapshot(
             booking.storeganise_order_id,
             refreshedSnapshot,
