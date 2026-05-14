@@ -70,7 +70,12 @@ export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
     );
 
     if (session.status !== "verified") {
-      return { status: session.status };
+      return {
+        status: session.status,
+        lastError: session.last_error
+          ? { code: session.last_error.code, reason: session.last_error.reason }
+          : null,
+      };
     }
 
     const { data: existingSend } = await supabaseAdmin
