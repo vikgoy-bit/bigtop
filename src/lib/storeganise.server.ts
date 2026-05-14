@@ -262,6 +262,7 @@ export async function ensureStoreganiseOrderForBooking(params: {
     : `First payment taken via Mollie — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`;
 
   const order = await createStoreganiseUnitOrder({
+    bookingId: booking.id,
     userId: sgUserId!,
     unitTypeId: booking.unit_id,
     startDate: booking.move_in_date,
