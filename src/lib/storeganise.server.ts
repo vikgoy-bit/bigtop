@@ -287,6 +287,7 @@ export async function ensureStoreganiseOrderForBooking(params: {
  * subsequent monthly invoicing/charging via its own automation.
  */
 export async function createStoreganiseUnitOrder(params: {
+  bookingId?: string;
   userId: string;
   unitTypeId: string;
   startDate: string; // YYYY-MM-DD
