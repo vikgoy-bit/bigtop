@@ -446,56 +446,14 @@ export const signContract = createServerFn({ method: "POST" })
       .eq("id", booking.id);
     if (updErr) throw new Error(updErr.message);
 
-    // Send booking confirmation email with a download link to the signed PDF.
-    const recipient = (claims.email as string | undefined) ?? "";
-    let emailResult: Awaited<ReturnType<typeof sendTransactionalEmailServer>> = {
-      ok: false,
-      error: "Skipped: no recipient email",
-    };
-    if (recipient) {
-      try {
-        const { data: signed } = await supabaseAdmin.storage
-          .from("signed-contracts")
-          .createSignedUrl(objectPath, 60 * 60 * 24 * 30);
-        let coverDocumentUrl: string | undefined;
-        if (booking.cover_document_path) {
-          const { data: coverSigned } = await supabaseAdmin.storage
-            .from("cover-documents")
-            .createSignedUrl(booking.cover_document_path, 60 * 60 * 24 * 30);
-          coverDocumentUrl = coverSigned?.signedUrl;
-        }
-        emailResult = await sendTransactionalEmailServer({
-          templateName: "booking-confirmation",
-          recipientEmail: recipient,
-          idempotencyKey: `booking-confirm-${booking.id}`,
-          templateData: {
-            customerName: tokens.user.firstName,
-            unitName: refreshedSnapshot?.name,
-            unitTitle:
-              refreshedSnapshot?.title ||
-              [refreshedSnapshot?.groupTitle, refreshedSnapshot?.size_group]
-                .filter(Boolean)
-                .join(" "),
-            moveInDate: tokens.startDate,
-            monthlyPrice: tokens.rental.price,
-            contractUrl: signed?.signedUrl,
-            coverDocumentUrl,
-            bookingRef: booking.id.slice(0, 8),
-          },
-        });
-      } catch (e) {
-        emailResult = {
-          ok: false,
-          error: e instanceof Error ? e.message : String(e),
-        };
-      }
-    }
+    // NOTE: booking confirmation email is intentionally NOT sent here.
+    // It is sent from the Stripe webhook once identity verification succeeds,
+    // so customers don't get a confirmation before their ID check is complete.
 
     return {
       ok: true,
       alreadySigned: false,
       storeganiseSubmit: sgSubmit,
       storeganiseUpload: sgUpload,
-      email: emailResult,
     };
   });
