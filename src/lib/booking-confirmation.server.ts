@@ -44,22 +44,41 @@ async function refreshUnitSnapshot(
       (order.unitType as Record<string, any> | undefined) ??
       (order.result?.unitType as Record<string, any> | undefined) ??
       undefined;
-    if (!unit && !unitType) return current;
+    const unitId =
+      unit?.id ??
+      (typeof order.result?.unitId === "string" ? order.result.unitId : undefined);
+    const resolvedUnit =
+      unit ??
+      (unitId
+        ? await fetchStoreganiseUnit(unitId).catch(() => undefined)
+        : undefined);
+    if (!resolvedUnit && !unitType) return current;
     return {
       ...(current ?? {}),
-      id: unit?.id ?? current?.id,
-      name: unit?.name ?? unit?.code ?? current?.name,
-      title: unit?.title ?? unitType?.title ?? current?.title,
+      id: resolvedUnit?.id ?? unitId ?? current?.id,
+      name: resolvedUnit?.name ?? resolvedUnit?.code ?? current?.name,
+      title: resolvedUnit?.title ?? unitType?.title ?? current?.title,
       groupTitle:
-        unit?.groupTitle ?? unitType?.groupTitle ?? current?.groupTitle,
-      groupCode: unit?.groupCode ?? unitType?.groupCode ?? current?.groupCode,
+        resolvedUnit?.groupTitle ?? unitType?.groupTitle ?? current?.groupTitle,
+      groupCode: resolvedUnit?.groupCode ?? unitType?.groupCode ?? current?.groupCode,
       size_group:
-        unit?.sizeGroup ?? unitType?.sizeGroup ?? current?.size_group,
-      size_sqft: unit?.sizeSqft ?? unitType?.sizeSqft ?? current?.size_sqft,
+        resolvedUnit?.sizeGroup ?? unitType?.sizeGroup ?? current?.size_group,
+      size_sqft: resolvedUnit?.sizeSqft ?? unitType?.sizeSqft ?? current?.size_sqft,
     };
   } catch {
     return current;
   }
+}
+
+async function fetchStoreganiseUnit(unitId: string): Promise<Record<string, any>> {
+  const key = process.env.STOREGANISE_API_KEY;
+  if (!key) throw new Error("STOREGANISE_API_KEY is not set");
+  const res = await fetch(
+    `https://bigtopselfstorage.storeganise.com/api/v1/admin/units/${unitId}`,
+    { headers: { Authorization: `ApiKey ${key}`, Accept: "application/json" } },
+  );
+  if (!res.ok) throw new Error(`Storeganise unit lookup failed: ${res.status}`);
+  return res.json() as Promise<Record<string, any>>;
 }
 
 /**
