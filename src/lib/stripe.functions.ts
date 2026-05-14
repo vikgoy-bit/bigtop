@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getStripe } from "./stripe.server";
 import { getRequestHost } from "@tanstack/react-start/server";
+import { sendBookingConfirmationEmail } from "./booking-confirmation.server";
 
 export const startIdentityVerification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -44,4 +45,48 @@ export const startIdentityVerification = createServerFn({ method: "POST" })
       .eq("id", booking.id);
 
     return { url: session.url!, sessionId: session.id };
+  });
+
+export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ bookingId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+
+    const { data: booking, error } = await supabaseAdmin
+      .from("bookings")
+      .select("id,user_id,status,stripe_verification_session_id")
+      .eq("id", data.bookingId)
+      .single();
+    if (error || !booking) throw new Error("Booking not found");
+    if (booking.user_id !== userId) throw new Error("Forbidden");
+    if (booking.status === "active") return { status: "active" as const };
+    if (!booking.stripe_verification_session_id) {
+      return { status: booking.status as string };
+    }
+
+    const stripe = getStripe();
+    const session = await stripe.identity.verificationSessions.retrieve(
+      booking.stripe_verification_session_id,
+    );
+
+    if (session.status !== "verified") {
+      return { status: session.status };
+    }
+
+    // Atomic transition: only send email if THIS call flipped the status.
+    const { data: updated } = await supabaseAdmin
+      .from("bookings")
+      .update({ status: "active" })
+      .eq("id", booking.id)
+      .neq("status", "active")
+      .select("id");
+
+    if (updated && updated.length > 0) {
+      const result = await sendBookingConfirmationEmail(booking.id);
+      if (!result.ok) {
+        console.error("Booking confirmation email failed:", result.error);
+      }
+    }
+    return { status: "active" as const };
   });

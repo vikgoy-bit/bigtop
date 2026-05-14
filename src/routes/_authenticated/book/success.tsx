@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, MapPin, Calendar as CalendarIcon, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { formatGBPRound } from "@/lib/format";
+import { finalizeBookingIfVerified } from "@/lib/stripe.functions";
 
 export const Route = createFileRoute("/_authenticated/book/success")({
   head: () => ({ meta: [{ title: "Booking confirmed — Big Top Self Storage" }] }),
@@ -14,10 +16,31 @@ export const Route = createFileRoute("/_authenticated/book/success")({
 
 function SuccessPage() {
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const finalize = useServerFn(finalizeBookingIfVerified);
 
   useEffect(() => {
-    setBookingId(sessionStorage.getItem("pending_booking_id"));
-  }, []);
+    const id = sessionStorage.getItem("pending_booking_id");
+    setBookingId(id);
+    if (id) {
+      // Best-effort fallback in case the Stripe webhook is delayed.
+      // Poll a few times since identity verification can take a moment.
+      let cancelled = false;
+      (async () => {
+        for (let i = 0; i < 6 && !cancelled; i++) {
+          try {
+            const res = await finalize({ data: { bookingId: id } });
+            if (res.status === "active") return;
+          } catch (e) {
+            console.warn("finalize attempt failed", e);
+          }
+          await new Promise((r) => setTimeout(r, 2500));
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+  }, [finalize]);
 
   const { data: booking } = useQuery({
     queryKey: ["booking-success", bookingId],
