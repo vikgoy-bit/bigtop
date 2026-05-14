@@ -54,8 +54,10 @@ export async function setStoreganiseUserIdentitySession(
   userId: string,
   verificationSessionId: string,
 ): Promise<{ ok: boolean; via: string | null; error: string | null }> {
-  const value = `${verificationSessionId}#verified`;
+  const value = verificationSessionId;
   const bodies: Array<Record<string, unknown>> = [
+    { customFields: { identity_session: value } },
+    { customFields: { identitySession: value } },
     { data: { customFields: { identitySession: value } } },
     { identitySession: value },
     { data: { customFields: { identity_session: value } } },
@@ -177,6 +179,24 @@ async function getSiteId(): Promise<string> {
 export type SgUser = { id: string; email?: string };
 export type EnsuredSgUser = SgUser & { password?: string };
 
+async function authenticateStoreganiseUser(email: string, password: string): Promise<string | null> {
+  const token = Buffer.from(`${email}:${password}`).toString("base64");
+  try {
+    const res = await fetch(`${BASE}/auth/token`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${token}`,
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { accessToken?: string };
+    return json.accessToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function pickArray<T>(value: T[] | { data?: T[]; jobs?: T[]; results?: T[] }): T[] {
   return Array.isArray(value) ? value : (value.jobs ?? value.data ?? value.results ?? []);
 }
@@ -271,6 +291,7 @@ export async function ensureStoreganiseOrderForBooking(params: {
     .maybeSingle();
 
   let sgUserId = booking.storeganise_user_id;
+  let sgUserAccessToken: string | null = null;
   if (!sgUserId) {
     const sgUser = await ensureStoreganiseUser({
       email,
@@ -279,6 +300,9 @@ export async function ensureStoreganiseOrderForBooking(params: {
     });
     sgUserId = sgUser.id;
     updates.storeganise_user_id = sgUserId;
+    if (sgUser.password) {
+      sgUserAccessToken = await authenticateStoreganiseUser(email, sgUser.password);
+    }
   }
 
   let sgProductId: string | null = null;
@@ -298,6 +322,7 @@ export async function ensureStoreganiseOrderForBooking(params: {
   const order = await createStoreganiseUnitOrder({
     bookingId: booking.id,
     userId: sgUserId!,
+    userAccessToken: sgUserAccessToken,
     unitTypeId: booking.unit_id,
     startDate: booking.move_in_date,
     products: sgProductId ? { [sgProductId]: 1 } : undefined,
@@ -323,6 +348,7 @@ export async function ensureStoreganiseOrderForBooking(params: {
 export async function createStoreganiseUnitOrder(params: {
   bookingId?: string;
   userId: string;
+  userAccessToken?: string | null;
   unitTypeId: string;
   startDate: string; // YYYY-MM-DD
   notes?: string;
@@ -356,6 +382,30 @@ export async function createStoreganiseUnitOrder(params: {
 
   const existing = await findExistingOrder();
   if (existing) return existing;
+
+  if (params.userAccessToken) {
+    try {
+      return await sg<{ id: string }>(`/units/orders`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${params.userAccessToken}` },
+        body: JSON.stringify({
+          submitLater: true,
+          siteId,
+          unitTypeId: params.unitTypeId,
+          startDate: params.startDate,
+          notes: params.notes,
+          ...(params.products && Object.keys(params.products).length > 0
+            ? { products: params.products }
+            : {}),
+        }),
+      });
+    } catch (customerOrderError) {
+      console.error(
+        "Storeganise customer order create failed; falling back to admin job endpoint:",
+        customerOrderError,
+      );
+    }
+  }
 
   try {
     return await sg<{ id: string }>(`/admin/jobs`, {
