@@ -60,7 +60,6 @@ export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
       .single();
     if (error || !booking) throw new Error("Booking not found");
     if (booking.user_id !== userId) throw new Error("Forbidden");
-    if (booking.status === "active") return { status: "active" as const };
     if (!booking.stripe_verification_session_id) {
       return { status: booking.status as string };
     }
