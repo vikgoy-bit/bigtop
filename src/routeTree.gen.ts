@@ -28,6 +28,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicHooksAbandonedCartRouteImport } from './routes/api/public/hooks/abandoned-cart'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -130,6 +131,12 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksAbandonedCartRoute =
+  ApiPublicHooksAbandonedCartRouteImport.update({
+    id: '/api/public/hooks/abandoned-cart',
+    path: '/api/public/hooks/abandoned-cart',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/abandoned-cart': typeof ApiPublicHooksAbandonedCartRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -165,6 +173,7 @@ export interface FileRoutesByTo {
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/abandoned-cart': typeof ApiPublicHooksAbandonedCartRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -187,6 +196,7 @@ export interface FileRoutesById {
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/abandoned-cart': typeof ApiPublicHooksAbandonedCartRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/api/public/mollie-webhook'
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/abandoned-cart'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/api/public/mollie-webhook'
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/abandoned-cart'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -250,6 +262,7 @@ export interface FileRouteTypes {
     | '/api/public/mollie-webhook'
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/abandoned-cart'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -267,6 +280,7 @@ export interface RootRouteChildren {
   ApiPublicMollieWebhookRoute: typeof ApiPublicMollieWebhookRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicHooksAbandonedCartRoute: typeof ApiPublicHooksAbandonedCartRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -409,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/abandoned-cart': {
+      id: '/api/public/hooks/abandoned-cart'
+      path: '/api/public/hooks/abandoned-cart'
+      fullPath: '/api/public/hooks/abandoned-cart'
+      preLoaderRoute: typeof ApiPublicHooksAbandonedCartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -442,6 +463,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMollieWebhookRoute: ApiPublicMollieWebhookRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicHooksAbandonedCartRoute: ApiPublicHooksAbandonedCartRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
