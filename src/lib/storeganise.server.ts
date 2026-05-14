@@ -339,22 +339,9 @@ export async function createStoreganiseUnitOrder(params: {
       }),
     });
   } catch (e) {
-    if (!(e instanceof Error) || !e.message.toLowerCase().includes("duplicate")) throw e;
-    const jobs = await sg<Array<Record<string, any>>>(
-      `/admin/jobs?userId=${encodeURIComponent(params.userId)}&limit=100`,
-    );
-    const existing = jobs.find((job) => {
-      const data = job.data ?? {};
-      const result = job.result ?? {};
-      return (
-        job.type === "unit_moveIn" &&
-        (data.unitTypeId === params.unitTypeId || result.unitTypeId === params.unitTypeId) &&
-        (data.siteId === siteId || result.siteId === siteId) &&
-        (data.startDate === params.startDate || result.startDate === params.startDate) &&
-        (result.orderState === "notSubmitted" || data.submitLater === true)
-      );
-    });
-    if (typeof existing?.id === "string") return { id: existing.id };
+    if (!(e instanceof Error) || !/duplicate|too many/i.test(e.message)) throw e;
+    const retryExisting = await findExistingOrder();
+    if (retryExisting) return retryExisting;
     throw e;
   }
 }
