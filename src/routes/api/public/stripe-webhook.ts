@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getStripe } from "@/lib/stripe.server";
+import { sendBookingConfirmationEmail } from "@/lib/booking-confirmation.server";
 
 export const Route = createFileRoute("/api/public/stripe-webhook")({
   server: {
@@ -42,6 +43,12 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                 .update({ status: "active" })
                 .eq("id", bookingId)
                 .eq("stripe_verification_session_id", session.id);
+
+              // Now that ID is verified, send the booking confirmation email.
+              const result = await sendBookingConfirmationEmail(bookingId);
+              if (!result.ok) {
+                console.error("Booking confirmation email failed:", result.error);
+              }
             }
           }
         } catch (err) {
