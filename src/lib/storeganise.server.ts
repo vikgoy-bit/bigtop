@@ -54,8 +54,10 @@ export async function setStoreganiseUserIdentitySession(
   userId: string,
   verificationSessionId: string,
 ): Promise<{ ok: boolean; via: string | null; error: string | null }> {
-  const value = `${verificationSessionId}#verified`;
+  const value = verificationSessionId;
   const bodies: Array<Record<string, unknown>> = [
+    { customFields: { identity_session: value } },
+    { customFields: { identitySession: value } },
     { data: { customFields: { identitySession: value } } },
     { identitySession: value },
     { data: { customFields: { identity_session: value } } },
