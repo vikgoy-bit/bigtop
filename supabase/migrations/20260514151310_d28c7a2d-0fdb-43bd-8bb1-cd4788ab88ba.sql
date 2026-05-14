@@ -1,0 +1,2 @@
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS abandoned_email_sent_at timestamptz;
+CREATE INDEX IF NOT EXISTS idx_bookings_abandoned ON public.bookings (status, created_at) WHERE abandoned_email_sent_at IS NULL;

@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          abandoned_email_sent_at: string | null
           cover_document_path: string | null
           created_at: string
           id: string
@@ -41,6 +42,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          abandoned_email_sent_at?: string | null
           cover_document_path?: string | null
           created_at?: string
           id?: string
@@ -66,6 +68,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          abandoned_email_sent_at?: string | null
           cover_document_path?: string | null
           created_at?: string
           id?: string
