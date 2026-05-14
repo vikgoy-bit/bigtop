@@ -8,6 +8,7 @@ import {
   getStoreganiseOrder,
   submitStoreganiseUnitOrder,
   uploadSignedContractToStoreganise,
+  ensureStoreganiseOrderForBooking,
 } from "./storeganise.server";
 
 import {
@@ -332,7 +333,7 @@ export const signContract = createServerFn({ method: "POST" })
     const { data: booking, error } = await supabase
       .from("bookings")
       .select(
-        "id,user_id,storeganise_order_id,signed_at,unit_snapshot,move_in_date,total_pence,cover_document_path",
+        "id,user_id,unit_id,total_pence,protect_tier_id,storeganise_user_id,storeganise_order_id,signed_at,unit_snapshot,move_in_date,cover_document_path",
       )
       .eq("id", data.bookingId)
       .maybeSingle();
@@ -341,6 +342,40 @@ export const signContract = createServerFn({ method: "POST" })
     if (booking.signed_at) {
       return { ok: true, alreadySigned: true };
     }
+
+    // Fallback: if the Mollie webhook didn't (or hasn't) created the
+    // Storeganise order yet, create it now so we can submit + attach the
+    // signed contract. Idempotent — no-op when the order already exists.
+    let storeganiseOrderId = booking.storeganise_order_id;
+    let sgFallbackError: string | null = null;
+    if (!storeganiseOrderId) {
+      try {
+        const sgUpdates = await ensureStoreganiseOrderForBooking({
+          supabaseAdmin,
+          booking: {
+            id: booking.id,
+            user_id: booking.user_id,
+            unit_id: booking.unit_id,
+            total_pence: booking.total_pence,
+            move_in_date: booking.move_in_date,
+            protect_tier_id: booking.protect_tier_id ?? null,
+            storeganise_user_id: booking.storeganise_user_id ?? null,
+            storeganise_order_id: null,
+          },
+        });
+        if (sgUpdates.storeganise_order_id || sgUpdates.storeganise_user_id) {
+          await supabaseAdmin
+            .from("bookings")
+            .update(sgUpdates)
+            .eq("id", booking.id);
+        }
+        storeganiseOrderId = sgUpdates.storeganise_order_id ?? null;
+      } catch (e) {
+        sgFallbackError = e instanceof Error ? e.message : String(e);
+        console.error("Storeganise fallback create failed:", sgFallbackError);
+      }
+    }
+    booking.storeganise_order_id = storeganiseOrderId;
 
     const signedAt = new Date();
 
