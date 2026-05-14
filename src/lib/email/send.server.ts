@@ -38,6 +38,21 @@ export async function sendTransactionalEmailServer(params: {
   const messageId = crypto.randomUUID();
   const idempotencyKey = params.idempotencyKey ?? messageId;
 
+  if (params.idempotencyKey) {
+    const { data: existingSend } = await supabaseAdmin
+      .from("email_send_log")
+      .select("status")
+      .eq("template_name", params.templateName)
+      .filter("metadata->>idempotency_key", "eq", idempotencyKey)
+      .in("status", ["pending", "sent"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existingSend) {
+      return { ok: true, reason: `already_${existingSend.status}` };
+    }
+  }
+
   // Suppression check
   const { data: suppressed } = await supabaseAdmin
     .from("suppressed_emails")
@@ -94,6 +109,7 @@ export async function sendTransactionalEmailServer(params: {
     template_name: params.templateName,
     recipient_email: recipient,
     status: "pending",
+    metadata: { idempotency_key: idempotencyKey },
   });
 
   const { error: enqErr } = await supabaseAdmin.rpc("enqueue_email", {
@@ -120,6 +136,7 @@ export async function sendTransactionalEmailServer(params: {
       recipient_email: recipient,
       status: "failed",
       error_message: enqErr.message,
+      metadata: { idempotency_key: idempotencyKey },
     });
     return { ok: false, error: enqErr.message };
   }
