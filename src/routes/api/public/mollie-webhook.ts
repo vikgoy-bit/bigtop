@@ -64,7 +64,18 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
           // here on — we do NOT create a Mollie subscription.
           if (!booking.storeganise_order_id) {
             try {
-              Object.assign(updates, await linkStoreganiseOrder(booking, payment));
+              Object.assign(
+                updates,
+                await ensureStoreganiseOrderForBooking({
+                  supabaseAdmin,
+                  booking,
+                  payment: {
+                    id: payment.id,
+                    customerId: payment.customerId,
+                    mandateId: payment.mandateId,
+                  },
+                }),
+              );
             } catch (e) {
               console.error(
                 "Storeganise handoff failed",
