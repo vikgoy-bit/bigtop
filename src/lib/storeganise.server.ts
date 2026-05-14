@@ -54,10 +54,11 @@ export async function setStoreganiseUserIdentitySession(
   userId: string,
   verificationSessionId: string,
 ): Promise<{ ok: boolean; via: string | null; error: string | null }> {
+  const value = `${verificationSessionId}#verified`;
   const bodies: Array<Record<string, unknown>> = [
-    { customFields: { identity_session: verificationSessionId } },
-    { data: { customFields: { identity_session: verificationSessionId } } },
-    { identity_session: verificationSessionId },
+    { data: { customFields: { identitySession: value } } },
+    { identitySession: value },
+    { data: { customFields: { identity_session: value } } },
   ];
   let lastError = "";
   for (const body of bodies) {
@@ -355,6 +356,31 @@ export async function createStoreganiseUnitOrder(params: {
 
   const existing = await findExistingOrder();
   if (existing) return existing;
+
+  try {
+    return await sg<{ id: string }>(`/admin/jobs`, {
+      method: "POST",
+      body: JSON.stringify({
+        type: "unit_moveIn",
+        data: {
+          submitLater: true,
+          userId: params.userId,
+          siteId,
+          unitTypeId: params.unitTypeId,
+          startDate: params.startDate,
+          notes: params.notes,
+          ...(params.products && Object.keys(params.products).length > 0
+            ? { products: params.products }
+            : {}),
+        },
+      }),
+    });
+  } catch (adminJobError) {
+    console.error(
+      "Storeganise admin job create failed; falling back to unit order endpoint:",
+      adminJobError,
+    );
+  }
 
   try {
     return await sg<{ id: string }>(`/units/orders`, {
