@@ -296,6 +296,33 @@ export async function createStoreganiseUnitOrder(params: {
   products?: Record<string, number>;
 }): Promise<{ id: string }> {
   const siteId = await getSiteId();
+  const findExistingOrder = async () => {
+    const jobs = pickArray(
+      await sg<Array<Record<string, any>> | { data?: Record<string, any>[]; jobs?: Record<string, any>[]; results?: Record<string, any>[] }>(
+        `/admin/jobs?userId=${encodeURIComponent(params.userId)}&limit=100`,
+      ),
+    );
+    const existing = jobs.find((job) => {
+      const data = job.data ?? {};
+      const result = job.result ?? {};
+      const notes = `${data.notes ?? ""}\n${result.notes ?? ""}`;
+      const bookingMatches = params.bookingId ? notes.includes(params.bookingId) : false;
+      const detailsMatch =
+        (data.unitTypeId === params.unitTypeId || result.unitTypeId === params.unitTypeId) &&
+        (data.siteId === siteId || result.siteId === siteId) &&
+        (data.startDate === params.startDate || result.startDate === params.startDate);
+      return (
+        job.type === "unit_moveIn" &&
+        (bookingMatches || detailsMatch) &&
+        (result.orderState === "notSubmitted" || data.submitLater === true || !result.orderState)
+      );
+    });
+    return typeof existing?.id === "string" ? { id: existing.id } : null;
+  };
+
+  const existing = await findExistingOrder();
+  if (existing) return existing;
+
   try {
     return await sg<{ id: string }>(`/units/orders`, {
       method: "POST",
