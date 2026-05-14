@@ -311,10 +311,10 @@ export async function createStoreganiseUnitOrder(params: {
         (data.unitTypeId === params.unitTypeId || result.unitTypeId === params.unitTypeId) &&
         (data.siteId === siteId || result.siteId === siteId) &&
         (data.startDate === params.startDate || result.startDate === params.startDate);
+      const isUnsubmitted = result.orderState === "notSubmitted" || data.submitLater === true && !data.submitNow;
       return (
         job.type === "unit_moveIn" &&
-        (bookingMatches || detailsMatch) &&
-        (result.orderState === "notSubmitted" || data.submitLater === true || !result.orderState)
+        (bookingMatches || (detailsMatch && isUnsubmitted))
       );
     });
     return typeof existing?.id === "string" ? { id: existing.id } : null;
