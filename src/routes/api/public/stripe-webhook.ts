@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getStripe } from "@/lib/stripe.server";
 import { sendBookingConfirmationEmail } from "@/lib/booking-confirmation.server";
+import { setStoreganiseUserIdentitySession } from "@/lib/storeganise.server";
 
 export const Route = createFileRoute("/api/public/stripe-webhook")({
   server: {
