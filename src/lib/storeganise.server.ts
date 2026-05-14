@@ -197,6 +197,87 @@ export async function ensureStoreganiseUser(params: {
 }
 
 /**
+ * Ensure a Storeganise user + unit order exist for a booking. Idempotent —
+ * safe to call from the Mollie webhook AND as a fallback during contract
+ * signing if the webhook hasn't run yet (or failed to reach Storeganise).
+ *
+ * Returns the field updates the caller should persist on the booking row.
+ */
+export async function ensureStoreganiseOrderForBooking(params: {
+  supabaseAdmin: any;
+  booking: {
+    id: string;
+    user_id: string;
+    unit_id: string;
+    total_pence: number;
+    move_in_date: string;
+    protect_tier_id: string | null;
+    storeganise_user_id: string | null;
+    storeganise_order_id: string | null;
+  };
+  payment?: { id?: string; customerId?: string; mandateId?: string };
+}): Promise<{ storeganise_user_id?: string; storeganise_order_id?: string }> {
+  const { supabaseAdmin: db, booking, payment } = params;
+  if (booking.storeganise_order_id) return {};
+
+  const updates: { storeganise_user_id?: string; storeganise_order_id?: string } = {};
+
+  const { data: userInfo } = await db.auth.admin.getUserById(booking.user_id);
+  const email = userInfo?.user?.email;
+  if (!email) throw new Error("No email on booking user");
+
+  const { data: profile } = await db
+    .from("profiles")
+    .select("full_name,phone")
+    .eq("id", booking.user_id)
+    .maybeSingle();
+
+  let sgUserId = booking.storeganise_user_id;
+  if (!sgUserId) {
+    const sgUser = await ensureStoreganiseUser({
+      email,
+      name: profile?.full_name || undefined,
+      phone: profile?.phone || undefined,
+    });
+    sgUserId = sgUser.id;
+    updates.storeganise_user_id = sgUserId;
+  }
+
+  let sgProductId: string | null = null;
+  if (booking.protect_tier_id) {
+    const { data: tier } = await db
+      .from("protect_tiers")
+      .select("storeganise_product_id")
+      .eq("id", booking.protect_tier_id)
+      .maybeSingle();
+    sgProductId = tier?.storeganise_product_id ?? null;
+  }
+
+  const paymentDesc = payment?.id
+    ? `First payment taken via Mollie (${payment.id}) — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`
+    : `First payment taken via Mollie — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`;
+
+  const order = await createStoreganiseUnitOrder({
+    userId: sgUserId!,
+    unitTypeId: booking.unit_id,
+    startDate: booking.move_in_date,
+    products: sgProductId ? { [sgProductId]: 1 } : undefined,
+    notes: [
+      `Booking ${booking.id}`,
+      paymentDesc,
+      `Mandate: ${payment?.mandateId ?? "n/a"} (Mollie customer ${payment?.customerId ?? "n/a"}).`,
+      `PROMO: First month £1. Apply a manual prorata credit to next month's bill — staff to configure in Storeganise.`,
+      `BILLING: Monthly cycle anchored to signup/move-in date (${booking.move_in_date}). Bill full months — do NOT sync to 1st-of-month or any fixed date.`,
+      sgProductId
+        ? `BIGProtect product ${sgProductId} attached to order.`
+        : `No BIGProtect product attached (tier ${booking.protect_tier_id ?? "none"}).`,
+    ].join("\n"),
+  });
+  updates.storeganise_order_id = order.id;
+  return updates;
+}
+
+/**
  * Create a unit order (move-in job) in Storeganise. Storeganise then handles
  * subsequent monthly invoicing/charging via its own automation.
  */
