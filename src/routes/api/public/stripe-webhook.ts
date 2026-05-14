@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getStripe } from "@/lib/stripe.server";
 import { sendBookingConfirmationEmail } from "@/lib/booking-confirmation.server";
+import { setStoreganiseUserIdentitySession } from "@/lib/storeganise.server";
 
 export const Route = createFileRoute("/api/public/stripe-webhook")({
   server: {
@@ -40,12 +41,24 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
             if (bookingId && event.type === "identity.verification_session.verified") {
               const { data: booking } = await supabaseAdmin
                 .from("bookings")
-                .select("id")
+                .select("id,storeganise_user_id")
                 .eq("id", bookingId)
                 .eq("stripe_verification_session_id", session.id)
                 .maybeSingle();
 
               if (booking) {
+                if (booking.storeganise_user_id) {
+                  const sgRes = await setStoreganiseUserIdentitySession(
+                    booking.storeganise_user_id,
+                    session.id,
+                  );
+                  if (!sgRes.ok) {
+                    console.error(
+                      "Storeganise identity_session update failed:",
+                      sgRes.error,
+                    );
+                  }
+                }
                 const result = await sendBookingConfirmationEmail(bookingId);
                 if (!result.ok) {
                   console.error("Booking confirmation email failed:", result.error);
