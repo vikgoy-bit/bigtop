@@ -56,7 +56,7 @@ export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
 
     const { data: booking, error } = await supabaseAdmin
       .from("bookings")
-      .select("id,user_id,status,stripe_verification_session_id")
+      .select("id,user_id,status,stripe_verification_session_id,storeganise_user_id")
       .eq("id", data.bookingId)
       .single();
     if (error || !booking) throw new Error("Booking not found");
@@ -77,6 +77,19 @@ export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
           ? { code: session.last_error.code, reason: session.last_error.reason }
           : null,
       };
+    }
+
+    // Push the verified Stripe session id to Storeganise so its move-in job
+    // can progress past `await_verifyIdentity`. Best-effort — failures here
+    // shouldn't block the confirmation email.
+    if (booking.storeganise_user_id) {
+      const res = await setStoreganiseUserIdentitySession(
+        booking.storeganise_user_id,
+        booking.stripe_verification_session_id,
+      );
+      if (!res.ok) {
+        console.error("Storeganise identity_session update failed:", res.error);
+      }
     }
 
     const { data: existingSend } = await supabaseAdmin
