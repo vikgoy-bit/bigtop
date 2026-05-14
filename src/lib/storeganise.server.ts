@@ -42,6 +42,39 @@ export async function getStoreganiseOrder(orderId: string): Promise<Record<strin
 }
 
 /**
+ * Set the Stripe identity verification session id on a Storeganise user's
+ * `identity_session` custom field. Storeganise's move-in workflow blocks at
+ * `await_verifyIdentity` until this field is populated — once set, Storeganise
+ * polls Stripe and progresses the unit from Reserved to Active automatically.
+ *
+ * Tries a few shapes since Storeganise accepts custom fields under either
+ * `customFields` or `data.customFields` depending on account configuration.
+ */
+export async function setStoreganiseUserIdentitySession(
+  userId: string,
+  verificationSessionId: string,
+): Promise<{ ok: boolean; via: string | null; error: string | null }> {
+  const bodies: Array<Record<string, unknown>> = [
+    { customFields: { identity_session: verificationSessionId } },
+    { data: { customFields: { identity_session: verificationSessionId } } },
+    { identity_session: verificationSessionId },
+  ];
+  let lastError = "";
+  for (const body of bodies) {
+    try {
+      await sg<Record<string, unknown>>(`/admin/users/${userId}`, {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
+      return { ok: true, via: Object.keys(body).join(","), error: null };
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : String(e);
+    }
+  }
+  return { ok: false, via: null, error: lastError };
+}
+
+/**
  * Submit a previously-deferred unit order so Storeganise allocates a specific
  * unit to it. Storeganise requires the e-signature to be stored on the order
  * before the final `submitNow` update when move-in agreements are enabled.
