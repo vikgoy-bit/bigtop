@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getStripe } from "./stripe.server";
 import { getRequestHost } from "@tanstack/react-start/server";
+import { sendBookingConfirmationEmail } from "./booking-confirmation.server";
 
 export const startIdentityVerification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
