@@ -28,6 +28,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicHooksRetryVerificationRouteImport } from './routes/api/public/hooks/retry-verification'
 import { Route as ApiPublicHooksAbandonedCartRouteImport } from './routes/api/public/hooks/abandoned-cart'
 
 const SignupRoute = SignupRouteImport.update({
@@ -131,6 +132,12 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksRetryVerificationRoute =
+  ApiPublicHooksRetryVerificationRouteImport.update({
+    id: '/api/public/hooks/retry-verification',
+    path: '/api/public/hooks/retry-verification',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksAbandonedCartRoute =
   ApiPublicHooksAbandonedCartRouteImport.update({
     id: '/api/public/hooks/abandoned-cart',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/abandoned-cart': typeof ApiPublicHooksAbandonedCartRoute
+  '/api/public/hooks/retry-verification': typeof ApiPublicHooksRetryVerificationRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/abandoned-cart': typeof ApiPublicHooksAbandonedCartRoute
+  '/api/public/hooks/retry-verification': typeof ApiPublicHooksRetryVerificationRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -197,6 +206,7 @@ export interface FileRoutesById {
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/abandoned-cart': typeof ApiPublicHooksAbandonedCartRoute
+  '/api/public/hooks/retry-verification': typeof ApiPublicHooksRetryVerificationRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
     | '/api/public/hooks/abandoned-cart'
+    | '/api/public/hooks/retry-verification'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
     | '/api/public/hooks/abandoned-cart'
+    | '/api/public/hooks/retry-verification'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -263,6 +275,7 @@ export interface FileRouteTypes {
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
     | '/api/public/hooks/abandoned-cart'
+    | '/api/public/hooks/retry-verification'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -281,6 +294,7 @@ export interface RootRouteChildren {
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksAbandonedCartRoute: typeof ApiPublicHooksAbandonedCartRoute
+  ApiPublicHooksRetryVerificationRoute: typeof ApiPublicHooksRetryVerificationRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -423,6 +437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/retry-verification': {
+      id: '/api/public/hooks/retry-verification'
+      path: '/api/public/hooks/retry-verification'
+      fullPath: '/api/public/hooks/retry-verification'
+      preLoaderRoute: typeof ApiPublicHooksRetryVerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/abandoned-cart': {
       id: '/api/public/hooks/abandoned-cart'
       path: '/api/public/hooks/abandoned-cart'
@@ -464,6 +485,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksAbandonedCartRoute: ApiPublicHooksAbandonedCartRoute,
+  ApiPublicHooksRetryVerificationRoute: ApiPublicHooksRetryVerificationRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
