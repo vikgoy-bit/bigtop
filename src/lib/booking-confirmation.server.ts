@@ -135,6 +135,12 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<{
       .update({ unit_snapshot: snapshot })
       .eq("id", booking.id);
   }
+  if (!booking.storeganise_order_id) {
+    return { ok: false, error: "Storeganise order is not linked yet" };
+  }
+  if (!snapshot?.name) {
+    return { ok: false, error: "Storeganise unit number is not allocated yet" };
+  }
 
   let contractUrl: string | undefined;
   if (booking.signed_contract_path) {
