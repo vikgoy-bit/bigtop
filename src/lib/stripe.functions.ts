@@ -60,7 +60,6 @@ export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
       .single();
     if (error || !booking) throw new Error("Booking not found");
     if (booking.user_id !== userId) throw new Error("Forbidden");
-    if (booking.status === "active") return { status: "active" as const };
     if (!booking.stripe_verification_session_id) {
       return { status: booking.status as string };
     }
@@ -74,15 +73,16 @@ export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
       return { status: session.status };
     }
 
-    // Atomic transition: only send email if THIS call flipped the status.
-    const { data: updated } = await supabaseAdmin
-      .from("bookings")
-      .update({ status: "active" })
-      .eq("id", booking.id)
-      .neq("status", "active")
-      .select("id");
+    const { data: existingSend } = await supabaseAdmin
+      .from("email_send_log")
+      .select("id")
+      .eq("template_name", "booking-confirmation")
+      .filter("metadata->>idempotency_key", "eq", `booking-confirm-${booking.id}`)
+      .in("status", ["pending", "sent"])
+      .limit(1)
+      .maybeSingle();
 
-    if (updated && updated.length > 0) {
+    if (!existingSend) {
       const result = await sendBookingConfirmationEmail(booking.id);
       if (!result.ok) {
         console.error("Booking confirmation email failed:", result.error);

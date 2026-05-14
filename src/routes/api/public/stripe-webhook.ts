@@ -38,15 +38,14 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
             };
             const bookingId = session.metadata?.booking_id;
             if (bookingId && event.type === "identity.verification_session.verified") {
-              const { data: updated } = await supabaseAdmin
+              const { data: booking } = await supabaseAdmin
                 .from("bookings")
-                .update({ status: "active" })
+                .select("id")
                 .eq("id", bookingId)
                 .eq("stripe_verification_session_id", session.id)
-                .neq("status", "active")
-                .select("id");
+                .maybeSingle();
 
-              if (updated && updated.length > 0) {
+              if (booking) {
                 const result = await sendBookingConfirmationEmail(bookingId);
                 if (!result.ok) {
                   console.error("Booking confirmation email failed:", result.error);

@@ -119,9 +119,13 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<{
     (booking.signer_name ?? profile?.full_name ?? "").trim().split(/\s+/)[0] ??
     "";
 
-  // Make sure we've got the assigned unit number before sending.
+  if (!booking.storeganise_order_id) {
+    return { ok: false, error: "Storeganise order is not linked yet" };
+  }
+
+  // Make sure we've got the assigned unit number before confirming the booking.
   let snapshot = booking.unit_snapshot as UnitSnapshot | null;
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 8; attempt++) {
     snapshot = await refreshUnitSnapshot(
       booking.storeganise_order_id,
       snapshot,
@@ -134,9 +138,6 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<{
       .from("bookings")
       .update({ unit_snapshot: snapshot })
       .eq("id", booking.id);
-  }
-  if (!booking.storeganise_order_id) {
-    return { ok: false, error: "Storeganise order is not linked yet" };
   }
   if (!snapshot?.name) {
     return { ok: false, error: "Storeganise unit number is not allocated yet" };
@@ -160,7 +161,7 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<{
   const monthly = snapshot?.monthly_price_pence ?? 0;
 
   try {
-    return await sendTransactionalEmailServer({
+    const sendResult = await sendTransactionalEmailServer({
       templateName: "booking-confirmation",
       recipientEmail: recipient,
       idempotencyKey: `booking-confirm-${booking.id}`,
@@ -179,6 +180,13 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<{
         bookingRef: booking.id.slice(0, 8),
       },
     });
+    if (sendResult.ok) {
+      await supabaseAdmin
+        .from("bookings")
+        .update({ status: "active", unit_snapshot: snapshot })
+        .eq("id", booking.id);
+    }
+    return sendResult;
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }

@@ -97,12 +97,18 @@ async function refreshUnitSnapshot(
       (order.unitType as Record<string, any> | undefined) ??
       (order.result?.unitType as Record<string, any> | undefined) ??
       undefined;
+    const unitId =
+      unit?.id ??
+      (typeof order.result?.unitId === "string" ? order.result.unitId : undefined);
+    if (!unit && unitId) {
+      unit = await fetchStoreganiseUnit(unitId).catch(() => undefined);
+    }
 
     if (!unit && !unitType) return current;
     return {
       ...(current ?? {}),
-      id: unit?.id ?? current?.id,
-      name: unit?.name ?? unit?.code ?? current?.name,
+      id: unit?.id ?? unitId ?? current?.id,
+      name: normalizeUnitName(unit?.name ?? unit?.code ?? current?.name),
       title: unit?.title ?? unitType?.title ?? current?.title,
       groupTitle:
         unit?.groupTitle ?? unitType?.groupTitle ?? current?.groupTitle,
@@ -114,6 +120,21 @@ async function refreshUnitSnapshot(
   } catch {
     return current;
   }
+}
+
+function normalizeUnitName(name: string | undefined): string | undefined {
+  return name ? name.toUpperCase() : undefined;
+}
+
+async function fetchStoreganiseUnit(unitId: string): Promise<Record<string, any>> {
+  const key = process.env.STOREGANISE_API_KEY;
+  if (!key) throw new Error("STOREGANISE_API_KEY is not set");
+  const res = await fetch(
+    `https://bigtopselfstorage.storeganise.com/api/v1/admin/units/${unitId}`,
+    { headers: { Authorization: `ApiKey ${key}`, Accept: "application/json" } },
+  );
+  if (!res.ok) throw new Error(`Storeganise unit lookup failed: ${res.status}`);
+  return res.json() as Promise<Record<string, any>>;
 }
 
 async function buildAgreementTokens(args: {
@@ -378,12 +399,35 @@ export const signContract = createServerFn({ method: "POST" })
     booking.storeganise_order_id = storeganiseOrderId;
 
     const signedAt = new Date();
+    const signatureUrl = buildSignatureDataUrl(data.fullName, signedAt);
 
     const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
     let refreshedSnapshot = await refreshUnitSnapshot(
       booking.storeganise_order_id,
       baseSnapshot,
     );
+
+    let sgSubmit: Awaited<ReturnType<typeof submitStoreganiseUnitOrder>> = {
+      submitted: false,
+      via: null,
+      error: "Skipped: no Storeganise order linked",
+    };
+    if (booking.storeganise_order_id) {
+      sgSubmit = await submitStoreganiseUnitOrder(booking.storeganise_order_id, {
+        signatureUrl,
+      });
+      if (sgSubmit.submitted) {
+        // Allocate the exact Storeganise unit before rendering the signed PDF.
+        for (let attempt = 0; attempt < 8; attempt++) {
+          refreshedSnapshot = await refreshUnitSnapshot(
+            booking.storeganise_order_id,
+            refreshedSnapshot,
+          );
+          if (refreshedSnapshot?.name) break;
+          await new Promise((r) => setTimeout(r, 750));
+        }
+      }
+    }
 
     const tokens = await buildAgreementTokens({
       supabase: supabaseAdmin,
@@ -445,19 +489,12 @@ export const signContract = createServerFn({ method: "POST" })
       });
     }
 
-    let sgSubmit: Awaited<ReturnType<typeof submitStoreganiseUnitOrder>> = {
-      submitted: false,
-      via: null,
-      error: "Skipped: no Storeganise order linked",
-    };
-    if (booking.storeganise_order_id) {
+    if (booking.storeganise_order_id && !sgSubmit.submitted) {
       sgSubmit = await submitStoreganiseUnitOrder(booking.storeganise_order_id, {
-        signatureUrl: buildSignatureDataUrl(data.fullName, signedAt),
+        signatureUrl,
       });
       if (sgSubmit.submitted) {
-        // Poll briefly so Storeganise has time to allocate a specific unit
-        // before we render the confirmation email with the unit number.
-        for (let attempt = 0; attempt < 4; attempt++) {
+        for (let attempt = 0; attempt < 8; attempt++) {
           refreshedSnapshot = await refreshUnitSnapshot(
             booking.storeganise_order_id,
             refreshedSnapshot,
