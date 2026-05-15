@@ -493,60 +493,23 @@ export async function createStoreganiseUnitOrder(params: {
       });
     } catch (customerOrderError) {
       console.error(
-        "Storeganise customer order create failed; falling back to admin job endpoint:",
+        "Storeganise customer order create failed; falling back to admin /units/orders:",
         customerOrderError,
       );
     }
   }
 
+  // PRIMARY admin path: POST /units/orders with `userId` at the top level.
+  // This returns a real unit-order id (works with GET/PUT /units/orders/{id}
+  // for submit, verify, and identity_session writes). Storeganise sets the
+  // order's owner from the top-level `userId` when called with admin auth.
+  //
+  // We previously tried POST /admin/jobs first, but it returns the JOB id
+  // (not the order id) — every subsequent /units/orders/{id} call 404'd,
+  // breaking submitNow and leaving the order stuck at "Wait for order
+  // submission" in the Storeganise UI.
   try {
-    // CRITICAL: `ownerId` MUST be at the top level of the POST body. Putting
-    // the customer's id under `data.userId` is silently ignored and the job
-    // ends up owned by the API service user (which Storeganise then polls for
-    // `identity_session`, blocking move-in at `await_verifyIdentity`).
-    const created = await sg<{ id: string; ownerId?: string }>(`/admin/jobs`, {
-      method: "POST",
-      body: JSON.stringify({
-        type: "unit_moveIn",
-        ownerId: params.userId,
-        data: {
-          submitLater: true,
-          siteId,
-          unitTypeId: params.unitTypeId,
-          startDate: params.startDate,
-          notes: params.notes,
-          ...(params.products && Object.keys(params.products).length > 0
-            ? { products: params.products }
-            : {}),
-        },
-      }),
-    });
-
-    // Verify by reading the order back — Storeganise has occasionally ignored
-    // ownerId on /admin/jobs in the past, so we want to know early if it
-    // happens again rather than discover it when the customer hits Identity.
-    try {
-      const verify = await sg<{ ownerId?: string }>(`/units/orders/${created.id}`);
-      if (verify.ownerId && verify.ownerId !== params.userId) {
-        console.error(
-          `Storeganise order ${created.id} created but ownerId is ${verify.ownerId}, expected ${params.userId}. ` +
-            `Move-in identity step will need to write identity_session to the actual owner.`,
-        );
-      }
-    } catch (verifyError) {
-      console.error("Storeganise order verify-after-create failed:", verifyError);
-    }
-
-    return { id: created.id };
-  } catch (adminJobError) {
-    console.error(
-      "Storeganise admin job create failed; falling back to unit order endpoint:",
-      adminJobError,
-    );
-  }
-
-  try {
-    return await sg<{ id: string }>(`/units/orders`, {
+    const created = await sg<{ id: string; ownerId?: string }>(`/units/orders`, {
       method: "POST",
       body: JSON.stringify({
         submitLater: true,
@@ -560,10 +523,26 @@ export async function createStoreganiseUnitOrder(params: {
           : {}),
       }),
     });
+
+    // Verify owner — log loudly if Storeganise ignored our userId so the
+    // dual-write fallback in setIdentitySessionForOrder kicks in.
+    try {
+      const verify = await sg<{ ownerId?: string }>(`/units/orders/${created.id}`);
+      if (verify.ownerId && verify.ownerId !== params.userId) {
+        console.error(
+          `Storeganise order ${created.id} created but ownerId is ${verify.ownerId}, expected ${params.userId}.`,
+        );
+      }
+    } catch (verifyError) {
+      console.error("Storeganise order verify-after-create failed:", verifyError);
+    }
+
+    return { id: created.id };
   } catch (e) {
-    if (!(e instanceof Error) || !/duplicate|too many/i.test(e.message)) throw e;
-    const retryExisting = await findExistingOrder();
-    if (retryExisting) return retryExisting;
+    if (e instanceof Error && /duplicate|too many/i.test(e.message)) {
+      const retryExisting = await findExistingOrder();
+      if (retryExisting) return retryExisting;
+    }
     throw e;
   }
 }
