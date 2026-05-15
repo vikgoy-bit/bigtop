@@ -114,6 +114,43 @@ export async function submitStoreganiseUnitOrder(
   return { submitted: false, via: null, error: lastError };
 }
 
+/**
+ * Tell Storeganise to skip the current step on a unit_moveIn job — used when
+ * Stripe Identity rejects a customer but we still want the booking to flow
+ * through (admin will follow up manually). Mirrors clicking the "Skip" button
+ * in the Storeganise admin UI on the `await_verifyIdentity` step.
+ *
+ * Tries several likely endpoint shapes since Storeganise's admin job actions
+ * aren't fully documented publicly.
+ */
+export async function skipStoreganiseUnitOrderStep(
+  orderId: string,
+  reason?: string,
+): Promise<{ skipped: boolean; via: string | null; error: string | null }> {
+  const note =
+    reason ?? "Stripe Identity verification failed — manual follow-up required.";
+  const attempts: Array<{ path: string; method: "POST" | "PUT"; body: string }> = [
+    { path: `/admin/jobs/${orderId}/skip`, method: "POST", body: JSON.stringify({ reason: note }) },
+    { path: `/admin/jobs/${orderId}/skip`, method: "POST", body: "{}" },
+    { path: `/admin/jobs/${orderId}/skipStep`, method: "POST", body: JSON.stringify({ reason: note }) },
+    { path: `/units/orders/${orderId}/skip`, method: "POST", body: JSON.stringify({ reason: note }) },
+    { path: `/units/orders/${orderId}/skip`, method: "POST", body: "{}" },
+    { path: `/admin/jobs/${orderId}`, method: "PUT", body: JSON.stringify({ skipStep: true, skipReason: note }) },
+    { path: `/units/orders/${orderId}`, method: "PUT", body: JSON.stringify({ skipStep: true, skipReason: note }) },
+  ];
+
+  let lastError = "";
+  for (const a of attempts) {
+    try {
+      await sg<Record<string, unknown>>(a.path, { method: a.method, body: a.body });
+      return { skipped: true, via: `${a.method} ${a.path}`, error: null };
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : String(e);
+    }
+  }
+  return { skipped: false, via: null, error: lastError };
+}
+
 /** Fetch the public business settings (terms URL, company name, etc.). */
 export async function getStoreganiseSettings(): Promise<Record<string, unknown>> {
   return sg<Record<string, unknown>>(`/settings`);
