@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendBookingConfirmationEmail } from "./booking-confirmation.server";
 import { sendTransactionalEmailServer } from "./email/send.server";
 import {
-  setStoreganiseUserIdentitySession,
+  setIdentitySessionForOrder,
   skipStoreganiseUnitOrderStep,
 } from "./storeganise.server";
 
@@ -42,17 +42,33 @@ export async function completeBookingDespiteIdResult(args: {
   if (error) return { ok: false, error: error.message };
   if (!booking) return { ok: false, error: "Booking not found" };
 
-  // 1. Push session id to Storeganise (best-effort) — satisfies the
-  //    `await_verifyIdentity` step when Stripe verified successfully.
-  if (booking.storeganise_user_id) {
-    const sgRes = await setStoreganiseUserIdentitySession(
-      booking.storeganise_user_id,
-      stripeSessionId,
-    );
+  // 1. Push session id to Storeganise — write to BOTH the booking's recorded
+  //    customer AND the order's actual `ownerId` so legacy bookings owned by
+  //    the API service user still satisfy Storeganise's `await_verifyIdentity`
+  //    poll. Best-effort; logged on failure.
+  if (booking.storeganise_user_id || booking.storeganise_order_id) {
+    const sgRes = await setIdentitySessionForOrder({
+      orderId: booking.storeganise_order_id,
+      bookingUserId: booking.storeganise_user_id,
+      verificationSessionId: stripeSessionId,
+    });
     if (!sgRes.ok) {
       console.error(
-        "Storeganise identity_session update failed:",
-        sgRes.error,
+        "Storeganise identity_session update failed for booking",
+        booking.id,
+        JSON.stringify({
+          bookingUser: sgRes.bookingUserResult,
+          orderOwner: sgRes.orderOwnerResult,
+        }),
+      );
+    } else if (
+      sgRes.orderOwnerResult?.ownerId &&
+      sgRes.orderOwnerResult.ownerId !== booking.storeganise_user_id
+    ) {
+      console.warn(
+        `Booking ${booking.id}: order ${booking.storeganise_order_id} is owned by ` +
+          `${sgRes.orderOwnerResult.ownerId} (not the booking customer ${booking.storeganise_user_id}). ` +
+          `identity_session was written to the order owner as a fallback.`,
       );
     }
   }
