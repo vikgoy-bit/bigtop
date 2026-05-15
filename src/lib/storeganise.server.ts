@@ -656,8 +656,14 @@ export async function createStoreganiseUnitOrder(params: {
     return { id: created.id };
   } catch (e) {
     if (e instanceof Error && /duplicate|too many/i.test(e.message)) {
-      const retryExisting = await findExistingOrder();
-      if (retryExisting) return retryExisting;
+      const retryExisting =
+        (await findExistingOrder()) ?? (await findExistingOrder({ loose: true }));
+      if (retryExisting) {
+        console.warn(
+          `Storeganise rejected /units/orders as duplicate; reusing existing job ${retryExisting.id} for user ${params.userId}.`,
+        );
+        return retryExisting;
+      }
     }
     throw e;
   }
