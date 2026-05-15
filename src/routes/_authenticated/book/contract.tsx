@@ -6,9 +6,7 @@ import { FileSignature, ArrowRight, Loader2, AlertTriangle, CheckCircle2 } from 
 import { SiteHeader } from "@/components/SiteHeader";
 import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { getContractForBooking, signContract } from "@/lib/contract.functions";
 
@@ -22,7 +20,6 @@ export const Route = createFileRoute("/_authenticated/book/contract")({
 function ContractPage() {
   const navigate = useNavigate();
   const [bookingId, setBookingId] = useState<string | null>(null);
-  const [fullName, setFullName] = useState("");
   const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
@@ -41,7 +38,7 @@ function ContractPage() {
   const signMut = useMutation({
     mutationFn: () =>
       signFn({
-        data: { bookingId: bookingId!, fullName: fullName.trim(), agreed: true },
+        data: { bookingId: bookingId!, agreed: true },
       }),
     onSuccess: (res) => {
       if (res.storeganiseUpload && !res.storeganiseUpload.uploaded) {
@@ -104,7 +101,6 @@ function ContractPage() {
 
   const canSign =
     !!bookingId &&
-    fullName.trim().length >= 2 &&
     agreed &&
     !signMut.isPending &&
     !alreadySigned;
@@ -123,7 +119,7 @@ function ContractPage() {
             Sign your storage agreement
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Read the agreement, type your full legal name, and tap sign. We'll
+            Read the agreement, tick the box to confirm, and tap sign. We'll
             store a signed copy and send it to our system automatically.
           </p>
 
@@ -184,28 +180,15 @@ function ContractPage() {
 
           {!alreadySigned && (
             <div className="mt-6 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full-name">Type your full legal name</Label>
-                <Input
-                  id="full-name"
-                  autoComplete="name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Jane Smith"
-                  maxLength={120}
-                />
-              </div>
-
               <label className="flex items-start gap-3 rounded-xl border bg-secondary/30 p-4 text-sm">
                 <Checkbox
                   checked={agreed}
                   onCheckedChange={(v) => setAgreed(v === true)}
                   className="mt-0.5"
+                  required
                 />
                 <span>
-                  I agree to the storage agreement above and confirm that
-                  typing my name and clicking sign forms a legally binding
-                  electronic signature.
+                  I have read and agree to the Big Top Self Storage Agreement.
                 </span>
               </label>
             </div>

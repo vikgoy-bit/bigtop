@@ -343,7 +343,7 @@ export const signContract = createServerFn({ method: "POST" })
     z
       .object({
         bookingId: z.string().uuid(),
-        fullName: z.string().trim().min(2).max(120),
+        fullName: z.string().trim().min(2).max(120).optional(),
         agreed: z.literal(true),
       })
       .parse(input),
@@ -399,13 +399,32 @@ export const signContract = createServerFn({ method: "POST" })
     booking.storeganise_order_id = storeganiseOrderId;
 
     const signedAt = new Date();
-    const signatureUrl = buildSignatureDataUrl(data.fullName, signedAt);
 
     const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
     let refreshedSnapshot = await refreshUnitSnapshot(
       booking.storeganise_order_id,
       baseSnapshot,
     );
+
+    // Build tokens early so we can derive the signer's name from the profile
+    // (the contract page no longer asks for it).
+    const tokens = await buildAgreementTokens({
+      supabase: supabaseAdmin,
+      userId,
+      email: (claims.email as string | undefined) ?? "",
+      unitSnapshot: refreshedSnapshot,
+      moveInDate: booking.move_in_date,
+      monthlyPence: refreshedSnapshot?.monthly_price_pence ?? null,
+      signedAt,
+    });
+
+    const profileFullName = `${tokens.user.firstName ?? ""} ${tokens.user.lastName ?? ""}`.trim();
+    const signerName = (data.fullName?.trim() || profileFullName || (claims.email as string | undefined) || "Signed electronically").trim();
+    const { firstName, lastName } = splitName(signerName);
+    tokens.user.firstName = firstName;
+    tokens.user.lastName = lastName;
+
+    const signatureUrl = buildSignatureDataUrl(signerName, signedAt);
 
     let sgSubmit: Awaited<ReturnType<typeof submitStoreganiseUnitOrder>> = {
       submitted: false,
@@ -429,22 +448,6 @@ export const signContract = createServerFn({ method: "POST" })
       }
     }
 
-    const tokens = await buildAgreementTokens({
-      supabase: supabaseAdmin,
-      userId,
-      email: (claims.email as string | undefined) ?? "",
-      unitSnapshot: refreshedSnapshot,
-      moveInDate: booking.move_in_date,
-      monthlyPence: refreshedSnapshot?.monthly_price_pence ?? null,
-      signedAt,
-    });
-
-    // Use the typed-name on the agreement so the document records what the
-    // signer actually entered, not whatever was on the profile.
-    const { firstName, lastName } = splitName(data.fullName);
-    tokens.user.firstName = firstName;
-    tokens.user.lastName = lastName;
-
     const agreementText = renderAgreementText(tokens);
 
     const ip =
@@ -454,7 +457,7 @@ export const signContract = createServerFn({ method: "POST" })
 
     const pdfBytes = await buildSignedPdf({
       agreementText,
-      signerName: data.fullName,
+      signerName,
       signedAt,
       ip,
       bookingId: booking.id,
@@ -509,7 +512,7 @@ export const signContract = createServerFn({ method: "POST" })
       .from("bookings")
       .update({
         signed_at: signedAt.toISOString(),
-        signer_name: data.fullName,
+        signer_name: signerName,
         signed_contract_path: objectPath,
         ...(refreshedSnapshot && refreshedSnapshot !== baseSnapshot
           ? { unit_snapshot: refreshedSnapshot }
