@@ -652,15 +652,7 @@ function DetailsPage() {
                   </ul>
                 )}
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Tip: enter your postcode then click <strong>Find</strong>, or type your street here. Address search by{" "}
-                  <a
-                    href="https://www.openstreetmap.org/copyright"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                  >
-                    OpenStreetMap
-                  </a>
+                  Tip: enter your postcode above and click <strong>Find address</strong> to pick from a list, or start typing your street here.
                 </p>
               </div>
               <div className="sm:col-span-2">
