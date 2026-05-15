@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatGBPRound } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { lookupAddresses, type FoundAddress } from "@/lib/address-lookup.functions";
 
 export const Route = createFileRoute("/book/details")({
   head: () => ({ meta: [{ title: "Your details — Big Top Self Storage" }] }),
