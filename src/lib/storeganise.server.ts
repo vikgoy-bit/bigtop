@@ -500,13 +500,17 @@ export async function createStoreganiseUnitOrder(params: {
   }
 
   try {
-    return await sg<{ id: string }>(`/admin/jobs`, {
+    // CRITICAL: `ownerId` MUST be at the top level of the POST body. Putting
+    // the customer's id under `data.userId` is silently ignored and the job
+    // ends up owned by the API service user (which Storeganise then polls for
+    // `identity_session`, blocking move-in at `await_verifyIdentity`).
+    const created = await sg<{ id: string; ownerId?: string }>(`/admin/jobs`, {
       method: "POST",
       body: JSON.stringify({
         type: "unit_moveIn",
+        ownerId: params.userId,
         data: {
           submitLater: true,
-          userId: params.userId,
           siteId,
           unitTypeId: params.unitTypeId,
           startDate: params.startDate,
@@ -517,6 +521,23 @@ export async function createStoreganiseUnitOrder(params: {
         },
       }),
     });
+
+    // Verify by reading the order back — Storeganise has occasionally ignored
+    // ownerId on /admin/jobs in the past, so we want to know early if it
+    // happens again rather than discover it when the customer hits Identity.
+    try {
+      const verify = await sg<{ ownerId?: string }>(`/units/orders/${created.id}`);
+      if (verify.ownerId && verify.ownerId !== params.userId) {
+        console.error(
+          `Storeganise order ${created.id} created but ownerId is ${verify.ownerId}, expected ${params.userId}. ` +
+            `Move-in identity step will need to write identity_session to the actual owner.`,
+        );
+      }
+    } catch (verifyError) {
+      console.error("Storeganise order verify-after-create failed:", verifyError);
+    }
+
+    return { id: created.id };
   } catch (adminJobError) {
     console.error(
       "Storeganise admin job create failed; falling back to unit order endpoint:",
