@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getStripe } from "@/lib/stripe.server";
-import { sendBookingConfirmationEmail } from "@/lib/booking-confirmation.server";
-import { setStoreganiseUserIdentitySession } from "@/lib/storeganise.server";
+import { completeBookingDespiteIdResult } from "@/lib/id-verification-followup.server";
 
 // Look back up to 7 days; ignore very recent rows that the user/webhook
 // is still actively handling.
@@ -36,39 +35,28 @@ async function processPendingVerification() {
       const session = await stripe.identity.verificationSessions.retrieve(
         b.stripe_verification_session_id!,
       );
-      if (session.status !== "verified") continue;
+      // Only act on terminal Stripe states. `processing` keeps polling next run.
+      const isTerminal =
+        session.status === "verified" ||
+        session.status === "requires_input" ||
+        session.status === "canceled";
+      if (!isTerminal) continue;
 
-      if (b.storeganise_user_id) {
-        const sg = await setStoreganiseUserIdentitySession(
-          b.storeganise_user_id,
-          b.stripe_verification_session_id!,
-        );
-        if (!sg.ok) {
-          console.error("retry-verification storeganise fail", b.id, sg.error);
-        }
-      }
-
-      const { data: existing } = await supabaseAdmin
-        .from("email_send_log")
-        .select("id")
-        .eq("template_name", "booking-confirmation")
-        .filter("metadata->>idempotency_key", "eq", `booking-confirm-${b.id}`)
-        .in("status", ["pending", "sent"])
-        .limit(1)
-        .maybeSingle();
-
-      if (!existing) {
-        const res = await sendBookingConfirmationEmail(b.id);
-        if (!res.ok) {
-          console.error("retry-verification email fail", b.id, res.error);
-          continue;
-        }
-      } else {
-        // Email already sent but status not flipped — flip it.
-        await supabaseAdmin
-          .from("bookings")
-          .update({ status: "active" })
-          .eq("id", b.id);
+      const res = await completeBookingDespiteIdResult({
+        bookingId: b.id,
+        stripeSessionId: b.stripe_verification_session_id!,
+        failure:
+          session.status === "verified"
+            ? null
+            : {
+                status: session.status,
+                code: session.last_error?.code ?? null,
+                reason: session.last_error?.reason ?? null,
+              },
+      });
+      if (!res.ok) {
+        console.error("retry-verification followup fail", b.id, res.error);
+        continue;
       }
       finalized++;
     } catch (e) {

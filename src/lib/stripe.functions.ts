@@ -6,6 +6,7 @@ import { getStripe } from "./stripe.server";
 import { getRequestHost } from "@tanstack/react-start/server";
 import { sendBookingConfirmationEmail } from "./booking-confirmation.server";
 import { setStoreganiseUserIdentitySession } from "./storeganise.server";
+import { completeBookingDespiteIdResult } from "./id-verification-followup.server";
 
 export const startIdentityVerification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -71,6 +72,22 @@ export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
     );
 
     if (session.status !== "verified") {
+      // Per business rule: do NOT block the customer when Stripe rejects
+      // the document. Push the booking through to Storeganise, send the
+      // confirmation, and email the team to follow up manually.
+      if (session.status === "requires_input" || session.status === "canceled") {
+        await completeBookingDespiteIdResult({
+          bookingId: booking.id,
+          stripeSessionId: booking.stripe_verification_session_id,
+          failure: {
+            status: session.status,
+            code: session.last_error?.code ?? null,
+            reason: session.last_error?.reason ?? null,
+          },
+        });
+        return { status: "active" as const };
+      }
+      // processing / other transient states — keep polling.
       return {
         status: session.status,
         lastError: session.last_error

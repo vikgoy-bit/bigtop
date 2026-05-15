@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getStripe } from "@/lib/stripe.server";
-import { sendBookingConfirmationEmail } from "@/lib/booking-confirmation.server";
-import { setStoreganiseUserIdentitySession } from "@/lib/storeganise.server";
+import { completeBookingDespiteIdResult } from "@/lib/id-verification-followup.server";
 
 export const Route = createFileRoute("/api/public/stripe-webhook")({
   server: {
@@ -35,34 +34,36 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
             const session = event.data.object as {
               id: string;
               status: string;
+              last_error?: { code?: string; reason?: string } | null;
               metadata?: Record<string, string>;
             };
             const bookingId = session.metadata?.booking_id;
-            if (bookingId && event.type === "identity.verification_session.verified") {
+            const isTerminal =
+              event.type === "identity.verification_session.verified" ||
+              event.type === "identity.verification_session.requires_input" ||
+              event.type === "identity.verification_session.canceled";
+
+            if (bookingId && isTerminal) {
               const { data: booking } = await supabaseAdmin
                 .from("bookings")
-                .select("id,storeganise_user_id")
+                .select("id")
                 .eq("id", bookingId)
                 .eq("stripe_verification_session_id", session.id)
                 .maybeSingle();
 
               if (booking) {
-                if (booking.storeganise_user_id) {
-                  const sgRes = await setStoreganiseUserIdentitySession(
-                    booking.storeganise_user_id,
-                    session.id,
-                  );
-                  if (!sgRes.ok) {
-                    console.error(
-                      "Storeganise identity_session update failed:",
-                      sgRes.error,
-                    );
-                  }
-                }
-                const result = await sendBookingConfirmationEmail(bookingId);
-                if (!result.ok) {
-                  console.error("Booking confirmation email failed:", result.error);
-                }
+                await completeBookingDespiteIdResult({
+                  bookingId: booking.id,
+                  stripeSessionId: session.id,
+                  failure:
+                    session.status === "verified"
+                      ? null
+                      : {
+                          status: session.status,
+                          code: session.last_error?.code ?? null,
+                          reason: session.last_error?.reason ?? null,
+                        },
+                });
               }
             }
           }
