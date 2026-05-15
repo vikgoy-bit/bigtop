@@ -121,7 +121,7 @@ function ContractPage() {
             Sign your storage agreement
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Read the agreement, type your full legal name, and tap sign. We'll
+            Read the agreement, tick the box to confirm, and tap sign. We'll
             store a signed copy and send it to our system automatically.
           </p>
 
