@@ -343,7 +343,7 @@ export const signContract = createServerFn({ method: "POST" })
     z
       .object({
         bookingId: z.string().uuid(),
-        fullName: z.string().trim().min(2).max(120),
+        fullName: z.string().trim().min(2).max(120).optional(),
         agreed: z.literal(true),
       })
       .parse(input),
