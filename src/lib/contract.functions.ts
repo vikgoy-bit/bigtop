@@ -512,7 +512,7 @@ export const signContract = createServerFn({ method: "POST" })
       .from("bookings")
       .update({
         signed_at: signedAt.toISOString(),
-        signer_name: data.fullName,
+        signer_name: signerName,
         signed_contract_path: objectPath,
         ...(refreshedSnapshot && refreshedSnapshot !== baseSnapshot
           ? { unit_snapshot: refreshedSnapshot }
