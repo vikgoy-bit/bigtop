@@ -103,7 +103,6 @@ function ContractPage() {
 
   const canSign =
     !!bookingId &&
-    fullName.trim().length >= 2 &&
     agreed &&
     !signMut.isPending &&
     !alreadySigned;
