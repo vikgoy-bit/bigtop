@@ -438,11 +438,15 @@ export const signContract = createServerFn({ method: "POST" })
       signedAt,
     });
 
-    // Use the typed-name on the agreement so the document records what the
-    // signer actually entered, not whatever was on the profile.
-    const { firstName, lastName } = splitName(data.fullName);
+    // Use the typed-name on the agreement when provided; otherwise fall back to
+    // the profile name baked into the tokens.
+    const profileFullName = `${tokens.user.firstName ?? ""} ${tokens.user.lastName ?? ""}`.trim();
+    const signerName = (data.fullName?.trim() || profileFullName || (claims.email as string | undefined) || "Signed electronically").trim();
+    const { firstName, lastName } = splitName(signerName);
     tokens.user.firstName = firstName;
     tokens.user.lastName = lastName;
+
+    const signatureUrl = buildSignatureDataUrl(signerName, signedAt);
 
     const agreementText = renderAgreementText(tokens);
 
@@ -453,7 +457,7 @@ export const signContract = createServerFn({ method: "POST" })
 
     const pdfBytes = await buildSignedPdf({
       agreementText,
-      signerName: data.fullName,
+      signerName,
       signedAt,
       ip,
       bookingId: booking.id,
