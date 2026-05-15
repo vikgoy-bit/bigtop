@@ -16,6 +16,8 @@ import {
   renderAgreementText,
   type AgreementTokens,
 } from "./agreement-template";
+import { sendTransactionalEmailServer } from "./email/send.server";
+import { formatUKDateTimeWithZone } from "./format";
 
 type UnitSnapshot = {
   id?: string;
@@ -524,6 +526,40 @@ export const signContract = createServerFn({ method: "POST" })
     // NOTE: booking confirmation email is intentionally NOT sent here.
     // It is sent from the Stripe webhook once identity verification succeeds,
     // so customers don't get a confirmation before their ID check is complete.
+
+    // Internal copy of the signed contract — emailed to ops so a record exists
+    // outside the app/storage. Best-effort: failures here do NOT block signing.
+    try {
+      const { data: signedLink } = await supabaseAdmin.storage
+        .from("signed-contracts")
+        .createSignedUrl(objectPath, 60 * 60 * 24 * 30);
+      const customerName =
+        `${tokens.user.firstName ?? ""} ${tokens.user.lastName ?? ""}`.trim() ||
+        signerName;
+      const internalRes = await sendTransactionalEmailServer({
+        templateName: "internal-contract-copy",
+        idempotencyKey: `internal-contract-${booking.id}`,
+        templateData: {
+          customerName,
+          customerEmail: (claims.email as string | undefined) ?? "",
+          unitName: refreshedSnapshot?.name,
+          unitTitle:
+            refreshedSnapshot?.title ||
+            [refreshedSnapshot?.groupTitle, refreshedSnapshot?.size_group]
+              .filter(Boolean)
+              .join(" "),
+          moveInDate: tokens.startDate,
+          signedAt: formatUKDateTimeWithZone(signedAt),
+          bookingRef: booking.id.slice(0, 8),
+          contractUrl: signedLink?.signedUrl,
+        },
+      });
+      if (!internalRes.ok) {
+        console.error("Internal contract copy email failed:", internalRes.error);
+      }
+    } catch (e) {
+      console.error("Internal contract copy email threw:", e);
+    }
 
     return {
       ok: true,

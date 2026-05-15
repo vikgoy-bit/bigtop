@@ -21,10 +21,12 @@ import { template as insuranceCover } from './insurance-cover'
 import { template as bookingConfirmation } from './booking-confirmation'
 import { template as abandonedCart } from './abandoned-cart'
 import { template as idVerificationFailed } from './id-verification-failed'
+import { template as internalContractCopy } from './internal-contract-copy'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'insurance-cover': insuranceCover,
   'booking-confirmation': bookingConfirmation,
   'abandoned-cart': abandonedCart,
   'id-verification-failed': idVerificationFailed,
+  'internal-contract-copy': internalContractCopy,
 }
