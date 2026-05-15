@@ -65,7 +65,7 @@ export async function completeBookingDespiteIdResult(args: {
       booking.storeganise_order_id,
       `Stripe Identity ${failure.status}${failure.reason ? `: ${failure.reason}` : ""}. Manual follow-up required.`,
     );
-    if (!skipRes.ok && !skipRes.skipped) {
+    if (!skipRes.skipped) {
       console.error("Storeganise skip step failed:", skipRes.error);
     }
   }
