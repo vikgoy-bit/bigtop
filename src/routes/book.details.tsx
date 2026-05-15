@@ -165,27 +165,46 @@ function DetailsPage() {
     setAddrSuggestions([]);
   };
 
+  const [pcResults, setPcResults] = useState<FoundAddress[]>([]);
+  const [pcResultsOpen, setPcResultsOpen] = useState(false);
+
   const lookupPostcode = async () => {
     const pc = postcode.trim();
     if (!pc) return toast.error("Enter a postcode first");
     setPcLoading(true);
+    setPcResults([]);
+    setPcResultsOpen(false);
     try {
-      const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`);
-      const json = await res.json();
-      if (!res.ok || json.status !== 200) {
-        toast.error("Postcode not found");
+      const result = await lookupAddresses({ data: { postcode: pc } });
+      if (result.error) {
+        toast.error(result.error);
         return;
       }
-      const r = json.result;
-      setCity(r.post_town ?? r.admin_district ?? "");
-      setPostcode(r.postcode);
-      toast.success(`Found ${r.post_town}. Add your house number/street above.`);
+      if (result.addresses.length === 0) {
+        toast.error("No addresses found for that postcode");
+        return;
+      }
+      if (result.postcode) setPostcode(result.postcode);
+      setPcResults(result.addresses);
+      setPcResultsOpen(true);
     } catch {
       toast.error("Lookup failed");
     } finally {
       setPcLoading(false);
     }
   };
+
+  const pickFoundAddress = (a: FoundAddress) => {
+    setAddress1(a.line_1);
+    const extra = [a.line_2, a.line_3, a.line_4].filter(Boolean).join(", ");
+    setAddress2(extra);
+    setCity(a.town_or_city || a.locality || a.county || "");
+    setAddrQuery(a.line_1);
+    setAddrSuggestions([]);
+    setAddrOpen(false);
+    setPcResultsOpen(false);
+  };
+
   const [submitting, setSubmitting] = useState(false);
   const [coverFile, setCoverFile] = useState<File | null>(null);
 
