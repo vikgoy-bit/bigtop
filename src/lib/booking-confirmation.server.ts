@@ -23,6 +23,7 @@ function formatGBP(pence: number | null | undefined): string {
 
 function formatDate(d: Date): string {
   return d.toLocaleDateString("en-GB", {
+    timeZone: "Europe/London",
     day: "2-digit",
     month: "long",
     year: "numeric",
