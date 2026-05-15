@@ -55,12 +55,12 @@ export async function setStoreganiseUserIdentitySession(
   verificationSessionId: string,
 ): Promise<{ ok: boolean; via: string | null; error: string | null }> {
   const value = verificationSessionId;
+  // Confirmed via API probing: the only shape accepted by /admin/users/{id}
+  // PUT for custom fields is `{ data: { customFields: { <field>: value } } }`.
+  // Everything else returns 400 "You do not have permission to update: customFields".
   const bodies: Array<Record<string, unknown>> = [
-    { customFields: { identity_session: value } },
-    { customFields: { identitySession: value } },
-    { data: { customFields: { identitySession: value } } },
-    { identitySession: value },
     { data: { customFields: { identity_session: value } } },
+    { data: { customFields: { identitySession: value } } },
   ];
   let lastError = "";
   for (const body of bodies) {
@@ -69,12 +69,67 @@ export async function setStoreganiseUserIdentitySession(
         method: "PUT",
         body: JSON.stringify(body),
       });
-      return { ok: true, via: Object.keys(body).join(","), error: null };
+      return { ok: true, via: Object.keys((body as any).data.customFields).join(","), error: null };
     } catch (e) {
       lastError = e instanceof Error ? e.message : String(e);
     }
   }
   return { ok: false, via: null, error: lastError };
+}
+
+/**
+ * Read the `ownerId` (the Storeganise user the move-in job is attached to —
+ * the user whose `identity_session` custom field Storeganise polls to clear
+ * the `await_verifyIdentity` step). Returns null if the order can't be loaded.
+ */
+export async function getStoreganiseOrderOwnerId(orderId: string): Promise<string | null> {
+  try {
+    const order = await sg<{ ownerId?: string; result?: { ownerId?: string } }>(
+      `/units/orders/${orderId}`,
+    );
+    return order.ownerId ?? order.result?.ownerId ?? null;
+  } catch (e) {
+    console.error("getStoreganiseOrderOwnerId failed:", e);
+    return null;
+  }
+}
+
+/**
+ * Belt-and-braces: write `identity_session` to BOTH the booking's recorded
+ * Storeganise user AND the order's actual `ownerId` (in case the order was
+ * created with a different owner — e.g. legacy bookings owned by the API
+ * service user). Returns ok if either write succeeded.
+ */
+export async function setIdentitySessionForOrder(params: {
+  orderId: string | null;
+  bookingUserId: string | null;
+  verificationSessionId: string;
+}): Promise<{
+  ok: boolean;
+  bookingUserResult: { ok: boolean; error: string | null } | null;
+  orderOwnerResult: { ok: boolean; error: string | null; ownerId: string | null } | null;
+}> {
+  const { orderId, bookingUserId, verificationSessionId } = params;
+
+  let bookingUserResult: { ok: boolean; error: string | null } | null = null;
+  if (bookingUserId) {
+    const r = await setStoreganiseUserIdentitySession(bookingUserId, verificationSessionId);
+    bookingUserResult = { ok: r.ok, error: r.error };
+  }
+
+  let orderOwnerResult: { ok: boolean; error: string | null; ownerId: string | null } | null = null;
+  if (orderId) {
+    const ownerId = await getStoreganiseOrderOwnerId(orderId);
+    if (ownerId && ownerId !== bookingUserId) {
+      const r = await setStoreganiseUserIdentitySession(ownerId, verificationSessionId);
+      orderOwnerResult = { ok: r.ok, error: r.error, ownerId };
+    } else {
+      orderOwnerResult = { ok: !!bookingUserResult?.ok, error: null, ownerId };
+    }
+  }
+
+  const ok = !!(bookingUserResult?.ok || orderOwnerResult?.ok);
+  return { ok, bookingUserResult, orderOwnerResult };
 }
 
 /**
@@ -445,13 +500,17 @@ export async function createStoreganiseUnitOrder(params: {
   }
 
   try {
-    return await sg<{ id: string }>(`/admin/jobs`, {
+    // CRITICAL: `ownerId` MUST be at the top level of the POST body. Putting
+    // the customer's id under `data.userId` is silently ignored and the job
+    // ends up owned by the API service user (which Storeganise then polls for
+    // `identity_session`, blocking move-in at `await_verifyIdentity`).
+    const created = await sg<{ id: string; ownerId?: string }>(`/admin/jobs`, {
       method: "POST",
       body: JSON.stringify({
         type: "unit_moveIn",
+        ownerId: params.userId,
         data: {
           submitLater: true,
-          userId: params.userId,
           siteId,
           unitTypeId: params.unitTypeId,
           startDate: params.startDate,
@@ -462,6 +521,23 @@ export async function createStoreganiseUnitOrder(params: {
         },
       }),
     });
+
+    // Verify by reading the order back — Storeganise has occasionally ignored
+    // ownerId on /admin/jobs in the past, so we want to know early if it
+    // happens again rather than discover it when the customer hits Identity.
+    try {
+      const verify = await sg<{ ownerId?: string }>(`/units/orders/${created.id}`);
+      if (verify.ownerId && verify.ownerId !== params.userId) {
+        console.error(
+          `Storeganise order ${created.id} created but ownerId is ${verify.ownerId}, expected ${params.userId}. ` +
+            `Move-in identity step will need to write identity_session to the actual owner.`,
+        );
+      }
+    } catch (verifyError) {
+      console.error("Storeganise order verify-after-create failed:", verifyError);
+    }
+
+    return { id: created.id };
   } catch (adminJobError) {
     console.error(
       "Storeganise admin job create failed; falling back to unit order endpoint:",

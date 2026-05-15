@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getStripe } from "./stripe.server";
 import { getRequestHost } from "@tanstack/react-start/server";
 import { sendBookingConfirmationEmail } from "./booking-confirmation.server";
-import { setStoreganiseUserIdentitySession } from "./storeganise.server";
+import { setIdentitySessionForOrder } from "./storeganise.server";
 import { completeBookingDespiteIdResult } from "./id-verification-followup.server";
 
 export const startIdentityVerification = createServerFn({ method: "POST" })
@@ -57,7 +57,9 @@ export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
 
     const { data: booking, error } = await supabaseAdmin
       .from("bookings")
-      .select("id,user_id,status,stripe_verification_session_id,storeganise_user_id")
+      .select(
+        "id,user_id,status,stripe_verification_session_id,storeganise_user_id,storeganise_order_id",
+      )
       .eq("id", data.bookingId)
       .single();
     if (error || !booking) throw new Error("Booking not found");
@@ -97,15 +99,23 @@ export const finalizeBookingIfVerified = createServerFn({ method: "POST" })
     }
 
     // Push the verified Stripe session id to Storeganise so its move-in job
-    // can progress past `await_verifyIdentity`. Best-effort — failures here
-    // shouldn't block the confirmation email.
-    if (booking.storeganise_user_id) {
-      const res = await setStoreganiseUserIdentitySession(
-        booking.storeganise_user_id,
-        booking.stripe_verification_session_id,
-      );
+    // can progress past `await_verifyIdentity`. Writes to BOTH the booking's
+    // recorded customer AND the order's actual `ownerId` as a fallback.
+    if (booking.storeganise_user_id || booking.storeganise_order_id) {
+      const res = await setIdentitySessionForOrder({
+        orderId: booking.storeganise_order_id,
+        bookingUserId: booking.storeganise_user_id,
+        verificationSessionId: booking.stripe_verification_session_id,
+      });
       if (!res.ok) {
-        console.error("Storeganise identity_session update failed:", res.error);
+        console.error(
+          "Storeganise identity_session update failed for booking",
+          booking.id,
+          JSON.stringify({
+            bookingUser: res.bookingUserResult,
+            orderOwner: res.orderOwnerResult,
+          }),
+        );
       }
     }
 
