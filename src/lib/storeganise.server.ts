@@ -510,7 +510,7 @@ export async function createStoreganiseUnitOrder(params: {
   const findExistingOrder = async () => {
     const jobs = pickArray(
       await sg<Array<Record<string, any>> | { data?: Record<string, any>[]; jobs?: Record<string, any>[]; results?: Record<string, any>[] }>(
-        `/admin/jobs?userId=${encodeURIComponent(params.userId)}&limit=100`,
+        `/admin/jobs?ownerId=${encodeURIComponent(params.userId)}&limit=100`,
       ),
     );
     const existing = jobs.find((job) => {
