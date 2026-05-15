@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendTransactionalEmailServer } from "@/lib/email/send.server";
+import { formatUKDateTimeWithZone } from "@/lib/format";
 
 const ABANDON_AFTER_MIN = 15;
 
@@ -88,7 +89,7 @@ async function processAbandonedCarts() {
           tierLabel: tier?.label,
           bookingId: b.id,
           bookingRef: b.id.slice(0, 8).toUpperCase(),
-          createdAt: new Date(b.created_at).toISOString().replace("T", " ").slice(0, 16),
+          createdAt: formatUKDateTimeWithZone(new Date(b.created_at)),
           minutesSince,
         },
       });
