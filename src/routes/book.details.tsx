@@ -556,7 +556,7 @@ function DetailsPage() {
                 <Label htmlFor="phone">Phone</Label>
                 <Input id="phone" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
-              <div>
+              <div className="relative">
                 <Label htmlFor="postcode">Postcode</Label>
                 <div className="flex gap-2">
                   <Input
@@ -564,6 +564,12 @@ function DetailsPage() {
                     required
                     value={postcode}
                     onChange={(e) => setPostcode(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        lookupPostcode();
+                      }
+                    }}
                     placeholder="e.g. SS13 1ET"
                   />
                   <Button
@@ -575,10 +581,32 @@ function DetailsPage() {
                     className="shrink-0"
                   >
                     {pcLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                    <span className="ml-1 hidden sm:inline">Find</span>
+                    <span className="ml-1 hidden sm:inline">Find address</span>
                   </Button>
                 </div>
+                {pcResultsOpen && pcResults.length > 0 && (
+                  <ul
+                    className="absolute left-0 right-0 z-50 mt-1 max-h-72 overflow-auto rounded-lg border bg-popover p-1 shadow-lg"
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    <li className="px-3 py-1.5 text-xs text-muted-foreground">
+                      {pcResults.length} address{pcResults.length === 1 ? "" : "es"} found — select yours
+                    </li>
+                    {pcResults.map((a, i) => (
+                      <li key={i}>
+                        <button
+                          type="button"
+                          onClick={() => pickFoundAddress(a)}
+                          className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                        >
+                          {a.formatted}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
+
               <div className="relative sm:col-span-2">
                 <Label htmlFor="address1">Address line 1</Label>
                 <Input
