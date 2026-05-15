@@ -22,7 +22,6 @@ export const Route = createFileRoute("/_authenticated/book/contract")({
 function ContractPage() {
   const navigate = useNavigate();
   const [bookingId, setBookingId] = useState<string | null>(null);
-  const [fullName, setFullName] = useState("");
   const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
@@ -41,7 +40,7 @@ function ContractPage() {
   const signMut = useMutation({
     mutationFn: () =>
       signFn({
-        data: { bookingId: bookingId!, fullName: fullName.trim(), agreed: true },
+        data: { bookingId: bookingId!, agreed: true },
       }),
     onSuccess: (res) => {
       if (res.storeganiseUpload && !res.storeganiseUpload.uploaded) {
