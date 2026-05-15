@@ -6,9 +6,7 @@ import { FileSignature, ArrowRight, Loader2, AlertTriangle, CheckCircle2 } from 
 import { SiteHeader } from "@/components/SiteHeader";
 import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { getContractForBooking, signContract } from "@/lib/contract.functions";
 
