@@ -67,7 +67,7 @@ export async function completeBookingDespiteIdResult(args: {
       );
       const { data: profile } = await supabaseAdmin
         .from("profiles")
-        .select("full_name,phone,address_line_1,address_line_2,city,postcode")
+        .select("full_name,phone")
         .eq("id", booking.user_id)
         .maybeSingle();
 
