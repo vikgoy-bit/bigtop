@@ -555,13 +555,15 @@ export async function createStoreganiseUnitOrder(params: {
   products?: Record<string, number>;
 }): Promise<{ id: string }> {
   const siteId = await getSiteId();
-  const findExistingOrder = async () => {
+  const findExistingOrder = async (opts?: { loose?: boolean }) => {
+    const loose = opts?.loose === true;
     const jobs = pickArray(
       await sg<Array<Record<string, any>> | { data?: Record<string, any>[]; jobs?: Record<string, any>[]; results?: Record<string, any>[] }>(
         `/admin/jobs?ownerId=${encodeURIComponent(params.userId)}&limit=100`,
       ),
     );
     const existing = jobs.find((job) => {
+      if (job.type !== "unit_moveIn") return false;
       const data = job.data ?? {};
       const result = job.result ?? {};
       const notes = `${data.notes ?? ""}\n${result.notes ?? ""}`;
@@ -570,11 +572,18 @@ export async function createStoreganiseUnitOrder(params: {
         (data.unitTypeId === params.unitTypeId || result.unitTypeId === params.unitTypeId) &&
         (data.siteId === siteId || result.siteId === siteId) &&
         (data.startDate === params.startDate || result.startDate === params.startDate);
-      const isUnsubmitted = result.orderState === "notSubmitted" || data.submitLater === true && !data.submitNow;
-      return (
-        job.type === "unit_moveIn" &&
-        (bookingMatches || (detailsMatch && isUnsubmitted))
-      );
+      const isUnsubmitted = result.orderState === "notSubmitted" || (data.submitLater === true && !data.submitNow);
+      if (bookingMatches) return true;
+      if (detailsMatch && isUnsubmitted) return true;
+      // Loose match (used after Storeganise rejects as duplicate): any unit_moveIn
+      // for same user+site+unitType counts, regardless of submission state.
+      if (loose) {
+        return (
+          (data.unitTypeId === params.unitTypeId || result.unitTypeId === params.unitTypeId) &&
+          (data.siteId === siteId || result.siteId === siteId)
+        );
+      }
+      return false;
     });
     return typeof existing?.id === "string" ? { id: existing.id } : null;
   };
