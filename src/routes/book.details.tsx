@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatGBPRound } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { lookupAddresses, type FoundAddress } from "@/lib/address-lookup.functions";
 
 export const Route = createFileRoute("/book/details")({
   head: () => ({ meta: [{ title: "Your details — Big Top Self Storage" }] }),
@@ -164,27 +165,46 @@ function DetailsPage() {
     setAddrSuggestions([]);
   };
 
+  const [pcResults, setPcResults] = useState<FoundAddress[]>([]);
+  const [pcResultsOpen, setPcResultsOpen] = useState(false);
+
   const lookupPostcode = async () => {
     const pc = postcode.trim();
     if (!pc) return toast.error("Enter a postcode first");
     setPcLoading(true);
+    setPcResults([]);
+    setPcResultsOpen(false);
     try {
-      const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`);
-      const json = await res.json();
-      if (!res.ok || json.status !== 200) {
-        toast.error("Postcode not found");
+      const result = await lookupAddresses({ data: { postcode: pc } });
+      if (result.error) {
+        toast.error(result.error);
         return;
       }
-      const r = json.result;
-      setCity(r.post_town ?? r.admin_district ?? "");
-      setPostcode(r.postcode);
-      toast.success(`Found ${r.post_town}. Add your house number/street above.`);
+      if (result.addresses.length === 0) {
+        toast.error("No addresses found for that postcode");
+        return;
+      }
+      if (result.postcode) setPostcode(result.postcode);
+      setPcResults(result.addresses);
+      setPcResultsOpen(true);
     } catch {
       toast.error("Lookup failed");
     } finally {
       setPcLoading(false);
     }
   };
+
+  const pickFoundAddress = (a: FoundAddress) => {
+    setAddress1(a.line_1);
+    const extra = [a.line_2, a.line_3, a.line_4].filter(Boolean).join(", ");
+    setAddress2(extra);
+    setCity(a.town_or_city || a.locality || a.county || "");
+    setAddrQuery(a.line_1);
+    setAddrSuggestions([]);
+    setAddrOpen(false);
+    setPcResultsOpen(false);
+  };
+
   const [submitting, setSubmitting] = useState(false);
   const [coverFile, setCoverFile] = useState<File | null>(null);
 
@@ -536,7 +556,7 @@ function DetailsPage() {
                 <Label htmlFor="phone">Phone</Label>
                 <Input id="phone" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
-              <div>
+              <div className="relative">
                 <Label htmlFor="postcode">Postcode</Label>
                 <div className="flex gap-2">
                   <Input
@@ -544,6 +564,12 @@ function DetailsPage() {
                     required
                     value={postcode}
                     onChange={(e) => setPostcode(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        lookupPostcode();
+                      }
+                    }}
                     placeholder="e.g. SS13 1ET"
                   />
                   <Button
@@ -555,10 +581,32 @@ function DetailsPage() {
                     className="shrink-0"
                   >
                     {pcLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                    <span className="ml-1 hidden sm:inline">Find</span>
+                    <span className="ml-1 hidden sm:inline">Find address</span>
                   </Button>
                 </div>
+                {pcResultsOpen && pcResults.length > 0 && (
+                  <ul
+                    className="absolute left-0 right-0 z-50 mt-1 max-h-72 overflow-auto rounded-lg border bg-popover p-1 shadow-lg"
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    <li className="px-3 py-1.5 text-xs text-muted-foreground">
+                      {pcResults.length} address{pcResults.length === 1 ? "" : "es"} found — select yours
+                    </li>
+                    {pcResults.map((a, i) => (
+                      <li key={i}>
+                        <button
+                          type="button"
+                          onClick={() => pickFoundAddress(a)}
+                          className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                        >
+                          {a.formatted}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
+
               <div className="relative sm:col-span-2">
                 <Label htmlFor="address1">Address line 1</Label>
                 <Input
@@ -604,15 +652,7 @@ function DetailsPage() {
                   </ul>
                 )}
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Tip: enter your postcode then click <strong>Find</strong>, or type your street here. Address search by{" "}
-                  <a
-                    href="https://www.openstreetmap.org/copyright"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                  >
-                    OpenStreetMap
-                  </a>
+                  Tip: enter your postcode above and click <strong>Find address</strong> to pick from a list, or start typing your street here.
                 </p>
               </div>
               <div className="sm:col-span-2">
