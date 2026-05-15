@@ -406,6 +406,26 @@ export const signContract = createServerFn({ method: "POST" })
       baseSnapshot,
     );
 
+    // Build tokens early so we can derive the signer's name from the profile
+    // (the contract page no longer asks for it).
+    const tokens = await buildAgreementTokens({
+      supabase: supabaseAdmin,
+      userId,
+      email: (claims.email as string | undefined) ?? "",
+      unitSnapshot: refreshedSnapshot,
+      moveInDate: booking.move_in_date,
+      monthlyPence: refreshedSnapshot?.monthly_price_pence ?? null,
+      signedAt,
+    });
+
+    const profileFullName = `${tokens.user.firstName ?? ""} ${tokens.user.lastName ?? ""}`.trim();
+    const signerName = (data.fullName?.trim() || profileFullName || (claims.email as string | undefined) || "Signed electronically").trim();
+    const { firstName, lastName } = splitName(signerName);
+    tokens.user.firstName = firstName;
+    tokens.user.lastName = lastName;
+
+    const signatureUrl = buildSignatureDataUrl(signerName, signedAt);
+
     let sgSubmit: Awaited<ReturnType<typeof submitStoreganiseUnitOrder>> = {
       submitted: false,
       via: null,
@@ -427,26 +447,6 @@ export const signContract = createServerFn({ method: "POST" })
         }
       }
     }
-
-    const tokens = await buildAgreementTokens({
-      supabase: supabaseAdmin,
-      userId,
-      email: (claims.email as string | undefined) ?? "",
-      unitSnapshot: refreshedSnapshot,
-      moveInDate: booking.move_in_date,
-      monthlyPence: refreshedSnapshot?.monthly_price_pence ?? null,
-      signedAt,
-    });
-
-    // Use the typed-name on the agreement when provided; otherwise fall back to
-    // the profile name baked into the tokens.
-    const profileFullName = `${tokens.user.firstName ?? ""} ${tokens.user.lastName ?? ""}`.trim();
-    const signerName = (data.fullName?.trim() || profileFullName || (claims.email as string | undefined) || "Signed electronically").trim();
-    const { firstName, lastName } = splitName(signerName);
-    tokens.user.firstName = firstName;
-    tokens.user.lastName = lastName;
-
-    const signatureUrl = buildSignatureDataUrl(signerName, signedAt);
 
     const agreementText = renderAgreementText(tokens);
 
