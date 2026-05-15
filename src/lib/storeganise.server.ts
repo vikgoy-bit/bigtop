@@ -411,9 +411,20 @@ export async function ensureStoreganiseOrderForBooking(params: {
 
   const { data: profile } = await db
     .from("profiles")
-    .select("full_name,phone")
+    .select("full_name,phone,address_line1,address_line2,city,postcode")
     .eq("id", booking.user_id)
     .maybeSingle();
+
+  const sgAddress: SgAddress | undefined =
+    profile?.address_line1 || profile?.city || profile?.postcode
+      ? {
+          line1: profile.address_line1 ?? "",
+          line2: profile.address_line2 ?? "",
+          city: profile.city ?? "",
+          postCode: profile.postcode ?? "",
+          country: "GB",
+        }
+      : undefined;
 
   let sgUserId = booking.storeganise_user_id;
   let sgUserAccessToken: string | null = null;
@@ -422,11 +433,26 @@ export async function ensureStoreganiseOrderForBooking(params: {
       email,
       name: profile?.full_name || undefined,
       phone: profile?.phone || undefined,
+      address: sgAddress,
     });
     sgUserId = sgUser.id;
     updates.storeganise_user_id = sgUserId;
     if (sgUser.password) {
       sgUserAccessToken = await authenticateStoreganiseUser(email, sgUser.password);
+    }
+  } else if (sgAddress) {
+    // Booking already has a Storeganise user linked — make sure their address
+    // is set so generateAgreement doesn't crash on `null.address`.
+    try {
+      await sg<Record<string, unknown>>(`/admin/users/${sgUserId}`, {
+        method: "PUT",
+        body: JSON.stringify({ data: { address: sgAddress } }),
+      });
+    } catch (e) {
+      console.error(
+        `Storeganise address patch failed for existing user ${sgUserId}:`,
+        e instanceof Error ? e.message : e,
+      );
     }
   }
 
