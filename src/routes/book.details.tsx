@@ -701,11 +701,24 @@ function DetailsPage() {
                 <p className="text-xs text-muted-foreground">
                   PDF, JPG or PNG. Must state the cover is for Big Top Self Storage Basildon.
                 </p>
+                <label
+                  htmlFor="coverDoc"
+                  className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-accent/50 bg-background px-4 py-6 text-center transition hover:border-accent hover:bg-accent/5"
+                >
+                  <Upload className="h-6 w-6 text-accent" />
+                  <span className="text-sm font-medium text-foreground">
+                    {coverFile ? "Change file" : "Click here to choose a file"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    or drag and drop — PDF, JPG or PNG
+                  </span>
+                </label>
                 <Input
                   id="coverDoc"
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
                   required
+                  className="sr-only"
                   onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)}
                 />
                 {coverFile && (
