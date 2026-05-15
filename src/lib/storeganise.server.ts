@@ -305,15 +305,33 @@ function createTemporaryPassword() {
   return `Bt!${crypto.randomUUID().replace(/-/g, "").slice(0, 24)}aA1`;
 }
 
+type SgAddress = {
+  line1?: string;
+  line2?: string;
+  city?: string;
+  postCode?: string;
+  country?: string;
+};
+
 /**
  * Find an existing Storeganise user by email or create one.
- * Field names follow the Storeganise user schema (email, name, phone).
+ * Field names follow the Storeganise user schema (email, name, phone, address).
+ *
+ * Storeganise's `generateAgreement` move-in step reads `user.address` and
+ * crashes with `Cannot read properties of null (reading 'address')` if the
+ * customer has no address. We always send one when we have profile data, and
+ * patch existing users with PUT when their address is missing.
  */
 export async function ensureStoreganiseUser(params: {
   email: string;
   name?: string;
   phone?: string;
+  address?: SgAddress;
 }): Promise<EnsuredSgUser> {
+  const hasAddress =
+    !!params.address &&
+    !!(params.address.line1 || params.address.city || params.address.postCode);
+
   // Try lookup first
   try {
     const found = await sg<SgUser[] | { data?: SgUser[]; users?: SgUser[] }>(
@@ -322,6 +340,20 @@ export async function ensureStoreganiseUser(params: {
     const users = Array.isArray(found) ? found : (found.users ?? found.data ?? []);
     const existing = users.find((u) => u.email === params.email) ?? users[0];
     if (existing?.id) {
+      // Patch missing address on existing users so generateAgreement can run.
+      if (hasAddress) {
+        try {
+          await sg<Record<string, unknown>>(`/admin/users/${existing.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ data: { address: params.address } }),
+          });
+        } catch (e) {
+          console.error(
+            `Storeganise address patch failed for user ${existing.id}:`,
+            e instanceof Error ? e.message : e,
+          );
+        }
+      }
       return { ...existing, email: params.email };
     }
   } catch {
@@ -341,6 +373,7 @@ export async function ensureStoreganiseUser(params: {
       password,
       language: "en",
       isActive: true,
+      ...(hasAddress ? { address: params.address } : {}),
     }),
   });
   return { ...user, email: params.email, password };
