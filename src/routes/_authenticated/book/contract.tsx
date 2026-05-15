@@ -182,28 +182,15 @@ function ContractPage() {
 
           {!alreadySigned && (
             <div className="mt-6 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full-name">Type your full legal name</Label>
-                <Input
-                  id="full-name"
-                  autoComplete="name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Jane Smith"
-                  maxLength={120}
-                />
-              </div>
-
               <label className="flex items-start gap-3 rounded-xl border bg-secondary/30 p-4 text-sm">
                 <Checkbox
                   checked={agreed}
                   onCheckedChange={(v) => setAgreed(v === true)}
                   className="mt-0.5"
+                  required
                 />
                 <span>
-                  I agree to the storage agreement above and confirm that
-                  typing my name and clicking sign forms a legally binding
-                  electronic signature.
+                  I have read and agree to the Big Top Self Storage Agreement.
                 </span>
               </label>
             </div>
