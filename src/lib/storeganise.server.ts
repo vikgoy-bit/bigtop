@@ -375,9 +375,7 @@ export async function ensureStoreganiseUser(params: {
   phone?: string;
   address?: SgAddress;
 }): Promise<EnsuredSgUser> {
-  const hasAddress =
-    !!params.address &&
-    !!(params.address.line1 || params.address.city || params.address.postCode);
+  const addressString = formatSgAddress(params.address);
 
   // Try lookup first
   try {
@@ -388,11 +386,11 @@ export async function ensureStoreganiseUser(params: {
     const existing = users.find((u) => u.email === params.email) ?? users[0];
     if (existing?.id) {
       // Patch missing address on existing users so generateAgreement can run.
-      if (hasAddress) {
+      if (addressString) {
         try {
           await sg<Record<string, unknown>>(`/admin/users/${existing.id}`, {
             method: "PUT",
-            body: JSON.stringify({ data: { address: params.address } }),
+            body: JSON.stringify({ data: { address: addressString } }),
           });
         } catch (e) {
           console.error(
@@ -420,7 +418,7 @@ export async function ensureStoreganiseUser(params: {
       password,
       language: "en",
       isActive: true,
-      ...(hasAddress ? { address: params.address } : {}),
+      ...(addressString ? { address: addressString } : {}),
     }),
   });
   return { ...user, email: params.email, password };
@@ -487,19 +485,22 @@ export async function ensureStoreganiseOrderForBooking(params: {
     if (sgUser.password) {
       sgUserAccessToken = await authenticateStoreganiseUser(email, sgUser.password);
     }
-  } else if (sgAddress) {
-    // Booking already has a Storeganise user linked — make sure their address
-    // is set so generateAgreement doesn't crash on `null.address`.
-    try {
-      await sg<Record<string, unknown>>(`/admin/users/${sgUserId}`, {
-        method: "PUT",
-        body: JSON.stringify({ data: { address: sgAddress } }),
-      });
-    } catch (e) {
-      console.error(
-        `Storeganise address patch failed for existing user ${sgUserId}:`,
-        e instanceof Error ? e.message : e,
-      );
+  } else {
+    const addressString = formatSgAddress(sgAddress);
+    if (addressString) {
+      // Booking already has a Storeganise user linked — make sure their address
+      // is set so generateAgreement doesn't crash on `null.address`.
+      try {
+        await sg<Record<string, unknown>>(`/admin/users/${sgUserId}`, {
+          method: "PUT",
+          body: JSON.stringify({ data: { address: addressString } }),
+        });
+      } catch (e) {
+        console.error(
+          `Storeganise address patch failed for existing user ${sgUserId}:`,
+          e instanceof Error ? e.message : e,
+        );
+      }
     }
   }
 
