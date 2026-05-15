@@ -37,7 +37,6 @@ const TEMPLATE_HTML = `
 <h2>Storage details</h2>
 <table>
   <tbody>
-    <tr><th>Unit number</th><td>{{unit.name}}</td></tr>
     <tr><th>Unit type</th><td>{{unit.type}}</td></tr>
     <tr><th>Start date</th><td>{{startDate}}</td></tr>
     <tr><th>Storage fee per month</th><td>{{rental.price}}</td></tr>
