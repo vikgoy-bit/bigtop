@@ -184,6 +184,37 @@ export async function skipStoreganiseUnitOrderStep(
 ): Promise<{ skipped: boolean; via: string | null; error: string | null }> {
   const note =
     reason ?? "Stripe Identity verification failed — manual follow-up required.";
+
+  // PRIMARY (documented): find the active step on the move-in job and PUT
+  // /admin/jobs/{jobId}/steps/{stepId} {state:"skipped"}. Works on any
+  // skippable step including `generateAgreement` and `await_verifyIdentity`.
+  try {
+    const job = await sg<{ steps?: Array<{ id?: string; state?: string; type?: string }> }>(
+      `/admin/jobs/${orderId}?fields=steps`,
+    );
+    const activeStep = (job.steps ?? []).find(
+      (s) => s.state === "ready" || s.state === "active" || s.state === "pending",
+    );
+    if (activeStep?.id) {
+      await sg<Record<string, unknown>>(
+        `/admin/jobs/${orderId}/steps/${activeStep.id}`,
+        { method: "PUT", body: JSON.stringify({ state: "skipped", reason: note }) },
+      );
+      return {
+        skipped: true,
+        via: `PUT /admin/jobs/${orderId}/steps/${activeStep.id} (${activeStep.type ?? "?"})`,
+        error: null,
+      };
+    }
+  } catch (e) {
+    console.error(
+      "Documented step-skip path failed, falling back to legacy shotgun:",
+      e instanceof Error ? e.message : e,
+    );
+  }
+
+  // FALLBACK: undocumented endpoints — kept in case the documented path
+  // 404s on certain account configurations.
   const attempts: Array<{ path: string; method: "POST" | "PUT"; body: string }> = [
     { path: `/admin/jobs/${orderId}/skip`, method: "POST", body: JSON.stringify({ reason: note }) },
     { path: `/admin/jobs/${orderId}/skip`, method: "POST", body: "{}" },
@@ -314,6 +345,22 @@ type SgAddress = {
 };
 
 /**
+ * Storeganise's `user.address` field is a single STRING (verified via API
+ * probe: object shape returns "address must be string" at top level, and
+ * silently no-ops inside the `data` envelope — which is why generateAgreement
+ * kept crashing on null.address even after our PUT returned 200).
+ *
+ * Format: "line1, line2, city, postCode, country" (skip empty parts).
+ */
+function formatSgAddress(addr: SgAddress | undefined): string | undefined {
+  if (!addr) return undefined;
+  const parts = [addr.line1, addr.line2, addr.city, addr.postCode, addr.country]
+    .map((p) => (p ?? "").trim())
+    .filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : undefined;
+}
+
+/**
  * Find an existing Storeganise user by email or create one.
  * Field names follow the Storeganise user schema (email, name, phone, address).
  *
@@ -328,9 +375,7 @@ export async function ensureStoreganiseUser(params: {
   phone?: string;
   address?: SgAddress;
 }): Promise<EnsuredSgUser> {
-  const hasAddress =
-    !!params.address &&
-    !!(params.address.line1 || params.address.city || params.address.postCode);
+  const addressString = formatSgAddress(params.address);
 
   // Try lookup first
   try {
@@ -341,11 +386,11 @@ export async function ensureStoreganiseUser(params: {
     const existing = users.find((u) => u.email === params.email) ?? users[0];
     if (existing?.id) {
       // Patch missing address on existing users so generateAgreement can run.
-      if (hasAddress) {
+      if (addressString) {
         try {
           await sg<Record<string, unknown>>(`/admin/users/${existing.id}`, {
             method: "PUT",
-            body: JSON.stringify({ data: { address: params.address } }),
+            body: JSON.stringify({ data: { address: addressString } }),
           });
         } catch (e) {
           console.error(
@@ -373,7 +418,7 @@ export async function ensureStoreganiseUser(params: {
       password,
       language: "en",
       isActive: true,
-      ...(hasAddress ? { address: params.address } : {}),
+      ...(addressString ? { address: addressString } : {}),
     }),
   });
   return { ...user, email: params.email, password };
@@ -440,19 +485,22 @@ export async function ensureStoreganiseOrderForBooking(params: {
     if (sgUser.password) {
       sgUserAccessToken = await authenticateStoreganiseUser(email, sgUser.password);
     }
-  } else if (sgAddress) {
-    // Booking already has a Storeganise user linked — make sure their address
-    // is set so generateAgreement doesn't crash on `null.address`.
-    try {
-      await sg<Record<string, unknown>>(`/admin/users/${sgUserId}`, {
-        method: "PUT",
-        body: JSON.stringify({ data: { address: sgAddress } }),
-      });
-    } catch (e) {
-      console.error(
-        `Storeganise address patch failed for existing user ${sgUserId}:`,
-        e instanceof Error ? e.message : e,
-      );
+  } else {
+    const addressString = formatSgAddress(sgAddress);
+    if (addressString) {
+      // Booking already has a Storeganise user linked — make sure their address
+      // is set so generateAgreement doesn't crash on `null.address`.
+      try {
+        await sg<Record<string, unknown>>(`/admin/users/${sgUserId}`, {
+          method: "PUT",
+          body: JSON.stringify({ data: { address: addressString } }),
+        });
+      } catch (e) {
+        console.error(
+          `Storeganise address patch failed for existing user ${sgUserId}:`,
+          e instanceof Error ? e.message : e,
+        );
+      }
     }
   }
 
