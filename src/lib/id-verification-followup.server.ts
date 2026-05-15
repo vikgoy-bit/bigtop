@@ -1,7 +1,10 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendBookingConfirmationEmail } from "./booking-confirmation.server";
 import { sendTransactionalEmailServer } from "./email/send.server";
-import { setStoreganiseUserIdentitySession } from "./storeganise.server";
+import {
+  setStoreganiseUserIdentitySession,
+  skipStoreganiseUnitOrderStep,
+} from "./storeganise.server";
 
 type FailureInfo = {
   status: string;
