@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getStripe } from "./stripe.server";
 import { getRequestHost } from "@tanstack/react-start/server";
 import { sendBookingConfirmationEmail } from "./booking-confirmation.server";
-import { setStoreganiseUserIdentitySession } from "./storeganise.server";
+import { setIdentitySessionForOrder } from "./storeganise.server";
 import { completeBookingDespiteIdResult } from "./id-verification-followup.server";
 
 export const startIdentityVerification = createServerFn({ method: "POST" })
