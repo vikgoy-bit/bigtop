@@ -1,7 +1,10 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendBookingConfirmationEmail } from "./booking-confirmation.server";
 import { sendTransactionalEmailServer } from "./email/send.server";
-import { setStoreganiseUserIdentitySession } from "./storeganise.server";
+import {
+  setStoreganiseUserIdentitySession,
+  skipStoreganiseUnitOrderStep,
+} from "./storeganise.server";
 
 type FailureInfo = {
   status: string;
@@ -39,7 +42,8 @@ export async function completeBookingDespiteIdResult(args: {
   if (error) return { ok: false, error: error.message };
   if (!booking) return { ok: false, error: "Booking not found" };
 
-  // 1. Push session id to Storeganise (best-effort).
+  // 1. Push session id to Storeganise (best-effort) — satisfies the
+  //    `await_verifyIdentity` step when Stripe verified successfully.
   if (booking.storeganise_user_id) {
     const sgRes = await setStoreganiseUserIdentitySession(
       booking.storeganise_user_id,
@@ -50,6 +54,19 @@ export async function completeBookingDespiteIdResult(args: {
         "Storeganise identity_session update failed:",
         sgRes.error,
       );
+    }
+  }
+
+  // 1b. If Stripe rejected the document, also click the Storeganise "Skip"
+  //     action on the move-in job so it doesn't sit blocked on
+  //     `await_verifyIdentity`. Admin will follow up manually.
+  if (failure && failure.status !== "verified" && booking.storeganise_order_id) {
+    const skipRes = await skipStoreganiseUnitOrderStep(
+      booking.storeganise_order_id,
+      `Stripe Identity ${failure.status}${failure.reason ? `: ${failure.reason}` : ""}. Manual follow-up required.`,
+    );
+    if (!skipRes.skipped) {
+      console.error("Storeganise skip step failed:", skipRes.error);
     }
   }
 
