@@ -23,14 +23,6 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  // Prefetch unit inventory during SSR / on navigation so the grid renders
-  // with data on first paint instead of showing skeletons.
-  loader: ({ context }) =>
-    context.queryClient.prefetchQuery({
-      queryKey: ["storeganise-units"],
-      queryFn: () => getStoreganiseUnits(),
-      staleTime: 60_000,
-    }),
   component: SelectUnitPage,
 });
 
