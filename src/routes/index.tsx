@@ -23,8 +23,17 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  // Prefetch unit inventory during SSR / on navigation so the grid renders
+  // with data on first paint instead of showing skeletons.
+  loader: ({ context }) =>
+    context.queryClient.prefetchQuery({
+      queryKey: ["storeganise-units"],
+      queryFn: () => getStoreganiseUnits(),
+      staleTime: 60_000,
+    }),
   component: SelectUnitPage,
 });
+
 
 type Unit = StoreganiseUnit;
 
@@ -156,8 +165,14 @@ function SelectUnitPage() {
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />
             ))}
-          {filtered.map((unit) => (
-            <UnitCard key={unit.id} unit={unit} onSelect={() => handleSelect(unit)} vatMode={vatMode} />
+          {filtered.map((unit, i) => (
+            <UnitCard
+              key={unit.id}
+              unit={unit}
+              onSelect={() => handleSelect(unit)}
+              vatMode={vatMode}
+              priority={i < 3}
+            />
           ))}
         </div>
 
@@ -211,10 +226,12 @@ function UnitCard({
   unit,
   onSelect,
   vatMode,
+  priority = false,
 }: {
   unit: Unit;
   onSelect: () => void;
   vatMode: "inc" | "ex";
+  priority?: boolean;
 }) {
   const factor = vatMode === "inc" ? 1 : 0.8;
   const monthly = Math.round(unit.monthly_price_pence * factor);
@@ -231,7 +248,9 @@ function UnitCard({
           <img
             src={unit.image}
             alt={`${unit.groupTitle || unit.groupCode} ${unit.size_sqft} sq ft storage unit`}
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
+            decoding="async"
+            {...(priority ? { fetchPriority: "high" as const } : {})}
             className="absolute inset-0 h-full w-full object-cover"
           />
         )}
