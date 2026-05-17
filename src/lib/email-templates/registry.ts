@@ -22,6 +22,7 @@ import { template as bookingConfirmation } from './booking-confirmation'
 import { template as abandonedCart } from './abandoned-cart'
 import { template as idVerificationFailed } from './id-verification-failed'
 import { template as internalContractCopy } from './internal-contract-copy'
+import { template as errorAlert } from './error-alert'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'insurance-cover': insuranceCover,
@@ -29,4 +30,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'abandoned-cart': abandonedCart,
   'id-verification-failed': idVerificationFailed,
   'internal-contract-copy': internalContractCopy,
+  'error-alert': errorAlert,
 }
