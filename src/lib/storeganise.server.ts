@@ -629,6 +629,14 @@ export async function createStoreganiseUnitOrder(params: {
       method: "POST",
       body: JSON.stringify({
         submitLater: true,
+        // Send BOTH field names — Storeganise's admin `/units/orders` endpoint
+        // expects `ownerId` (matches `POST /unit-rentals` in their write API
+        // reference); customer-side it derives owner from the bearer token and
+        // accepts `userId`. Sending both makes the assignment unambiguous so
+        // the resulting move-in job is actually owned by the customer (without
+        // this, generateAgreement crashes on `null.address` because the order
+        // has no user attached at all).
+        ownerId: params.userId,
         userId: params.userId,
         siteId,
         unitTypeId: params.unitTypeId,
@@ -640,14 +648,27 @@ export async function createStoreganiseUnitOrder(params: {
       }),
     });
 
-    // Verify owner — log loudly if Storeganise ignored our userId so the
-    // dual-write fallback in setIdentitySessionForOrder kicks in.
+    // Verify the order actually has the right owner. If Storeganise silently
+    // dropped both fields we MUST patch it now — otherwise the entire move-in
+    // workflow (generateAgreement, signAgreement, identity, invoice) runs
+    // against a null user and every step error-alerts.
     try {
       const verify = await sg<{ ownerId?: string }>(`/units/orders/${created.id}`);
-      if (verify.ownerId && verify.ownerId !== params.userId) {
+      if (!verify.ownerId || verify.ownerId !== params.userId) {
         console.error(
-          `Storeganise order ${created.id} created but ownerId is ${verify.ownerId}, expected ${params.userId}.`,
+          `Storeganise order ${created.id} created with ownerId=${verify.ownerId ?? "null"}, expected ${params.userId}. Patching…`,
         );
+        try {
+          await sg<Record<string, unknown>>(`/units/orders/${created.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ ownerId: params.userId, userId: params.userId }),
+          });
+        } catch (patchError) {
+          console.error(
+            `Storeganise owner patch failed for order ${created.id}:`,
+            patchError instanceof Error ? patchError.message : patchError,
+          );
+        }
       }
     } catch (verifyError) {
       console.error("Storeganise order verify-after-create failed:", verifyError);
