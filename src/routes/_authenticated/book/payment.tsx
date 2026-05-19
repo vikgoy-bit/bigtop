@@ -2,14 +2,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CreditCard, Lock } from "lucide-react";
+import { CreditCard, Lock, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatGBPRound } from "@/lib/format";
 import { startMolliePayment } from "@/lib/mollie.functions";
+import { applyPromoCode } from "@/lib/promo.functions";
+
 
 export const Route = createFileRoute("/_authenticated/book/payment")({
   head: () => ({ meta: [{ title: "Payment — Big Top Self Storage" }] }),
@@ -42,7 +45,9 @@ function PaymentPage() {
   });
 
   const startPayment = useServerFn(startMolliePayment);
-  const [autoStarted, setAutoStarted] = useState(false);
+  const applyPromo = useServerFn(applyPromoCode);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplying, setPromoApplying] = useState(false);
 
   const handleContinue = async () => {
     if (!bookingId) return;
@@ -73,13 +78,30 @@ function PaymentPage() {
     }
   };
 
-  useEffect(() => {
-    if (bookingId && booking && !autoStarted && !submitting) {
-      setAutoStarted(true);
-      handleContinue();
+  const handleApplyPromo = async () => {
+    if (!bookingId || !promoCode.trim()) return;
+    setPromoApplying(true);
+    try {
+      const res = await applyPromo({ data: { bookingId, code: promoCode } });
+      if (!res.ok) {
+        toast.error(res.error || "Invalid promo code");
+        return;
+      }
+      if (res.fullyDiscounted) {
+        toast.success("Promo applied — payment skipped");
+        navigate({ to: "/book/contract" });
+        return;
+      }
+      toast.success("Promo applied");
+      window.location.reload();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not apply promo");
+    } finally {
+      setPromoApplying(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookingId, booking, autoStarted]);
+  };
+
+  // Auto-redirect to Mollie disabled while temporary promo box is in place.
 
   return (
     <div className="min-h-screen bg-background">
@@ -145,6 +167,29 @@ function PaymentPage() {
               You'll be redirected to Mollie to choose iDEAL, card, Apple Pay or another
               method. We'll set up your monthly mandate at the same time.
             </p>
+          </div>
+
+          {/* TEMP: testing-only promo code box. Remove before going live. */}
+          <div className="mt-4 rounded-xl border border-dashed border-amber-400/60 bg-amber-50/40 p-4">
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-900">
+              <Tag className="h-3.5 w-3.5" /> Promo code (testing)
+            </label>
+            <div className="mt-2 flex gap-2">
+              <Input
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value)}
+                placeholder="Enter code"
+                className="uppercase"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleApplyPromo}
+                disabled={promoApplying || !promoCode.trim() || !bookingId}
+              >
+                {promoApplying ? "Applying…" : "Apply"}
+              </Button>
+            </div>
           </div>
 
           <Button
