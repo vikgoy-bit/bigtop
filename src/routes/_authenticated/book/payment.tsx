@@ -2,14 +2,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CreditCard, Lock } from "lucide-react";
+import { CreditCard, Lock, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatGBPRound } from "@/lib/format";
 import { startMolliePayment } from "@/lib/mollie.functions";
+import { applyPromoCode } from "@/lib/promo.functions";
+
 
 export const Route = createFileRoute("/_authenticated/book/payment")({
   head: () => ({ meta: [{ title: "Payment — Big Top Self Storage" }] }),
