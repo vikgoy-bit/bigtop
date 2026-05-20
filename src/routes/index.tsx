@@ -160,7 +160,7 @@ function HomePage() {
             <h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">From browser to unit in three steps</h2>
             <ol className="mt-8 space-y-6">
               <Step n={1} title="Pick the right size online">
-                Browse units from 25 to 150 sq ft. Not sure? Our team will size you up over the phone in 2 minutes.
+                Browse units from 25 to 300 sq ft. Not sure? Our team will size you up over the phone in 2 minutes.
               </Step>
               <Step n={2} title="Book in minutes, pay by Direct Debit">
                 Fill out your details, ID-verify, sign the agreement and pay. The whole thing takes about 3 minutes.
