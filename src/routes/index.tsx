@@ -142,7 +142,7 @@ function HomePage() {
           <Feature icon={<Clock className="h-5 w-5" />} title="Open 8am – 8pm">
             The longest opening hours in the area, every single day of the week.
           </Feature>
-          <Feature icon={<ShieldCheck className="h-5 w-5" />} title="Insured cover">
+          <Feature icon={<ShieldCheck className="h-5 w-5" />} title="Protect your goods">
             Add Big Protect cover at checkout — no faff, no separate paperwork.
           </Feature>
           <Feature icon={<Headphones className="h-5 w-5" />} title="Real humans">
