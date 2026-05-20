@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as HowSelfStorageWorksRouteImport } from './routes/how-self-storage-works'
 import { Route as GetAQuoteRouteImport } from './routes/get-a-quote'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AboutRouteImport } from './routes/about'
@@ -48,6 +49,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowSelfStorageWorksRoute = HowSelfStorageWorksRouteImport.update({
+  id: '/how-self-storage-works',
+  path: '/how-self-storage-works',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GetAQuoteRoute = GetAQuoteRouteImport.update({
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/get-a-quote': typeof GetAQuoteRoute
+  '/how-self-storage-works': typeof HowSelfStorageWorksRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/get-a-quote': typeof GetAQuoteRoute
+  '/how-self-storage-works': typeof HowSelfStorageWorksRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/get-a-quote': typeof GetAQuoteRoute
+  '/how-self-storage-works': typeof HowSelfStorageWorksRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/forgot-password'
     | '/get-a-quote'
+    | '/how-self-storage-works'
     | '/login'
     | '/reset-password'
     | '/signup'
@@ -282,6 +292,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/forgot-password'
     | '/get-a-quote'
+    | '/how-self-storage-works'
     | '/login'
     | '/reset-password'
     | '/signup'
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/forgot-password'
     | '/get-a-quote'
+    | '/how-self-storage-works'
     | '/login'
     | '/reset-password'
     | '/signup'
@@ -337,6 +349,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   GetAQuoteRoute: typeof GetAQuoteRoute
+  HowSelfStorageWorksRoute: typeof HowSelfStorageWorksRoute
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
@@ -375,6 +388,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-self-storage-works': {
+      id: '/how-self-storage-works'
+      path: '/how-self-storage-works'
+      fullPath: '/how-self-storage-works'
+      preLoaderRoute: typeof HowSelfStorageWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/get-a-quote': {
@@ -560,6 +580,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   GetAQuoteRoute: GetAQuoteRoute,
+  HowSelfStorageWorksRoute: HowSelfStorageWorksRoute,
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
