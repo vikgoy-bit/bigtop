@@ -105,11 +105,12 @@ function HomePage() {
           <div className="relative">
             <div className="rounded-3xl bg-white/10 p-6 ring-1 ring-white/15 backdrop-blur-sm">
               <div className="grid grid-cols-2 gap-4">
-                <Stat value="25–150" unit="sq ft" label="Unit sizes" />
+                <Stat value="25–300" unit="sq ft" label="Unit sizes" />
                 <Stat value="8–8" unit="every day" label="Opening hours" />
                 <Stat value="24/7" unit="" label="CCTV monitoring" />
                 <Stat value="£1" unit="" label="First 6 weeks" />
               </div>
+              <p className="mt-2 text-center text-xs text-primary-foreground/60">*Bigger sizes upon request</p>
               <div className="mt-5 rounded-2xl bg-accent/95 p-5 text-accent-foreground">
                 <div className="text-xs font-bold uppercase tracking-widest opacity-80">Opening offer</div>
                 <div className="mt-1 font-display text-2xl font-extrabold">£1 for the first 6 weeks</div>
