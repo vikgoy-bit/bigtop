@@ -9,13 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsConditionsRouteImport } from './routes/terms-conditions'
+import { Route as StudentStorageRouteImport } from './routes/student-storage'
 import { Route as SmartEntryRouteImport } from './routes/smart-entry'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SelfStorageInsuranceRouteImport } from './routes/self-storage-insurance'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as PersonalStorageRouteImport } from './routes/personal-storage'
+import { Route as OffersRouteImport } from './routes/offers'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowSelfStorageWorksRouteImport } from './routes/how-self-storage-works'
 import { Route as GetAQuoteRouteImport } from './routes/get-a-quote'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
+import { Route as ContactUsRouteImport } from './routes/contact-us'
+import { Route as BusinessStorageRouteImport } from './routes/business-storage'
+import { Route as BoxesAndPackagingRouteImport } from './routes/boxes-and-packaging'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,6 +47,16 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiPublicHooksRetryVerificationRouteImport } from './routes/api/public/hooks/retry-verification'
 import { Route as ApiPublicHooksAbandonedCartRouteImport } from './routes/api/public/hooks/abandoned-cart'
 
+const TermsConditionsRoute = TermsConditionsRouteImport.update({
+  id: '/terms-conditions',
+  path: '/terms-conditions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentStorageRoute = StudentStorageRouteImport.update({
+  id: '/student-storage',
+  path: '/student-storage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SmartEntryRoute = SmartEntryRouteImport.update({
   id: '/smart-entry',
   path: '/smart-entry',
@@ -47,9 +67,29 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SelfStorageInsuranceRoute = SelfStorageInsuranceRouteImport.update({
+  id: '/self-storage-insurance',
+  path: '/self-storage-insurance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PersonalStorageRoute = PersonalStorageRouteImport.update({
+  id: '/personal-storage',
+  path: '/personal-storage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OffersRoute = OffersRouteImport.update({
+  id: '/offers',
+  path: '/offers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -70,6 +110,26 @@ const GetAQuoteRoute = GetAQuoteRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiePolicyRoute = CookiePolicyRouteImport.update({
+  id: '/cookie-policy',
+  path: '/cookie-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactUsRoute = ContactUsRouteImport.update({
+  id: '/contact-us',
+  path: '/contact-us',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessStorageRoute = BusinessStorageRouteImport.update({
+  id: '/business-storage',
+  path: '/business-storage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BoxesAndPackagingRoute = BoxesAndPackagingRouteImport.update({
+  id: '/boxes-and-packaging',
+  path: '/boxes-and-packaging',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -184,13 +244,23 @@ const ApiPublicHooksAbandonedCartRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/boxes-and-packaging': typeof BoxesAndPackagingRoute
+  '/business-storage': typeof BusinessStorageRoute
+  '/contact-us': typeof ContactUsRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/get-a-quote': typeof GetAQuoteRoute
   '/how-self-storage-works': typeof HowSelfStorageWorksRoute
   '/login': typeof LoginRoute
+  '/offers': typeof OffersRoute
+  '/personal-storage': typeof PersonalStorageRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/self-storage-insurance': typeof SelfStorageInsuranceRoute
   '/signup': typeof SignupRoute
   '/smart-entry': typeof SmartEntryRoute
+  '/student-storage': typeof StudentStorageRoute
+  '/terms-conditions': typeof TermsConditionsRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/book/contract': typeof AuthenticatedBookContractRoute
@@ -212,13 +282,23 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/boxes-and-packaging': typeof BoxesAndPackagingRoute
+  '/business-storage': typeof BusinessStorageRoute
+  '/contact-us': typeof ContactUsRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/get-a-quote': typeof GetAQuoteRoute
   '/how-self-storage-works': typeof HowSelfStorageWorksRoute
   '/login': typeof LoginRoute
+  '/offers': typeof OffersRoute
+  '/personal-storage': typeof PersonalStorageRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/self-storage-insurance': typeof SelfStorageInsuranceRoute
   '/signup': typeof SignupRoute
   '/smart-entry': typeof SmartEntryRoute
+  '/student-storage': typeof StudentStorageRoute
+  '/terms-conditions': typeof TermsConditionsRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/book/contract': typeof AuthenticatedBookContractRoute
@@ -242,13 +322,23 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/about': typeof AboutRoute
+  '/boxes-and-packaging': typeof BoxesAndPackagingRoute
+  '/business-storage': typeof BusinessStorageRoute
+  '/contact-us': typeof ContactUsRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/get-a-quote': typeof GetAQuoteRoute
   '/how-self-storage-works': typeof HowSelfStorageWorksRoute
   '/login': typeof LoginRoute
+  '/offers': typeof OffersRoute
+  '/personal-storage': typeof PersonalStorageRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/self-storage-insurance': typeof SelfStorageInsuranceRoute
   '/signup': typeof SignupRoute
   '/smart-entry': typeof SmartEntryRoute
+  '/student-storage': typeof StudentStorageRoute
+  '/terms-conditions': typeof TermsConditionsRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/book/contract': typeof AuthenticatedBookContractRoute
@@ -272,13 +362,23 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/boxes-and-packaging'
+    | '/business-storage'
+    | '/contact-us'
+    | '/cookie-policy'
     | '/forgot-password'
     | '/get-a-quote'
     | '/how-self-storage-works'
     | '/login'
+    | '/offers'
+    | '/personal-storage'
+    | '/privacy-policy'
     | '/reset-password'
+    | '/self-storage-insurance'
     | '/signup'
     | '/smart-entry'
+    | '/student-storage'
+    | '/terms-conditions'
     | '/book/details'
     | '/email/unsubscribe'
     | '/book/contract'
@@ -300,13 +400,23 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/boxes-and-packaging'
+    | '/business-storage'
+    | '/contact-us'
+    | '/cookie-policy'
     | '/forgot-password'
     | '/get-a-quote'
     | '/how-self-storage-works'
     | '/login'
+    | '/offers'
+    | '/personal-storage'
+    | '/privacy-policy'
     | '/reset-password'
+    | '/self-storage-insurance'
     | '/signup'
     | '/smart-entry'
+    | '/student-storage'
+    | '/terms-conditions'
     | '/book/details'
     | '/email/unsubscribe'
     | '/book/contract'
@@ -329,13 +439,23 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/about'
+    | '/boxes-and-packaging'
+    | '/business-storage'
+    | '/contact-us'
+    | '/cookie-policy'
     | '/forgot-password'
     | '/get-a-quote'
     | '/how-self-storage-works'
     | '/login'
+    | '/offers'
+    | '/personal-storage'
+    | '/privacy-policy'
     | '/reset-password'
+    | '/self-storage-insurance'
     | '/signup'
     | '/smart-entry'
+    | '/student-storage'
+    | '/terms-conditions'
     | '/book/details'
     | '/email/unsubscribe'
     | '/_authenticated/book/contract'
@@ -359,13 +479,23 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AboutRoute: typeof AboutRoute
+  BoxesAndPackagingRoute: typeof BoxesAndPackagingRoute
+  BusinessStorageRoute: typeof BusinessStorageRoute
+  ContactUsRoute: typeof ContactUsRoute
+  CookiePolicyRoute: typeof CookiePolicyRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   GetAQuoteRoute: typeof GetAQuoteRoute
   HowSelfStorageWorksRoute: typeof HowSelfStorageWorksRoute
   LoginRoute: typeof LoginRoute
+  OffersRoute: typeof OffersRoute
+  PersonalStorageRoute: typeof PersonalStorageRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SelfStorageInsuranceRoute: typeof SelfStorageInsuranceRoute
   SignupRoute: typeof SignupRoute
   SmartEntryRoute: typeof SmartEntryRoute
+  StudentStorageRoute: typeof StudentStorageRoute
+  TermsConditionsRoute: typeof TermsConditionsRoute
   BookDetailsRoute: typeof BookDetailsRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   ApiPublicMollieWebhookRoute: typeof ApiPublicMollieWebhookRoute
@@ -382,6 +512,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms-conditions': {
+      id: '/terms-conditions'
+      path: '/terms-conditions'
+      fullPath: '/terms-conditions'
+      preLoaderRoute: typeof TermsConditionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student-storage': {
+      id: '/student-storage'
+      path: '/student-storage'
+      fullPath: '/student-storage'
+      preLoaderRoute: typeof StudentStorageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/smart-entry': {
       id: '/smart-entry'
       path: '/smart-entry'
@@ -396,11 +540,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/self-storage-insurance': {
+      id: '/self-storage-insurance'
+      path: '/self-storage-insurance'
+      fullPath: '/self-storage-insurance'
+      preLoaderRoute: typeof SelfStorageInsuranceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/personal-storage': {
+      id: '/personal-storage'
+      path: '/personal-storage'
+      fullPath: '/personal-storage'
+      preLoaderRoute: typeof PersonalStorageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offers': {
+      id: '/offers'
+      path: '/offers'
+      fullPath: '/offers'
+      preLoaderRoute: typeof OffersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -429,6 +601,34 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookie-policy': {
+      id: '/cookie-policy'
+      path: '/cookie-policy'
+      fullPath: '/cookie-policy'
+      preLoaderRoute: typeof CookiePolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact-us': {
+      id: '/contact-us'
+      path: '/contact-us'
+      fullPath: '/contact-us'
+      preLoaderRoute: typeof ContactUsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business-storage': {
+      id: '/business-storage'
+      path: '/business-storage'
+      fullPath: '/business-storage'
+      preLoaderRoute: typeof BusinessStorageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/boxes-and-packaging': {
+      id: '/boxes-and-packaging'
+      path: '/boxes-and-packaging'
+      fullPath: '/boxes-and-packaging'
+      preLoaderRoute: typeof BoxesAndPackagingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -598,13 +798,23 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AboutRoute: AboutRoute,
+  BoxesAndPackagingRoute: BoxesAndPackagingRoute,
+  BusinessStorageRoute: BusinessStorageRoute,
+  ContactUsRoute: ContactUsRoute,
+  CookiePolicyRoute: CookiePolicyRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   GetAQuoteRoute: GetAQuoteRoute,
   HowSelfStorageWorksRoute: HowSelfStorageWorksRoute,
   LoginRoute: LoginRoute,
+  OffersRoute: OffersRoute,
+  PersonalStorageRoute: PersonalStorageRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SelfStorageInsuranceRoute: SelfStorageInsuranceRoute,
   SignupRoute: SignupRoute,
   SmartEntryRoute: SmartEntryRoute,
+  StudentStorageRoute: StudentStorageRoute,
+  TermsConditionsRoute: TermsConditionsRoute,
   BookDetailsRoute: BookDetailsRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   ApiPublicMollieWebhookRoute: ApiPublicMollieWebhookRoute,
@@ -621,3 +831,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
