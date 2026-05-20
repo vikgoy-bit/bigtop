@@ -401,7 +401,7 @@ function DetailsPage() {
         <SiteHeader />
         <div className="mx-auto max-w-md p-10 text-center">
           <h1 className="font-display text-xl font-bold">Pick a unit first</h1>
-          <Button className="mt-4" onClick={() => navigate({ to: "/" })}>
+          <Button className="mt-4" onClick={() => navigate({ to: "/get-a-quote" })}>
             Back to units
           </Button>
         </div>
