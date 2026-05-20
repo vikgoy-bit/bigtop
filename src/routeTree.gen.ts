@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SmartEntryRouteImport } from './routes/smart-entry'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
@@ -36,6 +37,11 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiPublicHooksRetryVerificationRouteImport } from './routes/api/public/hooks/retry-verification'
 import { Route as ApiPublicHooksAbandonedCartRouteImport } from './routes/api/public/hooks/abandoned-cart'
 
+const SmartEntryRoute = SmartEntryRouteImport.update({
+  id: '/smart-entry',
+  path: '/smart-entry',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/smart-entry': typeof SmartEntryRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/book/contract': typeof AuthenticatedBookContractRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/smart-entry': typeof SmartEntryRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/book/contract': typeof AuthenticatedBookContractRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/smart-entry': typeof SmartEntryRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/book/contract': typeof AuthenticatedBookContractRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/smart-entry'
     | '/book/details'
     | '/email/unsubscribe'
     | '/book/contract'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/smart-entry'
     | '/book/details'
     | '/email/unsubscribe'
     | '/book/contract'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/smart-entry'
     | '/book/details'
     | '/email/unsubscribe'
     | '/_authenticated/book/contract'
@@ -353,6 +365,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  SmartEntryRoute: typeof SmartEntryRoute
   BookDetailsRoute: typeof BookDetailsRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   ApiPublicMollieWebhookRoute: typeof ApiPublicMollieWebhookRoute
@@ -369,6 +382,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/smart-entry': {
+      id: '/smart-entry'
+      path: '/smart-entry'
+      fullPath: '/smart-entry'
+      preLoaderRoute: typeof SmartEntryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -584,6 +604,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  SmartEntryRoute: SmartEntryRoute,
   BookDetailsRoute: BookDetailsRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   ApiPublicMollieWebhookRoute: ApiPublicMollieWebhookRoute,
