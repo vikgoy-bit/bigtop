@@ -15,13 +15,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export const Route = createFileRoute("/get-a-quote")({
   head: () => ({
     meta: [
-      { title: "Reserve a unit — Big Top Self Storage Basildon" },
+      { title: "Get a quote — Big Top Self Storage Basildon" },
       {
         name: "description",
         content:
           "Pick from 25–150 sq ft self storage units in Basildon. £1 for 6 weeks opening offer. 24/7 CCTV, smart entry, open 7 days a week.",
       },
+      { property: "og:title", content: "Get a quote — Big Top Self Storage Basildon" },
+      { property: "og:url", content: "https://bigtop.lovable.app/get-a-quote" },
     ],
+    links: [{ rel: "canonical", href: "https://bigtop.lovable.app/get-a-quote" }],
   }),
   component: SelectUnitPage,
 });
