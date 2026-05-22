@@ -214,7 +214,7 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
   "24/7 CCTV Monitoring": <Camera className="h-3.5 w-3.5" />,
   "Smart Entry": <KeyRound className="h-3.5 w-3.5" />,
   Modern: <ShieldCheck className="h-3.5 w-3.5" />,
-  "Drive-up access": <ShieldCheck className="h-3.5 w-3.5" />,
+  "Indoor loading": <ShieldCheck className="h-3.5 w-3.5" />,
 };
 
 function UnitCard({

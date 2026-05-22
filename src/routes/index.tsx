@@ -80,7 +80,7 @@ function HomePage() {
               {[
                 "Book your unit in under 3 minutes",
                 "Smart-entry access — your phone is the key",
-                "24/7 CCTV, modern interiors, drive-up access",
+                "24/7 CCTV, modern interiors, all-weather indoor loading",
                 "£1 for your first 6 weeks of rental",
               ].map((line) => (
                 <li key={line} className="flex items-start gap-2">
@@ -214,7 +214,7 @@ function HomePage() {
           <span className="text-xs font-bold uppercase tracking-widest text-accent">Find us</span>
           <h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">Harvey Road, Basildon</h2>
           <p className="mt-3 text-muted-foreground">
-            Easy in and out from the A127 and A13. Free customer parking right outside. Drive-up units available.
+            Easy in and out from the A127 and A13. Free customer parking right outside, with sheltered indoor loading.
           </p>
           <dl className="mt-6 grid gap-3 text-sm">
             <Row label="Address">Harvey Road, Basildon, Essex, SS13 1ET</Row>

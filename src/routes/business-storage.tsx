@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Boxes, Truck, Receipt, Briefcase, PackageCheck, Clock } from "lucide-react";
+import { ArrowRight, Boxes, Truck, Receipt, Briefcase, PackageCheck, Clock, Mailbox, Users, Coffee } from "lucide-react";
 
 export const Route = createFileRoute("/business-storage")({
   head: () => ({
@@ -69,14 +69,39 @@ function BusinessStoragePage() {
           <h2 className="font-display text-2xl font-bold sm:text-3xl">What's included</h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <Perk icon={<Clock className="h-5 w-5" />} title="24/7 smart-entry" body="Your team, your hours. Manage who gets access from the app." />
-            <Perk icon={<Truck className="h-5 w-5" />} title="Loading & parking" body="Drive right up to your unit. Pallet trucks and trolleys on site." />
+            <Perk icon={<Truck className="h-5 w-5" />} title="All-weather indoor loading" body="Load and unload undercover, with wide corridors and free trolleys on site." />
             <Perk icon={<Receipt className="h-5 w-5" />} title="VAT invoicing" body="Monthly VAT receipts, paid by Direct Debit. Simple bookkeeping." />
           </div>
-          <div className="mt-10">
-            <Button asChild size="lg">
-              <Link to="/get-a-quote">See unit sizes & pricing <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
-            </Button>
-          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+        <span className="text-xs font-bold uppercase tracking-widest text-accent">More than just storage</span>
+        <h2 className="mt-3 font-display text-2xl font-bold sm:text-3xl">Your business hub in Basildon</h2>
+        <p className="mt-3 max-w-2xl text-muted-foreground">
+          Big Top isn't just four walls and a roller door. We provide extra facilities designed exclusively for our business customers.
+        </p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <Perk
+            icon={<Mailbox className="h-5 w-5" />}
+            title="The Courier Room"
+            body="Streamline your supply chain. Use our dedicated room to securely receive incoming stock deliveries and dispatch outgoing parcels to your customers."
+          />
+          <Perk
+            icon={<Users className="h-5 w-5" />}
+            title="Meeting Room"
+            body="Make Big Top the professional hub for your business. Invite clients, meet suppliers, or hold team catch-ups in our dedicated meeting space."
+          />
+          <Perk
+            icon={<Coffee className="h-5 w-5" />}
+            title="Kitchen Facilities"
+            body="Take a well-deserved break. Our kitchen area is fully equipped to make a tea or coffee, warm up your lunch, store cold drinks, and wash up afterward."
+          />
+        </div>
+        <div className="mt-10">
+          <Button asChild size="lg">
+            <Link to="/get-a-quote">See unit sizes & pricing <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
+          </Button>
         </div>
       </section>
 
