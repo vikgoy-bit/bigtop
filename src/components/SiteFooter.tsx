@@ -16,14 +16,14 @@ export function SiteFooter() {
             The Greatest Space on Earth. Modern, secure self storage in Basildon with smart-entry access.
           </p>
           <div className="mt-4 flex gap-2">
-            <a aria-label="Facebook" href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-              <Facebook className="h-4 w-4" />
+            <a aria-label="Facebook" href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary hover:bg-white/90">
+              <Facebook className="h-4 w-4" fill="currentColor" />
             </a>
-            <a aria-label="YouTube" href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-              <Youtube className="h-4 w-4" />
+            <a aria-label="YouTube" href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary hover:bg-white/90">
+              <Youtube className="h-4 w-4" fill="currentColor" />
             </a>
-            <a aria-label="LinkedIn" href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-              <Linkedin className="h-4 w-4" />
+            <a aria-label="LinkedIn" href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary hover:bg-white/90">
+              <Linkedin className="h-4 w-4" fill="currentColor" />
             </a>
           </div>
         </div>
