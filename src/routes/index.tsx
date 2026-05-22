@@ -145,8 +145,8 @@ function HomePage() {
           <Feature icon={<ShieldCheck className="h-5 w-5" />} title="Protect your goods">
             Add Big Protect cover at checkout — no faff, no separate paperwork.
           </Feature>
-          <Feature icon={<Headphones className="h-5 w-5" />} title="Real humans">
-            Local team on the phone whenever you need a hand picking a size.
+          <Feature icon={<Headphones className="h-5 w-5" />} title="Instant support">
+            AI-powered help available instantly — plus a local team on the phone when you want it.
           </Feature>
         </div>
       </section>
