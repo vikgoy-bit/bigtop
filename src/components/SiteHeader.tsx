@@ -72,7 +72,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button asChild size="sm" className="hidden sm:inline-flex">
+            <Button asChild size="sm" className="bg-red-600 text-white hover:bg-red-700">
               <Link to="/get-a-quote">Get a quote</Link>
             </Button>
             {user && (
