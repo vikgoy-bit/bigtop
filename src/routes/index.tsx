@@ -80,7 +80,7 @@ function HomePage() {
               {[
                 "Book your unit in under 3 minutes",
                 "Smart-entry access — your phone is the key",
-                "24/7 CCTV, modern interiors, drive-up access",
+                "24/7 CCTV, modern interiors, all-weather indoor loading",
                 "£1 for your first 6 weeks of rental",
               ].map((line) => (
                 <li key={line} className="flex items-start gap-2">
