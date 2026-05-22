@@ -55,8 +55,7 @@ function BlogIndex() {
           {posts.map((post) => (
             <Link
               key={post.slug}
-              to={"/$slug" as never}
-              params={{ slug: post.slug } as never}
+              to={`/${post.slug}` as never}
               className="group flex flex-col overflow-hidden rounded-xl border bg-card transition hover:shadow-lg"
             >
               {post.ogImage && (

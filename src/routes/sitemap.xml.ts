@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
+import { blogPosts } from "@/data/blogPosts";
 
 const BASE_URL = "https://bigtop.lovable.app";
 
@@ -35,6 +36,13 @@ export const Route = createFileRoute("/sitemap/xml")({
           { path: "/signup", changefreq: "yearly", priority: "0.5" },
           { path: "/forgot-password", changefreq: "yearly", priority: "1.0" },
           { path: "/reset-password", changefreq: "yearly", priority: "0.1" },
+          { path: "/blog", changefreq: "weekly", priority: "0.8" },
+          ...blogPosts.map((p) => ({
+            path: `/${p.slug}`,
+            lastmod: p.datePublished ? p.datePublished.slice(0, 10) : undefined,
+            changefreq: "monthly" as const,
+            priority: "0.7",
+          })),
         ];
 
         const urls = entries.map((e) =>
