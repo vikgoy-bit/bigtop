@@ -140,7 +140,7 @@ function HomePage() {
             Your phone is the only key. Lost padlock keys are someone else's problem.
           </Feature>
           <Feature icon={<Clock className="h-5 w-5" />} title="Open 8am – 8pm">
-            The longest opening hours in the area, every single day of the week.
+            The longest opening hours in the area, every single day of the year.
           </Feature>
           <Feature icon={<ShieldCheck className="h-5 w-5" />} title="Protect your goods">
             Add Big Protect cover at checkout — no faff, no separate paperwork.
