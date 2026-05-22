@@ -47,9 +47,12 @@ function HowItWorksPage() {
             title="Pick the right unit"
           >
             <p>
-              Units range from 25 sq ft (a cupboard's worth) up to 150 sq ft (a small house). Each listing
+              Units range from 25 sq ft (a cupboard's worth) up to 300 sq ft. Each listing
               shows what fits inside, so you don't pay for space you won't use. If you're unsure, our AI
               assistant Lex or the team on 01268 230 230 will size you up in 2 minutes.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Bigger units available upon request.
             </p>
             <Link to="/get-a-quote" className="mt-3 inline-flex items-center font-semibold text-accent hover:underline">
               Browse units <ArrowRight className="ml-1 h-4 w-4" />
