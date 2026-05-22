@@ -36,15 +36,39 @@ export function SiteHeader() {
               Harvey Road, Basildon, SS13 1ET
             </span>
           </div>
-          <div className="hidden items-center gap-1.5 sm:flex">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-primary hover:bg-white/90">
-              <Facebook className="h-3 w-3" fill="currentColor" />
+          <div className="hidden items-center gap-2 sm:flex">
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[#1877F2] transition hover:scale-110"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+                <path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.7c0-.9.3-1.6 1.6-1.6h1.7V4.2c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.1v2.6H7.7V14h2.7v8h3.1z" />
+              </svg>
             </a>
-            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-primary hover:bg-white/90">
-              <Youtube className="h-3 w-3" fill="currentColor" />
+            <a
+              href="https://youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="YouTube"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[#FF0000] transition hover:scale-110"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+                <path d="M21.6 7.2c-.2-.9-.9-1.6-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4c-.9.2-1.6.9-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8c.2.9.9 1.6 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5 3-5 3z" />
+              </svg>
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-primary hover:bg-white/90">
-              <Linkedin className="h-3 w-3" fill="currentColor" />
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[#0A66C2] transition hover:scale-110"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+                <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM8.3 18.3H5.7V9.8h2.6v8.5zM7 8.6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm11.3 9.7h-2.6v-4.1c0-1 0-2.3-1.4-2.3s-1.6 1.1-1.6 2.2v4.2h-2.6V9.8h2.5v1.2h.1c.4-.7 1.3-1.4 2.6-1.4 2.7 0 3.2 1.8 3.2 4.1v4.6z" />
+              </svg>
             </a>
           </div>
         </div>
