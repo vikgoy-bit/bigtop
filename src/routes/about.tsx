@@ -10,8 +10,8 @@ export const Route = createFileRoute("/about")({
       { title: "About — Big Top Self Storage Basildon" },
       {
         name: "description",
-        content:
-          "Big Top Self Storage is a family-run Basildon facility with smart-entry units, 24/7 CCTV and the longest opening hours in the local area.",
+      content:
+        "Big Top Self Storage is an automated Basildon facility with smart-entry units, 24/7 CCTV and the longest opening hours in the local area.",
       },
       { property: "og:title", content: "About Big Top Self Storage" },
       { property: "og:url", content: "https://bigtop.lovable.app/about" },
