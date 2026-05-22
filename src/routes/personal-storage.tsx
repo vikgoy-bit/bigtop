@@ -1,8 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Home, Sofa, Package, Snowflake, CalendarClock, ShieldCheck } from "lucide-react";
+import { getStoreganiseUnits, type StoreganiseUnit } from "@/lib/storeganise.functions";
+
+const unitsQueryOptions = queryOptions({
+  queryKey: ["storeganise-units"],
+  queryFn: () => getStoreganiseUnits(),
+});
 
 export const Route = createFileRoute("/personal-storage")({
   head: () => ({
@@ -15,6 +22,13 @@ export const Route = createFileRoute("/personal-storage")({
     ],
     links: [{ rel: "canonical", href: "https://bigtop.lovable.app/personal-storage" }],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(unitsQueryOptions),
+  errorComponent: ({ error }) => (
+    <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <p className="text-muted-foreground">Couldn't load live prices: {error.message}</p>
+    </div>
+  ),
+  notFoundComponent: () => <div className="p-8">Not found</div>,
   component: PersonalStoragePage,
 });
 
@@ -25,13 +39,25 @@ const USES = [
   { icon: Package, title: "Renovations", body: "Protect your stuff from dust and decorators while the builders are in." },
 ];
 
-const SIZES = [
-  { size: "25 sq ft", desc: "Cupboard-sized. Boxes, suitcases, a few bits of small furniture.", from: "£35" },
-  { size: "50 sq ft", desc: "A small bedroom's worth — sofa, bed, boxes, household clutter.", from: "£65" },
-  { size: "100 sq ft", desc: "A one-bed flat. Beds, sofas, table, white goods and boxes.", from: "£110" },
-  { size: "150 sq ft", desc: "A two-bed home. Most of the furniture from a small family house.", from: "£155" },
-  { size: "300 sq ft", desc: "A four-bed home or large project store. Plenty of room to walk in.", from: "£280" },
+const SIZE_TARGETS: Array<{ sqft: number; desc: string }> = [
+  { sqft: 25, desc: "Cupboard-sized. Boxes, suitcases, a few bits of small furniture." },
+  { sqft: 50, desc: "A small bedroom's worth — sofa, bed, boxes, household clutter." },
+  { sqft: 100, desc: "A one-bed flat. Beds, sofas, table, white goods and boxes." },
+  { sqft: 150, desc: "A two-bed home. Most of the furniture from a small family house." },
+  { sqft: 300, desc: "A four-bed home or large project store. Plenty of room to walk in." },
 ];
+
+function pickClosest(units: StoreganiseUnit[], target: number): StoreganiseUnit | null {
+  if (!units.length) return null;
+  return units.reduce((best, u) =>
+    Math.abs(u.size_sqft - target) < Math.abs(best.size_sqft - target) ? u : best
+  );
+}
+
+function formatFromPrice(pence: number): string {
+  const pounds = pence / 100;
+  return `£${Number.isInteger(pounds) ? pounds : pounds.toFixed(2)}`;
+}
 
 function PersonalStoragePage() {
   return (
