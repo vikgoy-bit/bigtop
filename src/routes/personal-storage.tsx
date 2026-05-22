@@ -113,11 +113,11 @@ function PersonalStoragePage() {
           <h2 className="font-display text-2xl font-bold sm:text-3xl">Pick a size that fits</h2>
           <p className="mt-2 text-muted-foreground">Prices from, per month. Bigger units available upon request.</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {SIZES.map((s) => (
+            {sizes.map((s) => (
               <div key={s.size} className="rounded-2xl border bg-card p-6">
                 <div className="flex items-baseline justify-between">
                   <h3 className="font-display text-xl font-bold">{s.size}</h3>
-                  <span className="text-sm font-semibold text-accent">from {s.from}</span>
+                  {s.from && <span className="text-sm font-semibold text-accent">from {s.from}</span>}
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">{s.desc}</p>
               </div>
