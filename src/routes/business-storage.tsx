@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Boxes, Truck, Receipt, Briefcase, PackageCheck, Clock } from "lucide-react";
+import { ArrowRight, Boxes, Truck, Receipt, Briefcase, PackageCheck, Clock, Mailbox, Users, Coffee } from "lucide-react";
 
 export const Route = createFileRoute("/business-storage")({
   head: () => ({
