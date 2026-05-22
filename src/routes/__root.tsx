@@ -83,6 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Reserve self storage in Basildon. 24/7 CCTV, smart entry, modern units. Open 7 days a week. £1 for 6 weeks opening offer.",
       },
       { name: "author", content: "Big Top Self Storage" },
+      { name: "google-site-verification", content: "UFFxQJh_STRSU8NB4D1eaRwXxvUbAIUXUgSX1PXNgRI" },
       { property: "og:title", content: "Big Top Self Storage — Reserve a unit in Basildon" },
       {
         property: "og:description",
