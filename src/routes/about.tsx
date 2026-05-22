@@ -45,8 +45,7 @@ function AboutPage() {
           <h2 className="font-display text-2xl font-bold">Built locally, for Basildon</h2>
           <p className="text-muted-foreground">
             We're based on Harvey Road, a couple of minutes from the A127. The site is purpose-built — not a
-            converted warehouse with leaky corners — so units are dry, level, and easy to access. Drive-up
-            options are available if you've got a van full of furniture.
+            converted warehouse with leaky corners — so units are dry, level, and easy to access.
           </p>
 
           <h2 className="mt-10 font-display text-2xl font-bold">Smart-entry from day one</h2>
