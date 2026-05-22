@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Search, CreditCard, Smartphone, ShieldCheck, KeyRound, Camera } from "lucide-react";
+import { ArrowRight, Search, CreditCard, Smartphone, ShieldCheck, KeyRound, Camera, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/how-self-storage-works")({
   head: () => ({
