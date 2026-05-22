@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Search, CreditCard, Smartphone, ShieldCheck, KeyRound, Camera } from "lucide-react";
+import { ArrowRight, Search, CreditCard, Smartphone, ShieldCheck, KeyRound, Camera, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/how-self-storage-works")({
   head: () => ({
@@ -88,10 +88,11 @@ function HowItWorksPage() {
       <section className="bg-secondary">
         <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
           <h2 className="font-display text-2xl font-bold sm:text-3xl">Inside every unit</h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Tile icon={<ShieldCheck className="h-5 w-5" />} label="Modern, dry interiors" />
             <Tile icon={<KeyRound className="h-5 w-5" />} label="No padlock required" />
             <Tile icon={<Camera className="h-5 w-5" />} label="24/7 CCTV coverage" />
+            <Tile icon={<Activity className="h-5 w-5" />} label="Motion detection alarm" />
           </div>
           <div className="mt-10">
             <Button asChild size="lg">
