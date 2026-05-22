@@ -60,6 +60,16 @@ function formatFromPrice(pence: number): string {
 }
 
 function PersonalStoragePage() {
+  const { data } = useSuspenseQuery(unitsQueryOptions);
+  const units = data.units;
+  const sizes = SIZE_TARGETS.map((t) => {
+    const unit = pickClosest(units, t.sqft);
+    return {
+      size: `${t.sqft} sq ft`,
+      desc: t.desc,
+      from: unit && unit.monthly_price_pence > 0 ? formatFromPrice(unit.monthly_price_pence) : null,
+    };
+  });
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
