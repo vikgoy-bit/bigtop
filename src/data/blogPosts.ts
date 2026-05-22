@@ -6,6 +6,7 @@ export interface BlogPost {
   ogImage: string;
   category: string;
   datePublished: string;
+  dateText: string;
   bodyHtml: string;
 }
 
