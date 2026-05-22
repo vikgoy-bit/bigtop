@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Phone, Mail, MapPin, Facebook, Youtube, Linkedin } from "lucide-react";
+import { Phone, Mail, MapPin } from "lucide-react";
 import bigtopLogo from "@/assets/bigtop-logo.svg";
 
 const COL = "text-sm text-primary-foreground/80 hover:text-primary-foreground transition";
