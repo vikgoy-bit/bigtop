@@ -29,6 +29,7 @@ import { Route as BoxesAndPackagingRouteImport } from './routes/boxes-and-packag
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as BookDetailsRouteImport } from './routes/book.details'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -144,6 +145,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapXmlRoute = SitemapXmlRouteImport.update({
+  id: '/sitemap/xml',
+  path: '/sitemap/xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/terms-conditions': typeof TermsConditionsRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/book/contract': typeof AuthenticatedBookContractRoute
   '/book/payment': typeof AuthenticatedBookPaymentRoute
   '/book/payment-return': typeof AuthenticatedBookPaymentReturnRoute
@@ -301,6 +308,7 @@ export interface FileRoutesByTo {
   '/terms-conditions': typeof TermsConditionsRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/book/contract': typeof AuthenticatedBookContractRoute
   '/book/payment': typeof AuthenticatedBookPaymentRoute
   '/book/payment-return': typeof AuthenticatedBookPaymentReturnRoute
@@ -341,6 +349,7 @@ export interface FileRoutesById {
   '/terms-conditions': typeof TermsConditionsRoute
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/_authenticated/book/contract': typeof AuthenticatedBookContractRoute
   '/_authenticated/book/payment': typeof AuthenticatedBookPaymentRoute
   '/_authenticated/book/payment-return': typeof AuthenticatedBookPaymentReturnRoute
@@ -381,6 +390,7 @@ export interface FileRouteTypes {
     | '/terms-conditions'
     | '/book/details'
     | '/email/unsubscribe'
+    | '/sitemap/xml'
     | '/book/contract'
     | '/book/payment'
     | '/book/payment-return'
@@ -419,6 +429,7 @@ export interface FileRouteTypes {
     | '/terms-conditions'
     | '/book/details'
     | '/email/unsubscribe'
+    | '/sitemap/xml'
     | '/book/contract'
     | '/book/payment'
     | '/book/payment-return'
@@ -458,6 +469,7 @@ export interface FileRouteTypes {
     | '/terms-conditions'
     | '/book/details'
     | '/email/unsubscribe'
+    | '/sitemap/xml'
     | '/_authenticated/book/contract'
     | '/_authenticated/book/payment'
     | '/_authenticated/book/payment-return'
@@ -498,6 +510,7 @@ export interface RootRouteChildren {
   TermsConditionsRoute: typeof TermsConditionsRoute
   BookDetailsRoute: typeof BookDetailsRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  SitemapXmlRoute: typeof SitemapXmlRoute
   ApiPublicMollieWebhookRoute: typeof ApiPublicMollieWebhookRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -650,6 +663,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap/xml': {
+      id: '/sitemap/xml'
+      path: '/sitemap/xml'
+      fullPath: '/sitemap/xml'
+      preLoaderRoute: typeof SitemapXmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
@@ -817,6 +837,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsConditionsRoute: TermsConditionsRoute,
   BookDetailsRoute: BookDetailsRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  SitemapXmlRoute: SitemapXmlRoute,
   ApiPublicMollieWebhookRoute: ApiPublicMollieWebhookRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
