@@ -37,14 +37,14 @@ export function SiteHeader() {
             </span>
           </div>
           <div className="hidden items-center gap-1.5 sm:flex">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-              <Facebook className="h-3 w-3" />
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-primary hover:bg-white/90">
+              <Facebook className="h-3 w-3" fill="currentColor" />
             </a>
-            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-              <Youtube className="h-3 w-3" />
+            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-primary hover:bg-white/90">
+              <Youtube className="h-3 w-3" fill="currentColor" />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-              <Linkedin className="h-3 w-3" />
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-primary hover:bg-white/90">
+              <Linkedin className="h-3 w-3" fill="currentColor" />
             </a>
           </div>
         </div>
