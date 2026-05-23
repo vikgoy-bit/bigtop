@@ -3,25 +3,37 @@
 //
 // API docs live at https://bigtopselfstorage.storeganise.com/api/docs/
 //
+import { isBookingTestMode } from "./booking-mode.server";
+
 const LIVE_SUBDOMAIN = "bigtopselfstorage";
+const TEST_SUBDOMAIN = "big-top-storage-trial";
 const SITE_CODE = "ss13-1et"; // same site code in both tenants per Storeganise
 
-function getSubdomain(): string {
-  // Unit quotes are loaded from the live Storeganise site, so order creation
-  // must use the same tenant or Storeganise rejects the live unitTypeId.
-  return LIVE_SUBDOMAIN;
+export function getStoreganiseSubdomain(): string {
+  return isBookingTestMode() ? TEST_SUBDOMAIN : LIVE_SUBDOMAIN;
 }
 
 function getBase(): string {
-  return `https://${getSubdomain()}.storeganise.com/api/v1`;
+  return `https://${getStoreganiseSubdomain()}.storeganise.com/api/v1`;
 }
 
-function getApiKey(): string {
+export function getStoreganiseApiKey(): string {
+  if (isBookingTestMode()) {
+    const key = process.env.STOREGANISE_API_KEY_TEST;
+    if (!key) {
+      throw new Error("STOREGANISE_API_KEY_TEST is not set (BOOKING_MODE=test)");
+    }
+    return key;
+  }
   const key = process.env.STOREGANISE_API_KEY;
   if (!key) {
     throw new Error("STOREGANISE_API_KEY is not set");
   }
   return key;
+}
+
+function getApiKey(): string {
+  return getStoreganiseApiKey();
 }
 
 function authHeaders(): HeadersInit {
