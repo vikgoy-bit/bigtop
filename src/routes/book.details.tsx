@@ -592,7 +592,7 @@ function DetailsPage() {
                     setMoveInDate(d);
                     if (d) setDateOpen(false);
                   }}
-                  disabled={(d) => d < tomorrow}
+                  disabled={(d) => d < earliest}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
                 />
