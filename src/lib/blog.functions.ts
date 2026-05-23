@@ -102,7 +102,7 @@ export const adminListPosts = createServerFn({ method: "GET" })
     await assertAdmin(context.userId);
     const { data, error } = await supabaseAdmin
       .from("blog_posts")
-      .select("id, slug, title, category, published, date_published, updated_at, author_email")
+      .select("id, slug, title, category, published, date_published, updated_at, author_id")
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
