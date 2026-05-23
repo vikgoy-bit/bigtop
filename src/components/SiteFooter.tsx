@@ -60,6 +60,10 @@ export function SiteFooter() {
             <li><Link to="/business-storage" className={COL}>Business storage</Link></li>
             <li><Link to="/student-storage" className={COL}>Student storage</Link></li>
             <li><Link to="/boxes-and-packaging" className={COL}>Boxes & packaging</Link></li>
+            <li><Link to="/storage-size" className={COL}>Storage sizes</Link></li>
+            <li><Link to="/space-estimator" className={COL}>Space estimator</Link></li>
+            <li><Link to="/pricing" className={COL}>Pricing</Link></li>
+            <li><Link to="/secure-storage" className={COL}>Secure storage</Link></li>
           </ul>
         </div>
 
