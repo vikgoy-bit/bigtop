@@ -281,7 +281,7 @@ export const getContractForBooking = createServerFn({ method: "GET" })
       unitAllocated: !!refreshedSnapshot?.name,
       error: refreshedSnapshot?.name
         ? null
-        : ("We're still allocating your unit number — please refresh in a moment." as string | null),
+        : ("Allocating your unit number…" as string | null),
     };
   });
 
