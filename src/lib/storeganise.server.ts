@@ -672,7 +672,8 @@ export async function createStoreganiseUnitOrder(params: {
             : {}),
         }),
       });
-      return { id: created.id, assignedUnit: await resolveAssignedUnit(created.id) };
+      const assignedUnit = await resolveAssignedUnit(created.id);
+      return assignedUnit ? { id: created.id, assignedUnit } : { id: created.id };
     } catch (customerOrderError) {
       console.error(
         "Storeganise customer order create failed; falling back to admin /units/orders:",
@@ -740,7 +741,8 @@ export async function createStoreganiseUnitOrder(params: {
       console.error("Storeganise order verify-after-create failed:", verifyError);
     }
 
-    return { id: created.id, assignedUnit: await resolveAssignedUnit(created.id) };
+    const assignedUnit = await resolveAssignedUnit(created.id);
+    return assignedUnit ? { id: created.id, assignedUnit } : { id: created.id };
   } catch (e) {
     if (e instanceof Error && /duplicate|too many/i.test(e.message)) {
       const retryExisting =
