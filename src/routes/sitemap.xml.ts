@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { blogPosts } from "@/data/blogPosts";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const BASE_URL = "https://bigtop.lovable.app";
 
