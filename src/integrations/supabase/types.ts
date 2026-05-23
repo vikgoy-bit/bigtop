@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      blog_posts: {
+        Row: {
+          author_email: string | null
+          author_id: string | null
+          body_html: string
+          category: string
+          created_at: string
+          date_published: string | null
+          excerpt: string | null
+          id: string
+          meta_desc: string
+          og_image: string | null
+          published: boolean
+          slug: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_email?: string | null
+          author_id?: string | null
+          body_html?: string
+          category?: string
+          created_at?: string
+          date_published?: string | null
+          excerpt?: string | null
+          id?: string
+          meta_desc?: string
+          og_image?: string | null
+          published?: boolean
+          slug: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_email?: string | null
+          author_id?: string | null
+          body_html?: string
+          category?: string
+          created_at?: string
+          date_published?: string | null
+          excerpt?: string | null
+          id?: string
+          meta_desc?: string
+          og_image?: string | null
+          published?: boolean
+          slug?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           abandoned_email_sent_at: string | null
