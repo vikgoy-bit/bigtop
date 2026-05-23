@@ -370,11 +370,11 @@ function storeganiseStartDate(date: string): string {
   const minutes = Number(get("hour")) * 60 + Number(get("minute"));
   const cutoffPassed = minutes >= 19 * 60 + 45;
 
-  const earliestYmd = cutoffPassed
-    ? formatYmd(new Date(`${todayYmd}T00:00:00Z`).valueOf() + 86_400_000 > 0
-        ? new Date(new Date(`${todayYmd}T00:00:00Z`).getTime() + 86_400_000)
-        : new Date())
-    : todayYmd;
+  let earliestYmd = todayYmd;
+  if (cutoffPassed) {
+    const [y, m, d] = todayYmd.split("-").map(Number);
+    earliestYmd = formatYmd(new Date(Date.UTC(y, m - 1, d + 1)));
+  }
 
   return date < earliestYmd ? earliestYmd : date;
 }
