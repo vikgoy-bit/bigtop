@@ -14,7 +14,9 @@ const TEST_SUBDOMAIN = "big-top-storage-trial";
 const SITE_CODE = "ss13-1et"; // same site code in both tenants per Storeganise
 
 function getSubdomain(): string {
-  return isBookingTestMode() ? TEST_SUBDOMAIN : LIVE_SUBDOMAIN;
+  // Unit quotes are loaded from the live Storeganise site, so order creation
+  // must use the same tenant or Storeganise rejects the live unitTypeId.
+  return LIVE_SUBDOMAIN;
 }
 
 function getBase(): string {
@@ -22,15 +24,9 @@ function getBase(): string {
 }
 
 function getApiKey(): string {
-  const key = isBookingTestMode()
-    ? process.env.STOREGANISE_API_KEY_TEST
-    : process.env.STOREGANISE_API_KEY;
+  const key = process.env.STOREGANISE_API_KEY;
   if (!key) {
-    throw new Error(
-      isBookingTestMode()
-        ? "STOREGANISE_API_KEY_TEST is not set (BOOKING_MODE=test)"
-        : "STOREGANISE_API_KEY is not set",
-    );
+    throw new Error("STOREGANISE_API_KEY is not set");
   }
   return key;
 }
@@ -477,7 +473,7 @@ export async function ensureStoreganiseOrderForBooking(params: {
   const { supabaseAdmin: db, booking, payment } = params;
   if (booking.storeganise_order_id) return {};
 
-  const updates: { storeganise_user_id?: string; storeganise_order_id?: string } = {};
+  const updates: { storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any> } = {};
 
   const { data: userInfo } = await db.auth.admin.getUserById(booking.user_id);
   const email = userInfo?.user?.email;
