@@ -44,7 +44,7 @@ function authHeaders(): HeadersInit {
 }
 
 async function sg<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBase()}${path}`, {
     ...init,
     headers: { ...authHeaders(), ...(init.headers || {}) },
   });
@@ -305,7 +305,7 @@ export async function uploadSignedContractToStoreganise(params: {
       );
       form.append("name", params.fileName);
       form.append("type", "agreement");
-      const res = await fetch(`${BASE}${path}`, {
+      const res = await fetch(`${getBase()}${path}`, {
         method: "POST",
         headers: { Authorization: `ApiKey ${key}`, Accept: "application/json" },
         body: form,
@@ -333,7 +333,7 @@ export type EnsuredSgUser = SgUser & { password?: string };
 async function authenticateStoreganiseUser(email: string, password: string): Promise<string | null> {
   const token = Buffer.from(`${email}:${password}`).toString("base64");
   try {
-    const res = await fetch(`${BASE}/auth/token`, {
+    const res = await fetch(`${getBase()}/auth/token`, {
       method: "POST",
       headers: {
         Authorization: `Basic ${token}`,
