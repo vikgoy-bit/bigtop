@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { formatGBPRound } from "@/lib/format";
 import { startMolliePayment } from "@/lib/mollie.functions";
 import { applyPromoCode } from "@/lib/promo.functions";
+import { prepareStoreganiseOrder } from "@/lib/contract.functions";
 
 
 export const Route = createFileRoute("/_authenticated/book/payment")({
