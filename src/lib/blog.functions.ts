@@ -14,7 +14,7 @@ export interface BlogPost {
   excerpt: string | null;
   published: boolean;
   date_published: string | null;
-  author_email: string | null;
+  author_id: string | null;
   tags: string[];
   created_at: string;
   updated_at: string;
@@ -102,7 +102,7 @@ export const adminListPosts = createServerFn({ method: "GET" })
     await assertAdmin(context.userId);
     const { data, error } = await supabaseAdmin
       .from("blog_posts")
-      .select("id, slug, title, category, published, date_published, updated_at, author_email")
+      .select("id, slug, title, category, published, date_published, updated_at, author_id")
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -136,7 +136,6 @@ export const adminCreatePost = createServerFn({ method: "POST" })
         ...data,
         date_published: data.date_published || (data.published ? new Date().toISOString() : null),
         author_id: context.userId,
-        author_email: context.claims?.email ?? null,
       })
       .select("id, slug")
       .single();
