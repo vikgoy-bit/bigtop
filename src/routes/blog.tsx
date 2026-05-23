@@ -1,22 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { blogPosts } from "@/data/blogPosts";
+import { listPublishedPosts } from "@/lib/blog.functions";
 
 export const Route = createFileRoute("/blog")({
+  loader: () => listPublishedPosts(),
   head: () => ({
     meta: [
-      { title: "Blog — Big Top Self Storage Basildon" },
+      { title: "Blog — Big Top Self Storage" },
       {
         name: "description",
         content:
-          "Guides and tips on self storage, renovations, security, insurance and packing — from the Big Top Self Storage team in Basildon.",
+          "Storage tips, packing guides, and updates from Big Top Self Storage in Basildon.",
       },
-      { property: "og:title", content: "Big Top Self Storage Blog" },
+      { property: "og:title", content: "Blog — Big Top Self Storage" },
       {
         property: "og:description",
         content:
-          "Guides and tips on self storage, renovations, security, insurance and packing.",
+          "Storage tips, packing guides, and updates from Big Top Self Storage in Basildon.",
       },
       { property: "og:url", content: "https://bigtop.lovable.app/blog" },
       { property: "og:type", content: "website" },
@@ -27,62 +28,74 @@ export const Route = createFileRoute("/blog")({
 });
 
 function BlogIndex() {
-  const posts = [...blogPosts].sort((a, b) =>
-    (b.datePublished || "").localeCompare(a.datePublished || ""),
-  );
+  const posts = Route.useLoaderData();
 
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      <section className="border-b bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
-        <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20">
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+        <header className="mb-12 text-center">
           <span className="text-xs font-bold uppercase tracking-widest text-accent">
-            Blog
+            The Big Top blog
           </span>
-          <h1 className="mt-3 font-display text-4xl font-extrabold sm:text-5xl">
-            Guides, tips & news
+          <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight sm:text-5xl">
+            Storage tips, guides &amp; news
           </h1>
-          <p className="mt-5 max-w-2xl text-lg text-primary-foreground/85">
-            Practical advice on packing, security, insurance, business storage and
-            getting the most out of your unit.
+          <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
+            Advice on packing, security, business storage and life in Basildon — from the
+            Big Top team.
           </p>
-        </div>
-      </section>
+        </header>
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <Link
-              key={post.slug}
-              to={`/${post.slug}` as never}
-              className="group flex flex-col overflow-hidden rounded-xl border bg-card transition hover:shadow-lg"
-            >
-              {post.ogImage && (
-                <div className="aspect-video w-full overflow-hidden bg-muted">
+        {posts.length === 0 ? (
+          <p className="text-center text-muted-foreground">No posts yet.</p>
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((p) => (
+              <Link
+                key={p.id}
+                to="/$slug"
+                params={{ slug: p.slug }}
+                className="group flex flex-col overflow-hidden rounded-xl border bg-card transition hover:shadow-lg"
+              >
+                {p.og_image ? (
                   <img
-                    src={post.ogImage}
-                    alt={post.title}
-                    className="h-full w-full object-cover transition group-hover:scale-105"
+                    src={p.og_image}
+                    alt={p.title}
+                    className="aspect-[16/10] w-full bg-muted object-cover transition group-hover:scale-[1.02]"
                     loading="lazy"
                   />
+                ) : (
+                  <div className="aspect-[16/10] w-full bg-gradient-to-br from-primary/10 to-accent/10" />
+                )}
+                <div className="flex flex-1 flex-col p-5">
+                  <span className="text-xs font-bold uppercase tracking-widest text-accent">
+                    {p.category}
+                  </span>
+                  <h2 className="mt-2 font-display text-lg font-bold leading-snug group-hover:underline">
+                    {p.title}
+                  </h2>
+                  {p.excerpt || p.meta_desc ? (
+                    <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                      {p.excerpt || p.meta_desc}
+                    </p>
+                  ) : null}
+                  {p.date_published && (
+                    <p className="mt-auto pt-3 text-xs text-muted-foreground">
+                      {new Date(p.date_published).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  )}
                 </div>
-              )}
-              <div className="flex flex-1 flex-col p-5">
-                <span className="text-xs font-bold uppercase tracking-widest text-accent">
-                  {post.category}
-                </span>
-                <h2 className="mt-2 font-display text-lg font-bold leading-snug group-hover:text-primary">
-                  {post.title}
-                </h2>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  {post.metaDesc}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+              </Link>
+            ))}
+          </div>
+        )}
+      </main>
 
       <SiteFooter />
     </div>
