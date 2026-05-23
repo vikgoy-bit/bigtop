@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendTransactionalEmailServer } from "./email/send.server";
-import { getStoreganiseOrder } from "./storeganise.server";
+import { getStoreganiseOrder, getStoreganiseApiKey, getStoreganiseSubdomain } from "./storeganise.server";
 
 type UnitSnapshot = {
   id?: string;
