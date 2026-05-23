@@ -246,18 +246,11 @@ export const getContractForBooking = createServerFn({ method: "GET" })
       baseSnapshot,
     );
 
-    // Poll Storeganise until a unit is allocated so the contract shown to the
-    // customer already carries the unit number.
-    if (storeganiseOrderId && !refreshedSnapshot?.name) {
-      for (let attempt = 0; attempt < 8; attempt++) {
-        await new Promise((r) => setTimeout(r, 750));
-        refreshedSnapshot = await refreshUnitSnapshot(
-          storeganiseOrderId,
-          refreshedSnapshot,
-        );
-        if (refreshedSnapshot?.name) break;
-      }
-    }
+    // Don't block the response polling here — the client polls this server
+    // function on a short interval until `unitAllocated` flips true. Keeping
+    // this handler fast means the customer sees the contract almost
+    // instantly, and the unit number appears as soon as Storeganise assigns
+    // it (usually within 1-2 seconds).
 
     // Persist the enriched snapshot so the signed PDF and downstream views all
     // see the assigned unit without another round-trip.
