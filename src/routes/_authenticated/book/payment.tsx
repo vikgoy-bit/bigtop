@@ -19,7 +19,6 @@ export const Route = createFileRoute("/_authenticated/book/payment")({
 });
 
 function PaymentPage() {
-  const navigate = useNavigate();
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
