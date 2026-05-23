@@ -103,7 +103,9 @@ function ContractPage() {
     !!bookingId &&
     agreed &&
     !signMut.isPending &&
-    !alreadySigned;
+    !alreadySigned &&
+    contractQ.data?.unitAllocated === true;
+
 
   return (
     <div className="min-h-screen bg-background">
