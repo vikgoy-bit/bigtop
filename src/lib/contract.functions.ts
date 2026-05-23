@@ -203,18 +203,61 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     const { data: booking, error } = await supabase
       .from("bookings")
       .select(
-        "id,storeganise_order_id,signed_at,signer_name,signed_contract_path,unit_snapshot,move_in_date,total_pence",
+        "id,user_id,unit_id,total_pence,protect_tier_id,storeganise_user_id,storeganise_order_id,signed_at,signer_name,signed_contract_path,unit_snapshot,move_in_date,cover_document_path",
       )
       .eq("id", data.bookingId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!booking) throw new Error("Booking not found");
 
+    // Make sure a Storeganise order exists before showing the contract so the
+    // platform can allocate a unit number. This is idempotent.
+    let storeganiseOrderId = booking.storeganise_order_id;
+    if (!storeganiseOrderId) {
+      try {
+        const sgUpdates = await ensureStoreganiseOrderForBooking({
+          supabaseAdmin,
+          booking: {
+            id: booking.id,
+            user_id: booking.user_id,
+            unit_id: booking.unit_id,
+            total_pence: booking.total_pence,
+            move_in_date: booking.move_in_date,
+            protect_tier_id: booking.protect_tier_id ?? null,
+            storeganise_user_id: booking.storeganise_user_id ?? null,
+            storeganise_order_id: null,
+          },
+        });
+        if (sgUpdates.storeganise_order_id || sgUpdates.storeganise_user_id) {
+          await supabaseAdmin
+            .from("bookings")
+            .update(sgUpdates)
+            .eq("id", booking.id);
+          storeganiseOrderId = sgUpdates.storeganise_order_id ?? storeganiseOrderId;
+        }
+      } catch (e) {
+        console.error("Storeganise pre-contract ensure failed:", e instanceof Error ? e.message : e);
+      }
+    }
+
     const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
     let refreshedSnapshot = await refreshUnitSnapshot(
-      booking.storeganise_order_id,
+      storeganiseOrderId,
       baseSnapshot,
     );
+
+    // Poll Storeganise until a unit is allocated so the contract shown to the
+    // customer already carries the unit number.
+    if (storeganiseOrderId && !refreshedSnapshot?.name) {
+      for (let attempt = 0; attempt < 8; attempt++) {
+        await new Promise((r) => setTimeout(r, 750));
+        refreshedSnapshot = await refreshUnitSnapshot(
+          storeganiseOrderId,
+          refreshedSnapshot,
+        );
+        if (refreshedSnapshot?.name) break;
+      }
+    }
 
     // Persist the enriched snapshot so the signed PDF and downstream views all
     // see the assigned unit without another round-trip.
@@ -236,15 +279,19 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     });
 
     return {
-      booking,
+      booking: { ...booking, storeganise_order_id: storeganiseOrderId },
       agreement: {
         html: renderAgreementHtml(tokens),
         text: null as string | null,
         url: null as string | null,
       },
-      error: null as string | null,
+      unitAllocated: !!refreshedSnapshot?.name,
+      error: refreshedSnapshot?.name
+        ? null
+        : ("We're still allocating your unit number — please refresh in a moment." as string | null),
     };
   });
+
 
 async function buildSignedPdf(params: {
   agreementText: string;
