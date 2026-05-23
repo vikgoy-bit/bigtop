@@ -47,6 +47,16 @@ function PaymentPage() {
 
   const startPayment = useServerFn(startMolliePayment);
   const applyPromo = useServerFn(applyPromoCode);
+  const prepareSg = useServerFn(prepareStoreganiseOrder);
+
+  // Warm up Storeganise order allocation while the customer is on payment
+  // and Mollie checkout, so the unit number is ready by contract step.
+  useEffect(() => {
+    if (!bookingId) return;
+    prepareSg({ data: { bookingId } }).catch(() => {
+      /* silent — contract page has its own fallback */
+    });
+  }, [bookingId, prepareSg]);
   const [promoCode, setPromoCode] = useState("");
   const [promoApplying, setPromoApplying] = useState(false);
 
