@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { getStripe } from "@/lib/stripe.server";
+import { getStripe, getStripeWebhookSecret } from "@/lib/stripe.server";
 import { completeBookingDespiteIdResult } from "@/lib/id-verification-followup.server";
 
 export const Route = createFileRoute("/api/public/stripe-webhook")({
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
     handlers: {
       POST: async ({ request }) => {
         const sig = request.headers.get("stripe-signature");
-        const secret = process.env.STRIPE_WEBHOOK_SECRET;
+        const secret = getStripeWebhookSecret();
         if (!sig || !secret) {
           return new Response("Missing signature/secret", { status: 400 });
         }

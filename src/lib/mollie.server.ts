@@ -1,9 +1,15 @@
 // Server-only Mollie REST client. Do not import from client code.
 
+import { isBookingTestMode } from "./booking-mode.server";
+
 const MOLLIE_BASE = "https://api.mollie.com/v2";
 
 function getApiKey(): string {
-  const mode = (process.env.MOLLIE_MODE || "test").toLowerCase();
+  // BOOKING_MODE=test forces Mollie into test mode regardless of MOLLIE_MODE,
+  // so the demo Storeganise account never sees live payment attempts.
+  const mode = isBookingTestMode()
+    ? "test"
+    : (process.env.MOLLIE_MODE || "test").toLowerCase();
   const key =
     mode === "live"
       ? process.env.MOLLIE_API_KEY_LIVE
