@@ -15,6 +15,11 @@ export const Route = createFileRoute("/sitemap/xml")({
   server: {
     handlers: {
       GET: async () => {
+        const { data: posts } = await supabaseAdmin
+          .from("blog_posts")
+          .select("slug, date_published")
+          .eq("published", true);
+
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/about", changefreq: "monthly", priority: "0.8" },
@@ -45,13 +50,14 @@ export const Route = createFileRoute("/sitemap/xml")({
           { path: "/refer-a-friend", changefreq: "monthly", priority: "0.6" },
           { path: "/special-conditions", changefreq: "yearly", priority: "0.3" },
           { path: "/big-protect-insurance-policy", changefreq: "yearly", priority: "0.3" },
-          ...blogPosts.map((p) => ({
+          ...(posts ?? []).map((p: { slug: string; date_published: string | null }) => ({
             path: `/${p.slug}`,
-            lastmod: p.datePublished ? p.datePublished.slice(0, 10) : undefined,
+            lastmod: p.date_published ? p.date_published.slice(0, 10) : undefined,
             changefreq: "monthly" as const,
             priority: "0.7",
           })),
         ];
+
 
         const urls = entries.map((e) =>
           [
