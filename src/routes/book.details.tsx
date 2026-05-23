@@ -548,7 +548,7 @@ function DetailsPage() {
                     setMoveInDate(d);
                     if (d) setDateOpen(false);
                   }}
-                  disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                  disabled={(d) => d < tomorrow}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
                 />
@@ -781,7 +781,7 @@ function DetailsPage() {
           </section>
 
           <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-            {submitting ? "Saving…" : "Continue to payment"}
+            {submitting ? "Reserving your unit…" : "Continue to payment"}
           </Button>
         </form>
 
