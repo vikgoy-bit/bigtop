@@ -59,6 +59,7 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
+      <main>
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary-glow text-primary-foreground">
@@ -233,6 +234,7 @@ function HomePage() {
         </div>
       </section>
 
+      </main>
       <SiteFooter />
     </div>
   );

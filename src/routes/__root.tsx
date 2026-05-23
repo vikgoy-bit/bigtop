@@ -76,34 +76,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Big Top Self Storage — Reserve a unit in Basildon" },
-      {
-        name: "description",
-        content:
-          "Reserve self storage in Basildon. 24/7 CCTV, smart entry, modern units. Open 7 days a week. £1 for 6 weeks opening offer.",
-      },
       { name: "author", content: "Big Top Self Storage" },
       { name: "google-site-verification", content: "UFFxQJh_STRSU8NB4D1eaRwXxvUbAIUXUgSX1PXNgRI" },
-      { property: "og:title", content: "Big Top Self Storage — Reserve a unit in Basildon" },
-      {
-        property: "og:description",
-        content:
-          "Reserve self storage in Basildon. 24/7 CCTV, smart entry, modern units. £1 for 6 weeks opening offer.",
-      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Big Top Self Storage — Reserve a unit in Basildon" },
-      { name: "description", content: "Streamlines self-storage unit booking with an integrated, multi-step online application." },
-      { property: "og:description", content: "Streamlines self-storage unit booking with an integrated, multi-step online application." },
-      { name: "twitter:description", content: "Streamlines self-storage unit booking with an integrated, multi-step online application." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a7ad20b7-7820-4c86-8473-2ec290a1c3f5/id-preview-802bf176--8238eee0-8806-4c3f-87d4-28569a4c2d00.lovable.app-1778331032403.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a7ad20b7-7820-4c86-8473-2ec290a1c3f5/id-preview-802bf176--8238eee0-8806-4c3f-87d4-28569a4c2d00.lovable.app-1778331032403.png" },
+      { property: "og:site_name", content: "Big Top Self Storage" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@BigTopStorage" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "preconnect", href: "https://www.googletagmanager.com" },
+      { rel: "dns-prefetch", href: "https://www.google-analytics.com" },
     ],
   }),
   shellComponent: RootShell,
@@ -119,7 +104,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-PXBPMCGF');`,
+            __html: `window.addEventListener('load',function(){setTimeout(function(){(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-PXBPMCGF');},1500);});`,
           }}
         />
       </head>
