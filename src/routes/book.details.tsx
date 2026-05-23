@@ -370,7 +370,6 @@ function DetailsPage() {
       .select("id")
       .single();
 
-    setSubmitting(false);
     if (error) return toast.error(error.message);
 
     try {
