@@ -400,7 +400,7 @@ function DetailsPage() {
             customerEmail: email || user?.email,
             customerPhone: phone,
             unitTitle: `${unit.size_sqft} sq ft (${unit.title})`,
-            moveInDate: format(moveInDate, "yyyy-MM-dd"),
+            moveInDate: format(selectedMoveInDate, "yyyy-MM-dd"),
             downloadUrl: signed?.signedUrl,
           },
         });
@@ -409,6 +409,7 @@ function DetailsPage() {
       }
     }
 
+    setSubmitting(false);
     sessionStorage.setItem("pending_booking_id", booking.id);
     navigate({ to: "/book/payment" });
   };
