@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 import { CalendarIcon, ShieldCheck, UserPlus, LogIn, Search, Loader2, Info, Upload } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,6 +21,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatGBPRound } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { lookupAddresses, type FoundAddress } from "@/lib/address-lookup.functions";
+import { prepareStoreganiseOrder } from "@/lib/contract.functions";
 
 export const Route = createFileRoute("/book/details")({
   head: () => ({ meta: [{ title: "Your details — Big Top Self Storage" }] }),
@@ -45,9 +47,13 @@ type Tier = {
 function DetailsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const prepareSg = useServerFn(prepareStoreganiseOrder);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
 
   const [unit, setUnit] = useState<Unit | null>(null);
-  const [moveInDate, setMoveInDate] = useState<Date | undefined>(new Date());
+  const [moveInDate, setMoveInDate] = useState<Date | undefined>(tomorrow);
   const [dateOpen, setDateOpen] = useState(false);
   const [tierId, setTierId] = useState<string | null>(null);
   const [showExcVat, setShowExcVat] = useState(false);
@@ -348,6 +354,7 @@ function DetailsPage() {
     }
 
     // 4. Create booking
+    const selectedMoveInDate = moveInDate < tomorrow ? tomorrow : moveInDate;
     const { data: booking, error } = await supabase
       .from("bookings")
       .insert({
@@ -355,7 +362,7 @@ function DetailsPage() {
         unit_id: unit.id,
         unit_snapshot: unit as never,
         protect_tier_id: tierId,
-        move_in_date: format(moveInDate, "yyyy-MM-dd"),
+        move_in_date: format(selectedMoveInDate, "yyyy-MM-dd"),
         total_pence: firstChargeTotal,
         status: "pending_payment",
         cover_document_path: coverPath,
@@ -363,8 +370,19 @@ function DetailsPage() {
       .select("id")
       .single();
 
-    setSubmitting(false);
     if (error) return toast.error(error.message);
+
+    try {
+      const reservation = await prepareSg({ data: { bookingId: booking.id } });
+      if (!reservation.ok) {
+        setSubmitting(false);
+        return toast.error("We couldn't reserve that unit just now. Please try again.");
+      }
+    } catch (reservationError) {
+      console.error("Storeganise reservation failed", reservationError);
+      setSubmitting(false);
+      return toast.error("We couldn't reserve that unit just now. Please try again.");
+    }
 
     // Notify ops about uploaded insurance proof (no-cover flow)
     if (isNoCover && coverPath) {
@@ -382,7 +400,7 @@ function DetailsPage() {
             customerEmail: email || user?.email,
             customerPhone: phone,
             unitTitle: `${unit.size_sqft} sq ft (${unit.title})`,
-            moveInDate: format(moveInDate, "yyyy-MM-dd"),
+            moveInDate: format(selectedMoveInDate, "yyyy-MM-dd"),
             downloadUrl: signed?.signedUrl,
           },
         });
@@ -391,6 +409,7 @@ function DetailsPage() {
       }
     }
 
+    setSubmitting(false);
     sessionStorage.setItem("pending_booking_id", booking.id);
     navigate({ to: "/book/payment" });
   };
@@ -536,7 +555,7 @@ function DetailsPage() {
                     setMoveInDate(d);
                     if (d) setDateOpen(false);
                   }}
-                  disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                  disabled={(d) => d < tomorrow}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
                 />
@@ -769,7 +788,7 @@ function DetailsPage() {
           </section>
 
           <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-            {submitting ? "Saving…" : "Continue to payment"}
+            {submitting ? "Reserving your unit…" : "Continue to payment"}
           </Button>
         </form>
 

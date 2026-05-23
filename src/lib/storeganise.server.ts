@@ -353,6 +353,18 @@ function createTemporaryPassword() {
   return `Bt!${crypto.randomUUID().replace(/-/g, "").slice(0, 24)}aA1`;
 }
 
+function storeganiseStartDate(date: string): string {
+  const earliest = new Date();
+  earliest.setDate(earliest.getDate() + 1);
+  earliest.setHours(0, 0, 0, 0);
+  const requested = new Date(`${date}T00:00:00`);
+  return formatYmd(requested < earliest ? earliest : requested);
+}
+
+function formatYmd(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 type SgAddress = {
   line1?: string;
   line2?: string;
@@ -462,11 +474,11 @@ export async function ensureStoreganiseOrderForBooking(params: {
     unit_snapshot?: Record<string, any> | null;
   };
   payment?: { id?: string; customerId?: string; mandateId?: string };
-}): Promise<{ storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any> }> {
+}): Promise<{ storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any>; move_in_date?: string }> {
   const { supabaseAdmin: db, booking, payment } = params;
   if (booking.storeganise_order_id) return {};
 
-  const updates: { storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any> } = {};
+  const updates: { storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any>; move_in_date?: string } = {};
 
   const { data: userInfo } = await db.auth.admin.getUserById(booking.user_id);
   const email = userInfo?.user?.email;
@@ -536,19 +548,24 @@ export async function ensureStoreganiseOrderForBooking(params: {
     ? `First payment taken via Mollie (${payment.id}) — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`
     : `First payment taken via Mollie — £${(booking.total_pence / 100).toFixed(2)} (£1 first-month promo + BIGProtect).`;
 
+  const effectiveStartDate = storeganiseStartDate(booking.move_in_date);
+  if (effectiveStartDate !== booking.move_in_date) {
+    updates.move_in_date = effectiveStartDate;
+  }
+
   const order = await createStoreganiseUnitOrder({
     bookingId: booking.id,
     userId: sgUserId!,
     userAccessToken: sgUserAccessToken,
     unitTypeId: booking.unit_id,
-    startDate: booking.move_in_date,
+    startDate: effectiveStartDate,
     products: sgProductId ? { [sgProductId]: 1 } : undefined,
     notes: [
       `Booking ${booking.id}`,
       paymentDesc,
       `Mandate: ${payment?.mandateId ?? "n/a"} (Mollie customer ${payment?.customerId ?? "n/a"}).`,
       `PROMO: First month £1. Apply a manual prorata credit to next month's bill — staff to configure in Storeganise.`,
-      `BILLING: Monthly cycle anchored to signup/move-in date (${booking.move_in_date}). Bill full months — do NOT sync to 1st-of-month or any fixed date.`,
+      `BILLING: Monthly cycle anchored to signup/move-in date (${effectiveStartDate}). Bill full months — do NOT sync to 1st-of-month or any fixed date.`,
       sgProductId
         ? `BIGProtect product ${sgProductId} attached to order.`
         : `No BIGProtect product attached (tier ${booking.protect_tier_id ?? "none"}).`,
