@@ -52,7 +52,7 @@ function BlogIndex() {
           <p className="text-center text-muted-foreground">No posts yet.</p>
         ) : (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((p) => (
+            {posts.map((p: { id: string; slug: string; title: string; meta_desc: string | null; og_image: string | null; category: string | null; date_published: string | null; excerpt: string | null }) => (
               <Link
                 key={p.id}
                 to="/$slug"
