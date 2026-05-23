@@ -285,6 +285,55 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     };
   });
 
+/**
+ * Fire-and-forget warm-up: creates the Storeganise order for a booking so
+ * the unit number is allocated by the time the customer reaches the
+ * contract page. Idempotent — safe to call multiple times.
+ */
+export const prepareStoreganiseOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ bookingId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: booking, error } = await supabase
+      .from("bookings")
+      .select(
+        "id,user_id,unit_id,total_pence,protect_tier_id,storeganise_user_id,storeganise_order_id,move_in_date",
+      )
+      .eq("id", data.bookingId)
+      .maybeSingle();
+    if (error || !booking) return { ok: false as const };
+    if (booking.storeganise_order_id) return { ok: true as const, alreadyExists: true };
+
+    try {
+      const sgUpdates = await ensureStoreganiseOrderForBooking({
+        supabaseAdmin,
+        booking: {
+          id: booking.id,
+          user_id: booking.user_id,
+          unit_id: booking.unit_id,
+          total_pence: booking.total_pence,
+          move_in_date: booking.move_in_date,
+          protect_tier_id: booking.protect_tier_id ?? null,
+          storeganise_user_id: booking.storeganise_user_id ?? null,
+          storeganise_order_id: null,
+        },
+      });
+      if (sgUpdates.storeganise_order_id || sgUpdates.storeganise_user_id) {
+        await supabaseAdmin
+          .from("bookings")
+          .update(sgUpdates)
+          .eq("id", booking.id);
+      }
+      return { ok: true as const };
+    } catch (e) {
+      console.error("prepareStoreganiseOrder failed:", e instanceof Error ? e.message : e);
+      return { ok: false as const };
+    }
+  });
+
 
 async function buildSignedPdf(params: {
   agreementText: string;

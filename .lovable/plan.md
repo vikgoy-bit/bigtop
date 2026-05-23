@@ -1,71 +1,60 @@
-# Migrate marketing site into the booking app
+# Pre-allocate unit number on payment page
 
-Goal: bring the WordPress marketing site at bigtopselfstorage.com into this TanStack Start codebase as native routes, improve the design to match the booking flow, and preserve every existing URL so search rankings don't drop. The existing `/book/*` authenticated flow stays untouched.
+## Goal
+By the time the customer reaches the contract page, the Storeganise unit number is already assigned — no waiting, no "Allocating…" message.
 
-## URL inventory (from current sitemap — must all keep working)
+## Today's flow (slow)
+1. **Details** → booking row created
+2. **Payment** → Mollie checkout
+3. **Mollie webhook** → creates Storeganise order (first chance)
+4. **Contract** → fallback creates order if webhook hasn't fired yet, then polls Storeganise up to ~12s for a unit number
+5. **Verify**
 
-Top-level marketing:
-- `/` (home)
-- `/about`
-- `/services`
-- `/pricing`
-- `/offers`
-- `/contact-us`
-- `/how-self-storage-works`
-- `/smart-entry`
-- `/refer-a-friend`
-- `/get-a-quote` → redirect into booking flow
-- `/space-estimator`
-- `/storage-size`
+The order creation + unit allocation only starts at step 3 or 4, so the customer waits on the contract page.
 
-Storage type landing pages:
-- `/personal-storage`
-- `/business-storage`
-- `/student-storage`
-- `/secure-storage`
-- `/boxes-and-packaging`
-- `/self-storage-insurance`
-- `/big-protect-insurance-policy`
+## Proposed flow
+1. **Details** → booking created
+2. **Payment page mount** → fire-and-forget call to a new server fn `prepareStoreganiseOrder(bookingId)` that runs `ensureStoreganiseOrderForBooking`. The user spends 30s–2min on Mollie checkout while this completes in the background.
+3. **Mollie webhook** → still calls `ensureStoreganiseOrderForBooking` (idempotent — no-op if already created)
+4. **Contract page** → order already exists, `refreshUnitSnapshot` returns the unit on the first call. Existing 1.5s client poll handles the rare edge case.
+5. **Verify**
 
-Legal:
-- `/privacy-policy`
-- `/cookie-policy`
-- `/terms-conditions`
-- `/special-conditions`
+## Changes
 
-Old WordPress duplicates we can 301 to canonical:
-- `/home/` → `/`
-- `/your-details/` → `/book/details`
-- `/global-styles/`, `/templete/` → drop (WP internals)
+### `src/lib/contract.functions.ts` (or new `src/lib/booking-prep.functions.ts`)
+Add a thin server fn:
+```ts
+export const prepareStoreganiseOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ bookingId: z.string().uuid() }).parse)
+  .handler(async ({ data, context }) => {
+    // Load booking (RLS scoped), call ensureStoreganiseOrderForBooking,
+    // persist storeganise_order_id / storeganise_user_id.
+    // Return { ok: true } — never throws to the client; logs errors.
+  });
+```
+Idempotent: if `storeganise_order_id` is already set, return immediately.
 
-WordPress uses trailing slashes; TanStack routes don't. We'll add a tiny middleware that strips trailing slashes via 301 so `/about/` and `/about` both resolve and SEO consolidates on the no-slash version (Google handles this fine — link equity transfers via 301).
+### `src/routes/_authenticated/book/payment.tsx`
+On mount (when `bookingId` is known), fire the server fn once. No await blocking the UI, no toast on failure — pure background warm-up. The existing contract-page fallback still handles the case where this call fails.
 
-## Phasing
+```ts
+const prepare = useServerFn(prepareStoreganiseOrder);
+useEffect(() => {
+  if (!bookingId) return;
+  prepare({ data: { bookingId } }).catch(() => { /* silent */ });
+}, [bookingId]);
+```
 
-**Phase 1 (this turn): structure + 3 key pages**
-- Add a shared `MarketingLayout` (header you already have + footer)
-- Build a polished new Home page replacing the placeholder index
-- Build About, How Self Storage Works, Smart Entry (the strongest "story" pages)
-- Wire all nav links in `SiteHeader` to internal routes instead of external `bigtopselfstorage.com` links
-- Add proper `head()` meta on each route (title, description, og)
+### `src/lib/contract.functions.ts`
+No logic change needed — `ensureStoreganiseOrderForBooking` is already idempotent. The contract-page server fn becomes a fast read in the common case.
 
-**Phase 2: storage types + commercial pages**
-- Services, Pricing, Offers, Personal/Business/Student/Secure storage, Boxes & Packaging, Insurance, Refer a Friend, Contact, Space Estimator, Storage Size, Get a Quote (redirect)
+## Edge cases
+- **User abandons payment page before Storeganise call finishes** — webhook still creates the order after payment. No regression.
+- **Storeganise is down at payment-page mount** — silent fail, contract page falls back to today's behaviour.
+- **User refreshes payment page** — second call is a no-op (order already exists).
+- **User pays very fast** (<5s) — webhook may race the payment-page call. Both are idempotent and guarded by the `storeganise_order_id` check.
 
-**Phase 3: legal + SEO polish**
-- Privacy, Cookies, Terms, Special Conditions, Big Protect policy
-- Sitemap.xml route listing every URL
-- Trailing-slash 301 middleware
-- JSON-LD LocalBusiness on home + Article on guides
-
-## Design improvements (kept consistent with booking flow)
-- Use existing `#0b3a8c` brand blue + design tokens already in the app
-- Replace WordPress's generic stock template with a cleaner, more modern editorial layout
-- Real photography placeholders we can swap later
-- Mobile-first, fast (no WP bloat)
-
-## Reversibility
-Old WordPress site remains live at the current host until DNS flips. Every route we add is a single file — deletable in minutes. Booking flow under `_authenticated/book/*` is completely untouched.
-
-## This turn deliverable
-Phase 1 only: marketing shell + Home, About, How It Works, Smart Entry + internal nav. You'll be able to click around the whole top of the site in preview. Phase 2/3 follow once you've reviewed the look.
+## Out of scope
+- Submitting the order (`submitStoreganiseUnitOrder`) stays on contract sign — that's tied to the signed contract upload.
+- No DB schema changes.
