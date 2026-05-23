@@ -160,29 +160,6 @@ function PaymentPage() {
             </p>
           </div>
 
-          {/* TEMP: testing-only promo code box. Remove before going live. */}
-          <div className="mt-4 rounded-xl border border-dashed border-amber-400/60 bg-amber-50/40 p-4">
-            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-900">
-              <Tag className="h-3.5 w-3.5" /> Promo code (testing)
-            </label>
-            <div className="mt-2 flex gap-2">
-              <Input
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-                placeholder="Enter code"
-                className="uppercase"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleApplyPromo}
-                disabled={promoApplying || !promoCode.trim() || !bookingId}
-              >
-                {promoApplying ? "Applying…" : "Apply"}
-              </Button>
-            </div>
-          </div>
-
           <Button
             onClick={handleContinue}
             size="lg"
