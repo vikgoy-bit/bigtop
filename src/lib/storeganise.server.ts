@@ -474,11 +474,11 @@ export async function ensureStoreganiseOrderForBooking(params: {
     unit_snapshot?: Record<string, any> | null;
   };
   payment?: { id?: string; customerId?: string; mandateId?: string };
-}): Promise<{ storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any> }> {
+}): Promise<{ storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any>; move_in_date?: string }> {
   const { supabaseAdmin: db, booking, payment } = params;
   if (booking.storeganise_order_id) return {};
 
-  const updates: { storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any> } = {};
+  const updates: { storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any>; move_in_date?: string } = {};
 
   const { data: userInfo } = await db.auth.admin.getUserById(booking.user_id);
   const email = userInfo?.user?.email;
