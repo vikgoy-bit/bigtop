@@ -9,6 +9,8 @@ import {
   submitStoreganiseUnitOrder,
   uploadSignedContractToStoreganise,
   ensureStoreganiseOrderForBooking,
+  getStoreganiseApiKey,
+  getStoreganiseSubdomain,
 } from "./storeganise.server";
 
 import {
