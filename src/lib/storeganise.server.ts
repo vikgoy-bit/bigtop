@@ -665,7 +665,6 @@ export async function createStoreganiseUnitOrder(params: {
           submitLater: true,
           siteId,
           unitTypeId: params.unitTypeId,
-          ...(selectedUnit ? { unitId: selectedUnit.id } : {}),
           startDate: params.startDate,
           notes: params.notes,
           ...(params.products && Object.keys(params.products).length > 0
@@ -673,7 +672,7 @@ export async function createStoreganiseUnitOrder(params: {
             : {}),
         }),
       });
-      return selectedUnit ? { id: created.id, assignedUnit: { id: selectedUnit.id, name: selectedUnit.name! } } : created;
+      return { id: created.id, assignedUnit: await resolveAssignedUnit(created.id) };
     } catch (customerOrderError) {
       console.error(
         "Storeganise customer order create failed; falling back to admin /units/orders:",
@@ -707,7 +706,6 @@ export async function createStoreganiseUnitOrder(params: {
         userId: params.userId,
         siteId,
         unitTypeId: params.unitTypeId,
-        ...(selectedUnit ? { unitId: selectedUnit.id } : {}),
         startDate: params.startDate,
         notes: params.notes,
         ...(params.products && Object.keys(params.products).length > 0
@@ -742,7 +740,7 @@ export async function createStoreganiseUnitOrder(params: {
       console.error("Storeganise order verify-after-create failed:", verifyError);
     }
 
-    return selectedUnit ? { id: created.id, assignedUnit: { id: selectedUnit.id, name: selectedUnit.name! } } : { id: created.id };
+    return { id: created.id, assignedUnit: await resolveAssignedUnit(created.id) };
   } catch (e) {
     if (e instanceof Error && /duplicate|too many/i.test(e.message)) {
       const retryExisting =
