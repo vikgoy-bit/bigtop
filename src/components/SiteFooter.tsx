@@ -60,6 +60,10 @@ export function SiteFooter() {
             <li><Link to="/business-storage" className={COL}>Business storage</Link></li>
             <li><Link to="/student-storage" className={COL}>Student storage</Link></li>
             <li><Link to="/boxes-and-packaging" className={COL}>Boxes & packaging</Link></li>
+            <li><Link to="/storage-size" className={COL}>Storage sizes</Link></li>
+            <li><Link to="/space-estimator" className={COL}>Space estimator</Link></li>
+            <li><Link to="/pricing" className={COL}>Pricing</Link></li>
+            <li><Link to="/secure-storage" className={COL}>Secure storage</Link></li>
           </ul>
         </div>
 
@@ -71,6 +75,8 @@ export function SiteFooter() {
             <li><Link to="/smart-entry" className={COL}>Smart entry</Link></li>
             <li><Link to="/offers" className={COL}>Offers</Link></li>
             <li><Link to="/blog" className={COL}>Blog</Link></li>
+            <li><Link to="/services" className={COL}>Services</Link></li>
+            <li><Link to="/refer-a-friend" className={COL}>Refer a friend</Link></li>
             <li><Link to="/contact-us" className={COL}>Contact</Link></li>
           </ul>
         </div>
@@ -94,6 +100,8 @@ export function SiteFooter() {
             <Link to="/cookie-policy" className="hover:text-primary-foreground">Cookies</Link>
             <Link to="/terms-conditions" className="hover:text-primary-foreground">Terms</Link>
             <Link to="/self-storage-insurance" className="hover:text-primary-foreground">Insurance</Link>
+            <Link to="/special-conditions" className="hover:text-primary-foreground">Special conditions</Link>
+            <Link to="/big-protect-insurance-policy" className="hover:text-primary-foreground">BIG Protect</Link>
           </nav>
         </div>
       </div>
