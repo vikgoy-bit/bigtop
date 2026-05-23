@@ -373,8 +373,15 @@ function DetailsPage() {
     setSubmitting(false);
     if (error) return toast.error(error.message);
 
-    const reservation = await prepareSg({ data: { bookingId: booking.id } });
-    if (!reservation.ok) {
+    try {
+      const reservation = await prepareSg({ data: { bookingId: booking.id } });
+      if (!reservation.ok) {
+        setSubmitting(false);
+        return toast.error("We couldn't reserve that unit just now. Please try again.");
+      }
+    } catch (reservationError) {
+      console.error("Storeganise reservation failed", reservationError);
+      setSubmitting(false);
       return toast.error("We couldn't reserve that unit just now. Please try again.");
     }
 
