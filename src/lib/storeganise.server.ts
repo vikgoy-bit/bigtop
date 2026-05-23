@@ -3,12 +3,7 @@
 //
 // API docs live at https://bigtopselfstorage.storeganise.com/api/docs/
 //
-// When BOOKING_MODE=test we route to Storeganise's demo tenant
-// (big-top-storage-trial) using STOREGANISE_API_KEY_TEST so we can exercise
-// the move-in flow end-to-end without touching the live account.
-
 const LIVE_SUBDOMAIN = "bigtopselfstorage";
-const TEST_SUBDOMAIN = "big-top-storage-trial";
 const SITE_CODE = "ss13-1et"; // same site code in both tenants per Storeganise
 
 function getSubdomain(): string {
