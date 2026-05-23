@@ -213,6 +213,7 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     // Make sure a Storeganise order exists before showing the contract so the
     // platform can allocate a unit number. This is idempotent.
     let storeganiseOrderId = booking.storeganise_order_id;
+    let moveInDate = booking.move_in_date;
     if (!storeganiseOrderId) {
       try {
         const sgUpdates = await ensureStoreganiseOrderForBooking({
@@ -235,6 +236,7 @@ export const getContractForBooking = createServerFn({ method: "GET" })
             .update(sgUpdates)
             .eq("id", booking.id);
           storeganiseOrderId = sgUpdates.storeganise_order_id ?? storeganiseOrderId;
+          moveInDate = sgUpdates.move_in_date ?? moveInDate;
         }
       } catch (e) {
         console.error("Storeganise pre-contract ensure failed:", e instanceof Error ? e.message : e);
@@ -267,7 +269,7 @@ export const getContractForBooking = createServerFn({ method: "GET" })
       userId,
       email: (claims.email as string | undefined) ?? "",
       unitSnapshot: refreshedSnapshot,
-      moveInDate: booking.move_in_date,
+      moveInDate,
       monthlyPence:
         refreshedSnapshot?.monthly_price_pence ?? null,
     });
