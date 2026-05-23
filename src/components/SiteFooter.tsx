@@ -75,6 +75,8 @@ export function SiteFooter() {
             <li><Link to="/smart-entry" className={COL}>Smart entry</Link></li>
             <li><Link to="/offers" className={COL}>Offers</Link></li>
             <li><Link to="/blog" className={COL}>Blog</Link></li>
+            <li><Link to="/services" className={COL}>Services</Link></li>
+            <li><Link to="/refer-a-friend" className={COL}>Refer a friend</Link></li>
             <li><Link to="/contact-us" className={COL}>Contact</Link></li>
           </ul>
         </div>
