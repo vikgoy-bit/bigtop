@@ -70,6 +70,7 @@ export function SiteFooter() {
             <li><Link to="/how-self-storage-works" className={COL}>How it works</Link></li>
             <li><Link to="/smart-entry" className={COL}>Smart entry</Link></li>
             <li><Link to="/offers" className={COL}>Offers</Link></li>
+            <li><Link to="/blog" className={COL}>Blog</Link></li>
             <li><Link to="/contact-us" className={COL}>Contact</Link></li>
           </ul>
         </div>
