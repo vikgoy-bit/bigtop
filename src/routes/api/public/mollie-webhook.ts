@@ -47,6 +47,7 @@ export const Route = createFileRoute("/api/public/mollie-webhook")({
           mollie_mandate_id?: string;
           storeganise_user_id?: string;
           storeganise_order_id?: string;
+          unit_snapshot?: any;
           status?:
             | "pending_payment"
             | "pending_verification"

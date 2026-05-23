@@ -3,18 +3,13 @@
 //
 // API docs live at https://bigtopselfstorage.storeganise.com/api/docs/
 //
-// When BOOKING_MODE=test we route to Storeganise's demo tenant
-// (big-top-storage-trial) using STOREGANISE_API_KEY_TEST so we can exercise
-// the move-in flow end-to-end without touching the live account.
-
-import { isBookingTestMode } from "./booking-mode.server";
-
 const LIVE_SUBDOMAIN = "bigtopselfstorage";
-const TEST_SUBDOMAIN = "big-top-storage-trial";
 const SITE_CODE = "ss13-1et"; // same site code in both tenants per Storeganise
 
 function getSubdomain(): string {
-  return isBookingTestMode() ? TEST_SUBDOMAIN : LIVE_SUBDOMAIN;
+  // Unit quotes are loaded from the live Storeganise site, so order creation
+  // must use the same tenant or Storeganise rejects the live unitTypeId.
+  return LIVE_SUBDOMAIN;
 }
 
 function getBase(): string {
@@ -22,15 +17,9 @@ function getBase(): string {
 }
 
 function getApiKey(): string {
-  const key = isBookingTestMode()
-    ? process.env.STOREGANISE_API_KEY_TEST
-    : process.env.STOREGANISE_API_KEY;
+  const key = process.env.STOREGANISE_API_KEY;
   if (!key) {
-    throw new Error(
-      isBookingTestMode()
-        ? "STOREGANISE_API_KEY_TEST is not set (BOOKING_MODE=test)"
-        : "STOREGANISE_API_KEY is not set",
-    );
+    throw new Error("STOREGANISE_API_KEY is not set");
   }
   return key;
 }
@@ -470,13 +459,14 @@ export async function ensureStoreganiseOrderForBooking(params: {
     protect_tier_id: string | null;
     storeganise_user_id: string | null;
     storeganise_order_id: string | null;
+    unit_snapshot?: Record<string, any> | null;
   };
   payment?: { id?: string; customerId?: string; mandateId?: string };
-}): Promise<{ storeganise_user_id?: string; storeganise_order_id?: string }> {
+}): Promise<{ storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any> }> {
   const { supabaseAdmin: db, booking, payment } = params;
   if (booking.storeganise_order_id) return {};
 
-  const updates: { storeganise_user_id?: string; storeganise_order_id?: string } = {};
+  const updates: { storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any> } = {};
 
   const { data: userInfo } = await db.auth.admin.getUserById(booking.user_id);
   const email = userInfo?.user?.email;
@@ -565,6 +555,13 @@ export async function ensureStoreganiseOrderForBooking(params: {
     ].join("\n"),
   });
   updates.storeganise_order_id = order.id;
+  if (order.assignedUnit?.name) {
+    updates.unit_snapshot = {
+      ...(booking.unit_snapshot ?? {}),
+      id: order.assignedUnit.id,
+      name: order.assignedUnit.name.toUpperCase(),
+    };
+  }
   return updates;
 }
 
@@ -581,8 +578,15 @@ export async function createStoreganiseUnitOrder(params: {
   notes?: string;
   /** Map of Storeganise product id -> quantity (e.g. BIGProtect tier). */
   products?: Record<string, number>;
-}): Promise<{ id: string }> {
+}): Promise<{ id: string; assignedUnit?: { id: string; name: string } }> {
   const siteId = await getSiteId();
+  const unitCandidates = await sg<Array<{ id: string; name?: string; typeId?: string }>>(
+    `/admin/units?typeId=${encodeURIComponent(params.unitTypeId)}&limit=50`,
+  ).then((units) => units.filter((unit) => unit.typeId === params.unitTypeId && unit.name)).catch(() => []);
+  const occupiedUnitIds = await sg<Array<{ unitId?: string }>>(
+    `/admin/unit-rentals?siteId=${encodeURIComponent(siteId)}&limit=500`,
+  ).then((rentals) => new Set(rentals.map((r) => r.unitId).filter(Boolean) as string[])).catch(() => new Set<string>());
+  const selectedUnit = unitCandidates.find((unit) => !occupiedUnitIds.has(unit.id)) ?? unitCandidates[0];
   const findExistingOrder = async (opts?: { loose?: boolean }) => {
     const loose = opts?.loose === true;
     const jobs = pickArray(
@@ -621,13 +625,14 @@ export async function createStoreganiseUnitOrder(params: {
 
   if (params.userAccessToken) {
     try {
-      return await sg<{ id: string }>(`/units/orders`, {
+      const created = await sg<{ id: string }>(`/units/orders`, {
         method: "POST",
         headers: { Authorization: `Bearer ${params.userAccessToken}` },
         body: JSON.stringify({
           submitLater: true,
           siteId,
           unitTypeId: params.unitTypeId,
+          ...(selectedUnit ? { unitId: selectedUnit.id } : {}),
           startDate: params.startDate,
           notes: params.notes,
           ...(params.products && Object.keys(params.products).length > 0
@@ -635,6 +640,7 @@ export async function createStoreganiseUnitOrder(params: {
             : {}),
         }),
       });
+      return selectedUnit ? { id: created.id, assignedUnit: { id: selectedUnit.id, name: selectedUnit.name! } } : created;
     } catch (customerOrderError) {
       console.error(
         "Storeganise customer order create failed; falling back to admin /units/orders:",
@@ -668,6 +674,7 @@ export async function createStoreganiseUnitOrder(params: {
         userId: params.userId,
         siteId,
         unitTypeId: params.unitTypeId,
+        ...(selectedUnit ? { unitId: selectedUnit.id } : {}),
         startDate: params.startDate,
         notes: params.notes,
         ...(params.products && Object.keys(params.products).length > 0
@@ -702,7 +709,7 @@ export async function createStoreganiseUnitOrder(params: {
       console.error("Storeganise order verify-after-create failed:", verifyError);
     }
 
-    return { id: created.id };
+    return selectedUnit ? { id: created.id, assignedUnit: { id: selectedUnit.id, name: selectedUnit.name! } } : { id: created.id };
   } catch (e) {
     if (e instanceof Error && /duplicate|too many/i.test(e.message)) {
       const retryExisting =

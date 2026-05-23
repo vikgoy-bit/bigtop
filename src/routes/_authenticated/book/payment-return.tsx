@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Stepper } from "@/components/booking/Stepper";
 import { Button } from "@/components/ui/button";
 import { checkMolliePayment } from "@/lib/mollie.functions";
+import { prepareStoreganiseOrder } from "@/lib/contract.functions";
 
 export const Route = createFileRoute("/_authenticated/book/payment-return")({
   head: () => ({ meta: [{ title: "Confirming payment — Big Top Self Storage" }] }),
@@ -19,6 +20,7 @@ function PaymentReturnPage() {
   const { booking: bookingId } = useSearch({ from: Route.id });
   const navigate = useNavigate();
   const check = useServerFn(checkMolliePayment);
+  const prepareSg = useServerFn(prepareStoreganiseOrder);
   const [state, setState] = useState<"checking" | "paid" | "pending" | "failed">(
     "checking",
   );
@@ -36,7 +38,11 @@ function PaymentReturnPage() {
         if (cancelled) return;
         if (res.status === "pending_verification" || res.mollieStatus === "paid") {
           setState("paid");
-          setTimeout(() => navigate({ to: "/book/contract" }), 800);
+          prepareSg({ data: { bookingId } })
+            .catch(() => null)
+            .finally(() => {
+              if (!cancelled) navigate({ to: "/book/contract" });
+            });
           return;
         }
         if (
@@ -61,7 +67,7 @@ function PaymentReturnPage() {
     return () => {
       cancelled = true;
     };
-  }, [bookingId, check, navigate]);
+  }, [bookingId, check, navigate, prepareSg]);
 
   return (
     <div className="min-h-screen bg-background">

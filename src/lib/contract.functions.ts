@@ -226,6 +226,7 @@ export const getContractForBooking = createServerFn({ method: "GET" })
             protect_tier_id: booking.protect_tier_id ?? null,
             storeganise_user_id: booking.storeganise_user_id ?? null,
             storeganise_order_id: null,
+            unit_snapshot: booking.unit_snapshot as UnitSnapshot | null,
           },
         });
         if (sgUpdates.storeganise_order_id || sgUpdates.storeganise_user_id) {
@@ -300,7 +301,7 @@ export const prepareStoreganiseOrder = createServerFn({ method: "POST" })
     const { data: booking, error } = await supabase
       .from("bookings")
       .select(
-        "id,user_id,unit_id,total_pence,protect_tier_id,storeganise_user_id,storeganise_order_id,move_in_date",
+        "id,user_id,unit_id,total_pence,protect_tier_id,storeganise_user_id,storeganise_order_id,unit_snapshot,move_in_date",
       )
       .eq("id", data.bookingId)
       .maybeSingle();
@@ -319,6 +320,7 @@ export const prepareStoreganiseOrder = createServerFn({ method: "POST" })
           protect_tier_id: booking.protect_tier_id ?? null,
           storeganise_user_id: booking.storeganise_user_id ?? null,
           storeganise_order_id: null,
+          unit_snapshot: booking.unit_snapshot as UnitSnapshot | null,
         },
       });
       if (sgUpdates.storeganise_order_id || sgUpdates.storeganise_user_id) {
@@ -473,6 +475,7 @@ export const signContract = createServerFn({ method: "POST" })
             protect_tier_id: booking.protect_tier_id ?? null,
             storeganise_user_id: booking.storeganise_user_id ?? null,
             storeganise_order_id: null,
+            unit_snapshot: booking.unit_snapshot as UnitSnapshot | null,
           },
         });
         if (sgUpdates.storeganise_order_id || sgUpdates.storeganise_user_id) {
