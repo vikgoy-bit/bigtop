@@ -2,16 +2,42 @@
 // Storeganise will own recurring billing once the first Mollie payment clears.
 //
 // API docs live at https://bigtopselfstorage.storeganise.com/api/docs/
+//
+// When BOOKING_MODE=test we route to Storeganise's demo tenant
+// (big-top-storage-trial) using STOREGANISE_API_KEY_TEST so we can exercise
+// the move-in flow end-to-end without touching the live account.
 
-const SUBDOMAIN = "bigtopselfstorage";
-const SITE_CODE = "ss13-1et";
-const BASE = `https://${SUBDOMAIN}.storeganise.com/api/v1`;
+import { isBookingTestMode } from "./booking-mode.server";
+
+const LIVE_SUBDOMAIN = "bigtopselfstorage";
+const TEST_SUBDOMAIN = "big-top-storage-trial";
+const SITE_CODE = "ss13-1et"; // same site code in both tenants per Storeganise
+
+function getSubdomain(): string {
+  return isBookingTestMode() ? TEST_SUBDOMAIN : LIVE_SUBDOMAIN;
+}
+
+function getBase(): string {
+  return `https://${getSubdomain()}.storeganise.com/api/v1`;
+}
+
+function getApiKey(): string {
+  const key = isBookingTestMode()
+    ? process.env.STOREGANISE_API_KEY_TEST
+    : process.env.STOREGANISE_API_KEY;
+  if (!key) {
+    throw new Error(
+      isBookingTestMode()
+        ? "STOREGANISE_API_KEY_TEST is not set (BOOKING_MODE=test)"
+        : "STOREGANISE_API_KEY is not set",
+    );
+  }
+  return key;
+}
 
 function authHeaders(): HeadersInit {
-  const key = process.env.STOREGANISE_API_KEY;
-  if (!key) throw new Error("STOREGANISE_API_KEY is not set");
   return {
-    Authorization: `ApiKey ${key}`,
+    Authorization: `ApiKey ${getApiKey()}`,
     "Content-Type": "application/json",
     Accept: "application/json",
   };
