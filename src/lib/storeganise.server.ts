@@ -470,9 +470,10 @@ export async function ensureStoreganiseOrderForBooking(params: {
     protect_tier_id: string | null;
     storeganise_user_id: string | null;
     storeganise_order_id: string | null;
+    unit_snapshot?: Record<string, any> | null;
   };
   payment?: { id?: string; customerId?: string; mandateId?: string };
-}): Promise<{ storeganise_user_id?: string; storeganise_order_id?: string }> {
+}): Promise<{ storeganise_user_id?: string; storeganise_order_id?: string; unit_snapshot?: Record<string, any> }> {
   const { supabaseAdmin: db, booking, payment } = params;
   if (booking.storeganise_order_id) return {};
 
@@ -565,6 +566,13 @@ export async function ensureStoreganiseOrderForBooking(params: {
     ].join("\n"),
   });
   updates.storeganise_order_id = order.id;
+  if (order.assignedUnit?.name) {
+    updates.unit_snapshot = {
+      ...(booking.unit_snapshot ?? {}),
+      id: order.assignedUnit.id,
+      name: order.assignedUnit.name.toUpperCase(),
+    };
+  }
   return updates;
 }
 
@@ -581,8 +589,11 @@ export async function createStoreganiseUnitOrder(params: {
   notes?: string;
   /** Map of Storeganise product id -> quantity (e.g. BIGProtect tier). */
   products?: Record<string, number>;
-}): Promise<{ id: string }> {
+}): Promise<{ id: string; assignedUnit?: { id: string; name: string } }> {
   const siteId = await getSiteId();
+  const unitCandidates = await sg<Array<{ id: string; name?: string; typeId?: string }>>(
+    `/admin/units?typeId=${encodeURIComponent(params.unitTypeId)}&limit=50`,
+  ).then((units) => units.filter((unit) => unit.typeId === params.unitTypeId && unit.name)).catch(() => []);
   const findExistingOrder = async (opts?: { loose?: boolean }) => {
     const loose = opts?.loose === true;
     const jobs = pickArray(
