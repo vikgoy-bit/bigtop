@@ -100,6 +100,8 @@ export function SiteFooter() {
             <Link to="/cookie-policy" className="hover:text-primary-foreground">Cookies</Link>
             <Link to="/terms-conditions" className="hover:text-primary-foreground">Terms</Link>
             <Link to="/self-storage-insurance" className="hover:text-primary-foreground">Insurance</Link>
+            <Link to="/special-conditions" className="hover:text-primary-foreground">Special conditions</Link>
+            <Link to="/big-protect-insurance-policy" className="hover:text-primary-foreground">BIG Protect</Link>
           </nav>
         </div>
       </div>
