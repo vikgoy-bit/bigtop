@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 import { CalendarIcon, ShieldCheck, UserPlus, LogIn, Search, Loader2, Info, Upload } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,6 +21,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatGBPRound } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { lookupAddresses, type FoundAddress } from "@/lib/address-lookup.functions";
+import { prepareStoreganiseOrder } from "@/lib/contract.functions";
 
 export const Route = createFileRoute("/book/details")({
   head: () => ({ meta: [{ title: "Your details — Big Top Self Storage" }] }),
@@ -45,9 +47,13 @@ type Tier = {
 function DetailsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const prepareSg = useServerFn(prepareStoreganiseOrder);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
 
   const [unit, setUnit] = useState<Unit | null>(null);
-  const [moveInDate, setMoveInDate] = useState<Date | undefined>(new Date());
+  const [moveInDate, setMoveInDate] = useState<Date | undefined>(tomorrow);
   const [dateOpen, setDateOpen] = useState(false);
   const [tierId, setTierId] = useState<string | null>(null);
   const [showExcVat, setShowExcVat] = useState(false);
