@@ -7,8 +7,6 @@
 // (big-top-storage-trial) using STOREGANISE_API_KEY_TEST so we can exercise
 // the move-in flow end-to-end without touching the live account.
 
-import { isBookingTestMode } from "./booking-mode.server";
-
 const LIVE_SUBDOMAIN = "bigtopselfstorage";
 const TEST_SUBDOMAIN = "big-top-storage-trial";
 const SITE_CODE = "ss13-1et"; // same site code in both tenants per Storeganise
@@ -590,6 +588,10 @@ export async function createStoreganiseUnitOrder(params: {
   const unitCandidates = await sg<Array<{ id: string; name?: string; typeId?: string }>>(
     `/admin/units?typeId=${encodeURIComponent(params.unitTypeId)}&limit=50`,
   ).then((units) => units.filter((unit) => unit.typeId === params.unitTypeId && unit.name)).catch(() => []);
+  const occupiedUnitIds = await sg<Array<{ unitId?: string }>>(
+    `/admin/unit-rentals?siteId=${encodeURIComponent(siteId)}&limit=500`,
+  ).then((rentals) => new Set(rentals.map((r) => r.unitId).filter(Boolean) as string[])).catch(() => new Set<string>());
+  const selectedUnit = unitCandidates.find((unit) => !occupiedUnitIds.has(unit.id)) ?? unitCandidates[0];
   const findExistingOrder = async (opts?: { loose?: boolean }) => {
     const loose = opts?.loose === true;
     const jobs = pickArray(
@@ -628,13 +630,14 @@ export async function createStoreganiseUnitOrder(params: {
 
   if (params.userAccessToken) {
     try {
-      return await sg<{ id: string }>(`/units/orders`, {
+      const created = await sg<{ id: string }>(`/units/orders`, {
         method: "POST",
         headers: { Authorization: `Bearer ${params.userAccessToken}` },
         body: JSON.stringify({
           submitLater: true,
           siteId,
           unitTypeId: params.unitTypeId,
+          ...(selectedUnit ? { unitId: selectedUnit.id } : {}),
           startDate: params.startDate,
           notes: params.notes,
           ...(params.products && Object.keys(params.products).length > 0
@@ -642,6 +645,7 @@ export async function createStoreganiseUnitOrder(params: {
             : {}),
         }),
       });
+      return selectedUnit ? { id: created.id, assignedUnit: { id: selectedUnit.id, name: selectedUnit.name! } } : created;
     } catch (customerOrderError) {
       console.error(
         "Storeganise customer order create failed; falling back to admin /units/orders:",
@@ -675,6 +679,7 @@ export async function createStoreganiseUnitOrder(params: {
         userId: params.userId,
         siteId,
         unitTypeId: params.unitTypeId,
+        ...(selectedUnit ? { unitId: selectedUnit.id } : {}),
         startDate: params.startDate,
         notes: params.notes,
         ...(params.products && Object.keys(params.products).length > 0
@@ -709,7 +714,7 @@ export async function createStoreganiseUnitOrder(params: {
       console.error("Storeganise order verify-after-create failed:", verifyError);
     }
 
-    return { id: created.id };
+    return selectedUnit ? { id: created.id, assignedUnit: { id: selectedUnit.id, name: selectedUnit.name! } } : { id: created.id };
   } catch (e) {
     if (e instanceof Error && /duplicate|too many/i.test(e.message)) {
       const retryExisting =
