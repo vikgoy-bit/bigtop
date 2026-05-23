@@ -13,13 +13,20 @@ import { Route as WhyBusinessesShouldInsureStockAndDocumentsRouteImport } from '
 import { Route as TopSecurityFeaturesToLookForBeforeRentingAStorageUnit2RouteImport } from './routes/top-security-features-to-look-for-before-renting-a-storage-unit-2'
 import { Route as TermsConditionsRouteImport } from './routes/terms-conditions'
 import { Route as StudentStorageRouteImport } from './routes/student-storage'
+import { Route as StorageSizeRouteImport } from './routes/storage-size'
 import { Route as SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRouteImport } from './routes/spring-cleaning-made-simple-how-to-use-self-storage-effectively'
+import { Route as SpecialConditionsRouteImport } from './routes/special-conditions'
+import { Route as SpaceEstimatorRouteImport } from './routes/space-estimator'
 import { Route as SmartEntryRouteImport } from './routes/smart-entry'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SelfStorageVsOfficeSpaceRouteImport } from './routes/self-storage-vs-office-space'
 import { Route as SelfStorageInsuranceRouteImport } from './routes/self-storage-insurance'
+import { Route as SecureStorageRouteImport } from './routes/secure-storage'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ReferAFriendRouteImport } from './routes/refer-a-friend'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PersonalStorageRouteImport } from './routes/personal-storage'
 import { Route as PackAwaySeasonalClothingTheRightWayRouteImport } from './routes/pack-away-seasonal-clothing-the-right-way'
 import { Route as OffersRouteImport } from './routes/offers'
@@ -35,6 +42,7 @@ import { Route as ContactUsRouteImport } from './routes/contact-us'
 import { Route as BusinessStorageRouteImport } from './routes/business-storage'
 import { Route as BoxesAndPackagingRouteImport } from './routes/boxes-and-packaging'
 import { Route as BlogRouteImport } from './routes/blog'
+import { Route as BigProtectInsurancePolicyRouteImport } from './routes/big-protect-insurance-policy'
 import { Route as AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRouteImport } from './routes/ai-and-how-it-is-advancing-customer-experience-in-self-storage'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -81,12 +89,27 @@ const StudentStorageRoute = StudentStorageRouteImport.update({
   path: '/student-storage',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StorageSizeRoute = StorageSizeRouteImport.update({
+  id: '/storage-size',
+  path: '/storage-size',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRoute =
   SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRouteImport.update({
     id: '/spring-cleaning-made-simple-how-to-use-self-storage-effectively',
     path: '/spring-cleaning-made-simple-how-to-use-self-storage-effectively',
     getParentRoute: () => rootRouteImport,
   } as any)
+const SpecialConditionsRoute = SpecialConditionsRouteImport.update({
+  id: '/special-conditions',
+  path: '/special-conditions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpaceEstimatorRoute = SpaceEstimatorRouteImport.update({
+  id: '/space-estimator',
+  path: '/space-estimator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SmartEntryRoute = SmartEntryRouteImport.update({
   id: '/smart-entry',
   path: '/smart-entry',
@@ -95,6 +118,11 @@ const SmartEntryRoute = SmartEntryRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SelfStorageVsOfficeSpaceRoute =
@@ -108,14 +136,29 @@ const SelfStorageInsuranceRoute = SelfStorageInsuranceRouteImport.update({
   path: '/self-storage-insurance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SecureStorageRoute = SecureStorageRouteImport.update({
+  id: '/secure-storage',
+  path: '/secure-storage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReferAFriendRoute = ReferAFriendRouteImport.update({
+  id: '/refer-a-friend',
+  path: '/refer-a-friend',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PersonalStorageRoute = PersonalStorageRouteImport.update({
@@ -197,6 +240,12 @@ const BlogRoute = BlogRouteImport.update({
   path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BigProtectInsurancePolicyRoute =
+  BigProtectInsurancePolicyRouteImport.update({
+    id: '/big-protect-insurance-policy',
+    path: '/big-protect-insurance-policy',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRoute =
   AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRouteImport.update({
     id: '/ai-and-how-it-is-advancing-customer-experience-in-self-storage',
@@ -328,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/10-common-mistakes-people-make-when-using-storage-units': typeof R10CommonMistakesPeopleMakeWhenUsingStorageUnitsRoute
   '/about': typeof AboutRoute
   '/ai-and-how-it-is-advancing-customer-experience-in-self-storage': typeof AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRoute
+  '/big-protect-insurance-policy': typeof BigProtectInsurancePolicyRoute
   '/blog': typeof BlogRoute
   '/boxes-and-packaging': typeof BoxesAndPackagingRoute
   '/business-storage': typeof BusinessStorageRoute
@@ -343,13 +393,20 @@ export interface FileRoutesByFullPath {
   '/offers': typeof OffersRoute
   '/pack-away-seasonal-clothing-the-right-way': typeof PackAwaySeasonalClothingTheRightWayRoute
   '/personal-storage': typeof PersonalStorageRoute
+  '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/refer-a-friend': typeof ReferAFriendRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/secure-storage': typeof SecureStorageRoute
   '/self-storage-insurance': typeof SelfStorageInsuranceRoute
   '/self-storage-vs-office-space': typeof SelfStorageVsOfficeSpaceRoute
+  '/services': typeof ServicesRoute
   '/signup': typeof SignupRoute
   '/smart-entry': typeof SmartEntryRoute
+  '/space-estimator': typeof SpaceEstimatorRoute
+  '/special-conditions': typeof SpecialConditionsRoute
   '/spring-cleaning-made-simple-how-to-use-self-storage-effectively': typeof SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRoute
+  '/storage-size': typeof StorageSizeRoute
   '/student-storage': typeof StudentStorageRoute
   '/terms-conditions': typeof TermsConditionsRoute
   '/top-security-features-to-look-for-before-renting-a-storage-unit-2': typeof TopSecurityFeaturesToLookForBeforeRentingAStorageUnit2Route
@@ -378,6 +435,7 @@ export interface FileRoutesByTo {
   '/10-common-mistakes-people-make-when-using-storage-units': typeof R10CommonMistakesPeopleMakeWhenUsingStorageUnitsRoute
   '/about': typeof AboutRoute
   '/ai-and-how-it-is-advancing-customer-experience-in-self-storage': typeof AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRoute
+  '/big-protect-insurance-policy': typeof BigProtectInsurancePolicyRoute
   '/blog': typeof BlogRoute
   '/boxes-and-packaging': typeof BoxesAndPackagingRoute
   '/business-storage': typeof BusinessStorageRoute
@@ -393,13 +451,20 @@ export interface FileRoutesByTo {
   '/offers': typeof OffersRoute
   '/pack-away-seasonal-clothing-the-right-way': typeof PackAwaySeasonalClothingTheRightWayRoute
   '/personal-storage': typeof PersonalStorageRoute
+  '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/refer-a-friend': typeof ReferAFriendRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/secure-storage': typeof SecureStorageRoute
   '/self-storage-insurance': typeof SelfStorageInsuranceRoute
   '/self-storage-vs-office-space': typeof SelfStorageVsOfficeSpaceRoute
+  '/services': typeof ServicesRoute
   '/signup': typeof SignupRoute
   '/smart-entry': typeof SmartEntryRoute
+  '/space-estimator': typeof SpaceEstimatorRoute
+  '/special-conditions': typeof SpecialConditionsRoute
   '/spring-cleaning-made-simple-how-to-use-self-storage-effectively': typeof SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRoute
+  '/storage-size': typeof StorageSizeRoute
   '/student-storage': typeof StudentStorageRoute
   '/terms-conditions': typeof TermsConditionsRoute
   '/top-security-features-to-look-for-before-renting-a-storage-unit-2': typeof TopSecurityFeaturesToLookForBeforeRentingAStorageUnit2Route
@@ -430,6 +495,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/about': typeof AboutRoute
   '/ai-and-how-it-is-advancing-customer-experience-in-self-storage': typeof AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRoute
+  '/big-protect-insurance-policy': typeof BigProtectInsurancePolicyRoute
   '/blog': typeof BlogRoute
   '/boxes-and-packaging': typeof BoxesAndPackagingRoute
   '/business-storage': typeof BusinessStorageRoute
@@ -445,13 +511,20 @@ export interface FileRoutesById {
   '/offers': typeof OffersRoute
   '/pack-away-seasonal-clothing-the-right-way': typeof PackAwaySeasonalClothingTheRightWayRoute
   '/personal-storage': typeof PersonalStorageRoute
+  '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/refer-a-friend': typeof ReferAFriendRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/secure-storage': typeof SecureStorageRoute
   '/self-storage-insurance': typeof SelfStorageInsuranceRoute
   '/self-storage-vs-office-space': typeof SelfStorageVsOfficeSpaceRoute
+  '/services': typeof ServicesRoute
   '/signup': typeof SignupRoute
   '/smart-entry': typeof SmartEntryRoute
+  '/space-estimator': typeof SpaceEstimatorRoute
+  '/special-conditions': typeof SpecialConditionsRoute
   '/spring-cleaning-made-simple-how-to-use-self-storage-effectively': typeof SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRoute
+  '/storage-size': typeof StorageSizeRoute
   '/student-storage': typeof StudentStorageRoute
   '/terms-conditions': typeof TermsConditionsRoute
   '/top-security-features-to-look-for-before-renting-a-storage-unit-2': typeof TopSecurityFeaturesToLookForBeforeRentingAStorageUnit2Route
@@ -482,6 +555,7 @@ export interface FileRouteTypes {
     | '/10-common-mistakes-people-make-when-using-storage-units'
     | '/about'
     | '/ai-and-how-it-is-advancing-customer-experience-in-self-storage'
+    | '/big-protect-insurance-policy'
     | '/blog'
     | '/boxes-and-packaging'
     | '/business-storage'
@@ -497,13 +571,20 @@ export interface FileRouteTypes {
     | '/offers'
     | '/pack-away-seasonal-clothing-the-right-way'
     | '/personal-storage'
+    | '/pricing'
     | '/privacy-policy'
+    | '/refer-a-friend'
     | '/reset-password'
+    | '/secure-storage'
     | '/self-storage-insurance'
     | '/self-storage-vs-office-space'
+    | '/services'
     | '/signup'
     | '/smart-entry'
+    | '/space-estimator'
+    | '/special-conditions'
     | '/spring-cleaning-made-simple-how-to-use-self-storage-effectively'
+    | '/storage-size'
     | '/student-storage'
     | '/terms-conditions'
     | '/top-security-features-to-look-for-before-renting-a-storage-unit-2'
@@ -532,6 +613,7 @@ export interface FileRouteTypes {
     | '/10-common-mistakes-people-make-when-using-storage-units'
     | '/about'
     | '/ai-and-how-it-is-advancing-customer-experience-in-self-storage'
+    | '/big-protect-insurance-policy'
     | '/blog'
     | '/boxes-and-packaging'
     | '/business-storage'
@@ -547,13 +629,20 @@ export interface FileRouteTypes {
     | '/offers'
     | '/pack-away-seasonal-clothing-the-right-way'
     | '/personal-storage'
+    | '/pricing'
     | '/privacy-policy'
+    | '/refer-a-friend'
     | '/reset-password'
+    | '/secure-storage'
     | '/self-storage-insurance'
     | '/self-storage-vs-office-space'
+    | '/services'
     | '/signup'
     | '/smart-entry'
+    | '/space-estimator'
+    | '/special-conditions'
     | '/spring-cleaning-made-simple-how-to-use-self-storage-effectively'
+    | '/storage-size'
     | '/student-storage'
     | '/terms-conditions'
     | '/top-security-features-to-look-for-before-renting-a-storage-unit-2'
@@ -583,6 +672,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/ai-and-how-it-is-advancing-customer-experience-in-self-storage'
+    | '/big-protect-insurance-policy'
     | '/blog'
     | '/boxes-and-packaging'
     | '/business-storage'
@@ -598,13 +688,20 @@ export interface FileRouteTypes {
     | '/offers'
     | '/pack-away-seasonal-clothing-the-right-way'
     | '/personal-storage'
+    | '/pricing'
     | '/privacy-policy'
+    | '/refer-a-friend'
     | '/reset-password'
+    | '/secure-storage'
     | '/self-storage-insurance'
     | '/self-storage-vs-office-space'
+    | '/services'
     | '/signup'
     | '/smart-entry'
+    | '/space-estimator'
+    | '/special-conditions'
     | '/spring-cleaning-made-simple-how-to-use-self-storage-effectively'
+    | '/storage-size'
     | '/student-storage'
     | '/terms-conditions'
     | '/top-security-features-to-look-for-before-renting-a-storage-unit-2'
@@ -635,6 +732,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AboutRoute: typeof AboutRoute
   AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRoute: typeof AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRoute
+  BigProtectInsurancePolicyRoute: typeof BigProtectInsurancePolicyRoute
   BlogRoute: typeof BlogRoute
   BoxesAndPackagingRoute: typeof BoxesAndPackagingRoute
   BusinessStorageRoute: typeof BusinessStorageRoute
@@ -650,13 +748,20 @@ export interface RootRouteChildren {
   OffersRoute: typeof OffersRoute
   PackAwaySeasonalClothingTheRightWayRoute: typeof PackAwaySeasonalClothingTheRightWayRoute
   PersonalStorageRoute: typeof PersonalStorageRoute
+  PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  ReferAFriendRoute: typeof ReferAFriendRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SecureStorageRoute: typeof SecureStorageRoute
   SelfStorageInsuranceRoute: typeof SelfStorageInsuranceRoute
   SelfStorageVsOfficeSpaceRoute: typeof SelfStorageVsOfficeSpaceRoute
+  ServicesRoute: typeof ServicesRoute
   SignupRoute: typeof SignupRoute
   SmartEntryRoute: typeof SmartEntryRoute
+  SpaceEstimatorRoute: typeof SpaceEstimatorRoute
+  SpecialConditionsRoute: typeof SpecialConditionsRoute
   SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRoute: typeof SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRoute
+  StorageSizeRoute: typeof StorageSizeRoute
   StudentStorageRoute: typeof StudentStorageRoute
   TermsConditionsRoute: typeof TermsConditionsRoute
   TopSecurityFeaturesToLookForBeforeRentingAStorageUnit2Route: typeof TopSecurityFeaturesToLookForBeforeRentingAStorageUnit2Route
@@ -706,11 +811,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentStorageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/storage-size': {
+      id: '/storage-size'
+      path: '/storage-size'
+      fullPath: '/storage-size'
+      preLoaderRoute: typeof StorageSizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/spring-cleaning-made-simple-how-to-use-self-storage-effectively': {
       id: '/spring-cleaning-made-simple-how-to-use-self-storage-effectively'
       path: '/spring-cleaning-made-simple-how-to-use-self-storage-effectively'
       fullPath: '/spring-cleaning-made-simple-how-to-use-self-storage-effectively'
       preLoaderRoute: typeof SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/special-conditions': {
+      id: '/special-conditions'
+      path: '/special-conditions'
+      fullPath: '/special-conditions'
+      preLoaderRoute: typeof SpecialConditionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/space-estimator': {
+      id: '/space-estimator'
+      path: '/space-estimator'
+      fullPath: '/space-estimator'
+      preLoaderRoute: typeof SpaceEstimatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/smart-entry': {
@@ -727,6 +853,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/self-storage-vs-office-space': {
       id: '/self-storage-vs-office-space'
       path: '/self-storage-vs-office-space'
@@ -741,6 +874,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SelfStorageInsuranceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/secure-storage': {
+      id: '/secure-storage'
+      path: '/secure-storage'
+      fullPath: '/secure-storage'
+      preLoaderRoute: typeof SecureStorageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -748,11 +888,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/refer-a-friend': {
+      id: '/refer-a-friend'
+      path: '/refer-a-friend'
+      fullPath: '/refer-a-friend'
+      preLoaderRoute: typeof ReferAFriendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy-policy': {
       id: '/privacy-policy'
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/personal-storage': {
@@ -858,6 +1012,13 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog'
       preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/big-protect-insurance-policy': {
+      id: '/big-protect-insurance-policy'
+      path: '/big-protect-insurance-policy'
+      fullPath: '/big-protect-insurance-policy'
+      preLoaderRoute: typeof BigProtectInsurancePolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai-and-how-it-is-advancing-customer-experience-in-self-storage': {
@@ -1052,6 +1213,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRoute:
     AiAndHowItIsAdvancingCustomerExperienceInSelfStorageRoute,
+  BigProtectInsurancePolicyRoute: BigProtectInsurancePolicyRoute,
   BlogRoute: BlogRoute,
   BoxesAndPackagingRoute: BoxesAndPackagingRoute,
   BusinessStorageRoute: BusinessStorageRoute,
@@ -1071,14 +1233,21 @@ const rootRouteChildren: RootRouteChildren = {
   PackAwaySeasonalClothingTheRightWayRoute:
     PackAwaySeasonalClothingTheRightWayRoute,
   PersonalStorageRoute: PersonalStorageRoute,
+  PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
+  ReferAFriendRoute: ReferAFriendRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SecureStorageRoute: SecureStorageRoute,
   SelfStorageInsuranceRoute: SelfStorageInsuranceRoute,
   SelfStorageVsOfficeSpaceRoute: SelfStorageVsOfficeSpaceRoute,
+  ServicesRoute: ServicesRoute,
   SignupRoute: SignupRoute,
   SmartEntryRoute: SmartEntryRoute,
+  SpaceEstimatorRoute: SpaceEstimatorRoute,
+  SpecialConditionsRoute: SpecialConditionsRoute,
   SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRoute:
     SpringCleaningMadeSimpleHowToUseSelfStorageEffectivelyRoute,
+  StorageSizeRoute: StorageSizeRoute,
   StudentStorageRoute: StudentStorageRoute,
   TermsConditionsRoute: TermsConditionsRoute,
   TopSecurityFeaturesToLookForBeforeRentingAStorageUnit2Route:
