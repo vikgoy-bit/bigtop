@@ -354,6 +354,7 @@ function DetailsPage() {
     }
 
     // 4. Create booking
+    const selectedMoveInDate = moveInDate < tomorrow ? tomorrow : moveInDate;
     const { data: booking, error } = await supabase
       .from("bookings")
       .insert({
@@ -361,7 +362,7 @@ function DetailsPage() {
         unit_id: unit.id,
         unit_snapshot: unit as never,
         protect_tier_id: tierId,
-        move_in_date: format(moveInDate, "yyyy-MM-dd"),
+        move_in_date: format(selectedMoveInDate, "yyyy-MM-dd"),
         total_pence: firstChargeTotal,
         status: "pending_payment",
         cover_document_path: coverPath,
@@ -371,6 +372,11 @@ function DetailsPage() {
 
     setSubmitting(false);
     if (error) return toast.error(error.message);
+
+    const reservation = await prepareSg({ data: { bookingId: booking.id } });
+    if (!reservation.ok) {
+      return toast.error("We couldn't reserve that unit just now. Please try again.");
+    }
 
     // Notify ops about uploaded insurance proof (no-cover flow)
     if (isNoCover && coverPath) {
