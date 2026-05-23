@@ -387,7 +387,11 @@ function DetailsPage() {
     }
 
     // 4. Create booking
-    const selectedMoveInDate = moveInDate < tomorrow ? tomorrow : moveInDate;
+    // Re-check cutoff at click time and silently bump forward if today is no
+    // longer allowed (e.g. they sat on the page past 19:45 UK).
+    const effectiveEarliest = earliestMoveInDate();
+    const selectedMoveInDate = moveInDate < effectiveEarliest ? effectiveEarliest : moveInDate;
+    if (moveInDate < effectiveEarliest) setMoveInDate(effectiveEarliest);
     const { data: booking, error } = await supabase
       .from("bookings")
       .insert({
