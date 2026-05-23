@@ -37,6 +37,7 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as BigProtectInsurancePolicyRouteImport } from './routes/big-protect-insurance-policy'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
@@ -49,6 +50,7 @@ import { Route as AuthenticatedBookSuccessRouteImport } from './routes/_authenti
 import { Route as AuthenticatedBookPaymentReturnRouteImport } from './routes/_authenticated/book/payment-return'
 import { Route as AuthenticatedBookPaymentRouteImport } from './routes/_authenticated/book/payment'
 import { Route as AuthenticatedBookContractRouteImport } from './routes/_authenticated/book/contract'
+import { Route as AuthenticatedAdminBlogRouteImport } from './routes/_authenticated/admin.blog'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -56,6 +58,8 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicHooksRetryVerificationRouteImport } from './routes/api/public/hooks/retry-verification'
 import { Route as ApiPublicHooksAbandonedCartRouteImport } from './routes/api/public/hooks/abandoned-cart'
+import { Route as AuthenticatedAdminBlogNewRouteImport } from './routes/_authenticated/admin.blog.new'
+import { Route as AuthenticatedAdminBlogIdRouteImport } from './routes/_authenticated/admin.blog.$id'
 
 const TermsConditionsRoute = TermsConditionsRouteImport.update({
   id: '/terms-conditions',
@@ -197,6 +201,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SlugRoute = SlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -261,6 +270,11 @@ const AuthenticatedBookContractRoute =
     path: '/book/contract',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminBlogRoute = AuthenticatedAdminBlogRouteImport.update({
+  id: '/admin/blog',
+  path: '/admin/blog',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -301,9 +315,22 @@ const ApiPublicHooksAbandonedCartRoute =
     path: '/api/public/hooks/abandoned-cart',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAdminBlogNewRoute =
+  AuthenticatedAdminBlogNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAdminBlogRoute,
+  } as any)
+const AuthenticatedAdminBlogIdRoute =
+  AuthenticatedAdminBlogIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminBlogRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/about': typeof AboutRoute
   '/big-protect-insurance-policy': typeof BigProtectInsurancePolicyRoute
   '/blog': typeof BlogRoute
@@ -334,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/sitemap/xml': typeof SitemapXmlRoute
+  '/admin/blog': typeof AuthenticatedAdminBlogRouteWithChildren
   '/book/contract': typeof AuthenticatedBookContractRoute
   '/book/payment': typeof AuthenticatedBookPaymentRoute
   '/book/payment-return': typeof AuthenticatedBookPaymentReturnRoute
@@ -342,6 +370,8 @@ export interface FileRoutesByFullPath {
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
   '/api/public/hooks/abandoned-cart': typeof ApiPublicHooksAbandonedCartRoute
   '/api/public/hooks/retry-verification': typeof ApiPublicHooksRetryVerificationRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -352,6 +382,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/about': typeof AboutRoute
   '/big-protect-insurance-policy': typeof BigProtectInsurancePolicyRoute
   '/blog': typeof BlogRoute
@@ -382,6 +413,7 @@ export interface FileRoutesByTo {
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/sitemap/xml': typeof SitemapXmlRoute
+  '/admin/blog': typeof AuthenticatedAdminBlogRouteWithChildren
   '/book/contract': typeof AuthenticatedBookContractRoute
   '/book/payment': typeof AuthenticatedBookPaymentRoute
   '/book/payment-return': typeof AuthenticatedBookPaymentReturnRoute
@@ -390,6 +422,8 @@ export interface FileRoutesByTo {
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
   '/api/public/hooks/abandoned-cart': typeof ApiPublicHooksAbandonedCartRoute
   '/api/public/hooks/retry-verification': typeof ApiPublicHooksRetryVerificationRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -401,6 +435,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/about': typeof AboutRoute
   '/big-protect-insurance-policy': typeof BigProtectInsurancePolicyRoute
@@ -432,6 +467,7 @@ export interface FileRoutesById {
   '/book/details': typeof BookDetailsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/sitemap/xml': typeof SitemapXmlRoute
+  '/_authenticated/admin/blog': typeof AuthenticatedAdminBlogRouteWithChildren
   '/_authenticated/book/contract': typeof AuthenticatedBookContractRoute
   '/_authenticated/book/payment': typeof AuthenticatedBookPaymentRoute
   '/_authenticated/book/payment-return': typeof AuthenticatedBookPaymentReturnRoute
@@ -440,6 +476,8 @@ export interface FileRoutesById {
   '/api/public/mollie-webhook': typeof ApiPublicMollieWebhookRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/_authenticated/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/_authenticated/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
   '/api/public/hooks/abandoned-cart': typeof ApiPublicHooksAbandonedCartRoute
   '/api/public/hooks/retry-verification': typeof ApiPublicHooksRetryVerificationRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -452,6 +490,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$slug'
     | '/about'
     | '/big-protect-insurance-policy'
     | '/blog'
@@ -482,6 +521,7 @@ export interface FileRouteTypes {
     | '/book/details'
     | '/email/unsubscribe'
     | '/sitemap/xml'
+    | '/admin/blog'
     | '/book/contract'
     | '/book/payment'
     | '/book/payment-return'
@@ -490,6 +530,8 @@ export interface FileRouteTypes {
     | '/api/public/mollie-webhook'
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
+    | '/admin/blog/$id'
+    | '/admin/blog/new'
     | '/api/public/hooks/abandoned-cart'
     | '/api/public/hooks/retry-verification'
     | '/lovable/email/auth/preview'
@@ -500,6 +542,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$slug'
     | '/about'
     | '/big-protect-insurance-policy'
     | '/blog'
@@ -530,6 +573,7 @@ export interface FileRouteTypes {
     | '/book/details'
     | '/email/unsubscribe'
     | '/sitemap/xml'
+    | '/admin/blog'
     | '/book/contract'
     | '/book/payment'
     | '/book/payment-return'
@@ -538,6 +582,8 @@ export interface FileRouteTypes {
     | '/api/public/mollie-webhook'
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
+    | '/admin/blog/$id'
+    | '/admin/blog/new'
     | '/api/public/hooks/abandoned-cart'
     | '/api/public/hooks/retry-verification'
     | '/lovable/email/auth/preview'
@@ -548,6 +594,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$slug'
     | '/_authenticated'
     | '/about'
     | '/big-protect-insurance-policy'
@@ -579,6 +626,7 @@ export interface FileRouteTypes {
     | '/book/details'
     | '/email/unsubscribe'
     | '/sitemap/xml'
+    | '/_authenticated/admin/blog'
     | '/_authenticated/book/contract'
     | '/_authenticated/book/payment'
     | '/_authenticated/book/payment-return'
@@ -587,6 +635,8 @@ export interface FileRouteTypes {
     | '/api/public/mollie-webhook'
     | '/api/public/stripe-webhook'
     | '/lovable/email/suppression'
+    | '/_authenticated/admin/blog/$id'
+    | '/_authenticated/admin/blog/new'
     | '/api/public/hooks/abandoned-cart'
     | '/api/public/hooks/retry-verification'
     | '/lovable/email/auth/preview'
@@ -598,6 +648,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SlugRoute: typeof SlugRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AboutRoute: typeof AboutRoute
   BigProtectInsurancePolicyRoute: typeof BigProtectInsurancePolicyRoute
@@ -839,6 +890,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$slug': {
+      id: '/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -923,6 +981,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookContractRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/blog': {
+      id: '/_authenticated/admin/blog'
+      path: '/admin/blog'
+      fullPath: '/admin/blog'
+      preLoaderRoute: typeof AuthenticatedAdminBlogRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -972,10 +1037,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAbandonedCartRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/blog/new': {
+      id: '/_authenticated/admin/blog/new'
+      path: '/new'
+      fullPath: '/admin/blog/new'
+      preLoaderRoute: typeof AuthenticatedAdminBlogNewRouteImport
+      parentRoute: typeof AuthenticatedAdminBlogRoute
+    }
+    '/_authenticated/admin/blog/$id': {
+      id: '/_authenticated/admin/blog/$id'
+      path: '/$id'
+      fullPath: '/admin/blog/$id'
+      preLoaderRoute: typeof AuthenticatedAdminBlogIdRouteImport
+      parentRoute: typeof AuthenticatedAdminBlogRoute
+    }
   }
 }
 
+interface AuthenticatedAdminBlogRouteChildren {
+  AuthenticatedAdminBlogIdRoute: typeof AuthenticatedAdminBlogIdRoute
+  AuthenticatedAdminBlogNewRoute: typeof AuthenticatedAdminBlogNewRoute
+}
+
+const AuthenticatedAdminBlogRouteChildren: AuthenticatedAdminBlogRouteChildren =
+  {
+    AuthenticatedAdminBlogIdRoute: AuthenticatedAdminBlogIdRoute,
+    AuthenticatedAdminBlogNewRoute: AuthenticatedAdminBlogNewRoute,
+  }
+
+const AuthenticatedAdminBlogRouteWithChildren =
+  AuthenticatedAdminBlogRoute._addFileChildren(
+    AuthenticatedAdminBlogRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminBlogRoute: typeof AuthenticatedAdminBlogRouteWithChildren
   AuthenticatedBookContractRoute: typeof AuthenticatedBookContractRoute
   AuthenticatedBookPaymentRoute: typeof AuthenticatedBookPaymentRoute
   AuthenticatedBookPaymentReturnRoute: typeof AuthenticatedBookPaymentReturnRoute
@@ -984,6 +1080,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminBlogRoute: AuthenticatedAdminBlogRouteWithChildren,
   AuthenticatedBookContractRoute: AuthenticatedBookContractRoute,
   AuthenticatedBookPaymentRoute: AuthenticatedBookPaymentRoute,
   AuthenticatedBookPaymentReturnRoute: AuthenticatedBookPaymentReturnRoute,
@@ -997,6 +1094,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SlugRoute: SlugRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AboutRoute: AboutRoute,
   BigProtectInsurancePolicyRoute: BigProtectInsurancePolicyRoute,
@@ -1042,13 +1140,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
