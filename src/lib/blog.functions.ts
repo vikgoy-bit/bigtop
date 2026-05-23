@@ -136,7 +136,6 @@ export const adminCreatePost = createServerFn({ method: "POST" })
         ...data,
         date_published: data.date_published || (data.published ? new Date().toISOString() : null),
         author_id: context.userId,
-        author_email: context.claims?.email ?? null,
       })
       .select("id, slug")
       .single();
