@@ -33,6 +33,10 @@ function ContractPage() {
     queryKey: ["contract", bookingId],
     queryFn: () => fetchContract({ data: { bookingId: bookingId! } }),
     enabled: !!bookingId,
+    refetchInterval: (q) =>
+      q.state.data?.unitAllocated || q.state.data?.booking?.signed_at
+        ? false
+        : 1500,
   });
 
   const signMut = useMutation({
