@@ -44,7 +44,6 @@ function PaymentPage() {
   });
 
   const startPayment = useServerFn(startMolliePayment);
-  const applyPromo = useServerFn(applyPromoCode);
   const prepareSg = useServerFn(prepareStoreganiseOrder);
 
   // Warm up Storeganise order allocation while the customer is on payment
@@ -55,8 +54,6 @@ function PaymentPage() {
       /* silent — contract page has its own fallback */
     });
   }, [bookingId, prepareSg]);
-  const [promoCode, setPromoCode] = useState("");
-  const [promoApplying, setPromoApplying] = useState(false);
 
   const handleContinue = async () => {
     if (!bookingId) return;
@@ -87,30 +84,15 @@ function PaymentPage() {
     }
   };
 
-  const handleApplyPromo = async () => {
-    if (!bookingId || !promoCode.trim()) return;
-    setPromoApplying(true);
-    try {
-      const res = await applyPromo({ data: { bookingId, code: promoCode } });
-      if (!res.ok) {
-        toast.error(res.error || "Invalid promo code");
-        return;
-      }
-      if (res.fullyDiscounted) {
-        toast.success("Promo applied — payment skipped");
-        navigate({ to: "/book/contract" });
-        return;
-      }
-      toast.success("Promo applied");
-      window.location.reload();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not apply promo");
-    } finally {
-      setPromoApplying(false);
+  // Auto-redirect to Mollie once booking data is loaded.
+  const [autoRedirected, setAutoRedirected] = useState(false);
+  useEffect(() => {
+    if (booking && bookingId && !autoRedirected && !submitting) {
+      setAutoRedirected(true);
+      handleContinue();
     }
-  };
-
-  // Auto-redirect to Mollie disabled while temporary promo box is in place.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booking, bookingId]);
 
   return (
     <div className="min-h-screen bg-background">
