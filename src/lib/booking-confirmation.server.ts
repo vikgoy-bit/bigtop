@@ -72,10 +72,10 @@ async function refreshUnitSnapshot(
 }
 
 async function fetchStoreganiseUnit(unitId: string): Promise<Record<string, any>> {
-  const key = process.env.STOREGANISE_API_KEY;
-  if (!key) throw new Error("STOREGANISE_API_KEY is not set");
+  const key = getStoreganiseApiKey();
+  const subdomain = getStoreganiseSubdomain();
   const res = await fetch(
-    `https://bigtopselfstorage.storeganise.com/api/v1/admin/units/${unitId}`,
+    `https://${subdomain}.storeganise.com/api/v1/admin/units/${unitId}`,
     { headers: { Authorization: `ApiKey ${key}`, Accept: "application/json" } },
   );
   if (!res.ok) throw new Error(`Storeganise unit lookup failed: ${res.status}`);
