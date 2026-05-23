@@ -44,16 +44,49 @@ type Tier = {
   monthly_fee_pence: number;
 };
 
+// Returns true when the UK same-day move-in cutoff (19:45 Europe/London) has passed.
+function sameDayCutoffPassed(): boolean {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date());
+  const [h, m] = parts.split(":").map(Number);
+  return h * 60 + m >= 19 * 60 + 45;
+}
+
+function startOfToday(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function startOfTomorrow(): Date {
+  const d = startOfToday();
+  d.setDate(d.getDate() + 1);
+  return d;
+}
+
+function earliestMoveInDate(): Date {
+  return sameDayCutoffPassed() ? startOfTomorrow() : startOfToday();
+}
+
 function DetailsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const prepareSg = useServerFn(prepareStoreganiseOrder);
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
+
+  // Recompute the earliest selectable date on a short tick so today greys out
+  // automatically once the 19:45 UK cutoff passes while the page is open.
+  const [earliest, setEarliest] = useState<Date>(() => earliestMoveInDate());
+  useEffect(() => {
+    const id = setInterval(() => setEarliest(earliestMoveInDate()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   const [unit, setUnit] = useState<Unit | null>(null);
-  const [moveInDate, setMoveInDate] = useState<Date | undefined>(tomorrow);
+  const [moveInDate, setMoveInDate] = useState<Date | undefined>(() => earliestMoveInDate());
   const [dateOpen, setDateOpen] = useState(false);
   const [tierId, setTierId] = useState<string | null>(null);
   const [showExcVat, setShowExcVat] = useState(false);
@@ -354,7 +387,11 @@ function DetailsPage() {
     }
 
     // 4. Create booking
-    const selectedMoveInDate = moveInDate < tomorrow ? tomorrow : moveInDate;
+    // Re-check cutoff at click time and silently bump forward if today is no
+    // longer allowed (e.g. they sat on the page past 19:45 UK).
+    const effectiveEarliest = earliestMoveInDate();
+    const selectedMoveInDate = moveInDate < effectiveEarliest ? effectiveEarliest : moveInDate;
+    if (moveInDate < effectiveEarliest) setMoveInDate(effectiveEarliest);
     const { data: booking, error } = await supabase
       .from("bookings")
       .insert({
@@ -555,7 +592,7 @@ function DetailsPage() {
                     setMoveInDate(d);
                     if (d) setDateOpen(false);
                   }}
-                  disabled={(d) => d < tomorrow}
+                  disabled={(d) => d < earliest}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
                 />

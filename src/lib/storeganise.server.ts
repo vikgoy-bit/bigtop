@@ -354,11 +354,29 @@ function createTemporaryPassword() {
 }
 
 function storeganiseStartDate(date: string): string {
-  const earliest = new Date();
-  earliest.setDate(earliest.getDate() + 1);
-  earliest.setHours(0, 0, 0, 0);
-  const requested = new Date(`${date}T00:00:00`);
-  return formatYmd(requested < earliest ? earliest : requested);
+  // Same-day move-in is allowed until 19:45 Europe/London. After the cutoff,
+  // the earliest start date is tomorrow. Mirrors the UI's silent-bump logic.
+  const ukParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const get = (t: string) => ukParts.find((p) => p.type === t)?.value ?? "0";
+  const todayYmd = `${get("year")}-${get("month")}-${get("day")}`;
+  const minutes = Number(get("hour")) * 60 + Number(get("minute"));
+  const cutoffPassed = minutes >= 19 * 60 + 45;
+
+  let earliestYmd = todayYmd;
+  if (cutoffPassed) {
+    const [y, m, d] = todayYmd.split("-").map(Number);
+    earliestYmd = formatYmd(new Date(Date.UTC(y, m - 1, d + 1)));
+  }
+
+  return date < earliestYmd ? earliestYmd : date;
 }
 
 function formatYmd(date: Date): string {
