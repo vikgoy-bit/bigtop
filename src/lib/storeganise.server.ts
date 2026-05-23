@@ -279,8 +279,10 @@ export async function uploadSignedContractToStoreganise(params: {
   fileName: string;
   pdf: Uint8Array;
 }): Promise<{ uploaded: boolean; via: string | null; error: string | null }> {
-  const key = process.env.STOREGANISE_API_KEY;
-  if (!key) return { uploaded: false, via: null, error: "STOREGANISE_API_KEY not set" };
+  let key: string;
+  try { key = getApiKey(); } catch (e) {
+    return { uploaded: false, via: null, error: e instanceof Error ? e.message : String(e) };
+  }
 
   const candidates = [
     `/units/orders/${params.orderId}/files`,
