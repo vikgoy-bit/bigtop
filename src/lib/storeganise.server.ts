@@ -586,6 +586,29 @@ export async function ensureStoreganiseOrderForBooking(params: {
  * Create a unit order (move-in job) in Storeganise. Storeganise then handles
  * subsequent monthly invoicing/charging via its own automation.
  */
+async function resolveAssignedUnit(
+  orderId: string,
+  order?: Record<string, any>,
+): Promise<{ id: string; name: string } | undefined> {
+  const loaded =
+    order ??
+    (await sg<Record<string, any>>(`/units/orders/${orderId}`).catch(() => null));
+  const unit = loaded?.unit ?? loaded?.result?.unit;
+  const unitId = unit?.id ?? loaded?.unitId ?? loaded?.result?.unitId;
+  const unitName = unit?.name ?? unit?.code;
+  if (unitId && unitName) return { id: unitId, name: String(unitName) };
+
+  if (unitId) {
+    const fetched = await sg<Record<string, any>>(
+      `/admin/units/${encodeURIComponent(unitId)}`,
+    ).catch(() => null);
+    const fetchedName = fetched?.name ?? fetched?.code;
+    if (fetched?.id && fetchedName) return { id: fetched.id, name: String(fetchedName) };
+  }
+
+  return undefined;
+}
+
 export async function createStoreganiseUnitOrder(params: {
   bookingId?: string;
   userId: string;
@@ -597,13 +620,6 @@ export async function createStoreganiseUnitOrder(params: {
   products?: Record<string, number>;
 }): Promise<{ id: string; assignedUnit?: { id: string; name: string } }> {
   const siteId = await getSiteId();
-  const unitCandidates = await sg<Array<{ id: string; name?: string; typeId?: string }>>(
-    `/admin/units?typeId=${encodeURIComponent(params.unitTypeId)}&limit=50`,
-  ).then((units) => units.filter((unit) => unit.typeId === params.unitTypeId && unit.name)).catch(() => []);
-  const occupiedUnitIds = await sg<Array<{ unitId?: string }>>(
-    `/admin/unit-rentals?siteId=${encodeURIComponent(siteId)}&limit=500`,
-  ).then((rentals) => new Set(rentals.map((r) => r.unitId).filter(Boolean) as string[])).catch(() => new Set<string>());
-  const selectedUnit = unitCandidates.find((unit) => !occupiedUnitIds.has(unit.id)) ?? unitCandidates[0];
   const findExistingOrder = async (opts?: { loose?: boolean }) => {
     const loose = opts?.loose === true;
     const jobs = pickArray(
@@ -649,7 +665,6 @@ export async function createStoreganiseUnitOrder(params: {
           submitLater: true,
           siteId,
           unitTypeId: params.unitTypeId,
-          ...(selectedUnit ? { unitId: selectedUnit.id } : {}),
           startDate: params.startDate,
           notes: params.notes,
           ...(params.products && Object.keys(params.products).length > 0
@@ -657,7 +672,8 @@ export async function createStoreganiseUnitOrder(params: {
             : {}),
         }),
       });
-      return selectedUnit ? { id: created.id, assignedUnit: { id: selectedUnit.id, name: selectedUnit.name! } } : created;
+      const assignedUnit = await resolveAssignedUnit(created.id);
+      return assignedUnit ? { id: created.id, assignedUnit } : { id: created.id };
     } catch (customerOrderError) {
       console.error(
         "Storeganise customer order create failed; falling back to admin /units/orders:",
@@ -691,7 +707,6 @@ export async function createStoreganiseUnitOrder(params: {
         userId: params.userId,
         siteId,
         unitTypeId: params.unitTypeId,
-        ...(selectedUnit ? { unitId: selectedUnit.id } : {}),
         startDate: params.startDate,
         notes: params.notes,
         ...(params.products && Object.keys(params.products).length > 0
@@ -726,7 +741,8 @@ export async function createStoreganiseUnitOrder(params: {
       console.error("Storeganise order verify-after-create failed:", verifyError);
     }
 
-    return selectedUnit ? { id: created.id, assignedUnit: { id: selectedUnit.id, name: selectedUnit.name! } } : { id: created.id };
+    const assignedUnit = await resolveAssignedUnit(created.id);
+    return assignedUnit ? { id: created.id, assignedUnit } : { id: created.id };
   } catch (e) {
     if (e instanceof Error && /duplicate|too many/i.test(e.message)) {
       const retryExisting =
