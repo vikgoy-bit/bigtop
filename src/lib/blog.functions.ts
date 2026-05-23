@@ -14,7 +14,7 @@ export interface BlogPost {
   excerpt: string | null;
   published: boolean;
   date_published: string | null;
-  author_email: string | null;
+  author_id: string | null;
   tags: string[];
   created_at: string;
   updated_at: string;
