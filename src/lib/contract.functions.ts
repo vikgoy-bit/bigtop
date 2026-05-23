@@ -210,68 +210,20 @@ export const getContractForBooking = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!booking) throw new Error("Booking not found");
 
-    // Make sure a Storeganise order exists before showing the contract so the
-    // platform can allocate a unit number. This is idempotent.
-    let storeganiseOrderId = booking.storeganise_order_id;
-    let moveInDate = booking.move_in_date;
-    if (!storeganiseOrderId) {
-      try {
-        const sgUpdates = await ensureStoreganiseOrderForBooking({
-          supabaseAdmin,
-          booking: {
-            id: booking.id,
-            user_id: booking.user_id,
-            unit_id: booking.unit_id,
-            total_pence: booking.total_pence,
-            move_in_date: booking.move_in_date,
-            protect_tier_id: booking.protect_tier_id ?? null,
-            storeganise_user_id: booking.storeganise_user_id ?? null,
-            storeganise_order_id: null,
-            unit_snapshot: booking.unit_snapshot as UnitSnapshot | null,
-          },
-        });
-        if (sgUpdates.storeganise_order_id || sgUpdates.storeganise_user_id) {
-          await supabaseAdmin
-            .from("bookings")
-            .update(sgUpdates)
-            .eq("id", booking.id);
-          storeganiseOrderId = sgUpdates.storeganise_order_id ?? storeganiseOrderId;
-          moveInDate = sgUpdates.move_in_date ?? moveInDate;
-        }
-      } catch (e) {
-        console.error("Storeganise pre-contract ensure failed:", e instanceof Error ? e.message : e);
-      }
-    }
-
-    const baseSnapshot = booking.unit_snapshot as UnitSnapshot | null;
-    let refreshedSnapshot = await refreshUnitSnapshot(
-      storeganiseOrderId,
-      baseSnapshot,
-    );
-
-    // Don't block the response polling here — the client polls this server
-    // function on a short interval until `unitAllocated` flips true. Keeping
-    // this handler fast means the customer sees the contract almost
-    // instantly, and the unit number appears as soon as Storeganise assigns
-    // it (usually within 1-2 seconds).
-
-    // Persist the enriched snapshot so the signed PDF and downstream views all
-    // see the assigned unit without another round-trip.
-    if (refreshedSnapshot && refreshedSnapshot !== baseSnapshot) {
-      await supabaseAdmin
-        .from("bookings")
-        .update({ unit_snapshot: refreshedSnapshot })
-        .eq("id", booking.id);
-    }
+    // Read-only: rely on the persisted booking snapshot. The Storeganise
+    // order + assigned unit are created and persisted earlier (step 2 submit
+    // / Mollie webhook). This handler must not retry allocation.
+    const storeganiseOrderId = booking.storeganise_order_id;
+    const moveInDate = booking.move_in_date;
+    const snapshot = booking.unit_snapshot as UnitSnapshot | null;
 
     const tokens = await buildAgreementTokens({
       supabase: supabaseAdmin,
       userId,
       email: (claims.email as string | undefined) ?? "",
-      unitSnapshot: refreshedSnapshot,
+      unitSnapshot: snapshot,
       moveInDate,
-      monthlyPence:
-        refreshedSnapshot?.monthly_price_pence ?? null,
+      monthlyPence: snapshot?.monthly_price_pence ?? null,
     });
 
     return {
@@ -281,12 +233,13 @@ export const getContractForBooking = createServerFn({ method: "GET" })
         text: null as string | null,
         url: null as string | null,
       },
-      unitAllocated: !!refreshedSnapshot?.name,
-      error: refreshedSnapshot?.name
+      unitAllocated: !!snapshot?.name,
+      error: snapshot?.name
         ? null
-        : ("Allocating your unit number…" as string | null),
+        : ("Unit number pending — staff will confirm shortly." as string | null),
     };
   });
+
 
 /**
  * Fire-and-forget warm-up: creates the Storeganise order for a booking so
