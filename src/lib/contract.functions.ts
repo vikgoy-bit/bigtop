@@ -463,6 +463,7 @@ export const signContract = createServerFn({ method: "POST" })
     // Storeganise order yet, create it now so we can submit + attach the
     // signed contract. Idempotent — no-op when the order already exists.
     let storeganiseOrderId = booking.storeganise_order_id;
+    let moveInDate = booking.move_in_date;
     let sgFallbackError: string | null = null;
     if (!storeganiseOrderId) {
       try {
@@ -487,6 +488,7 @@ export const signContract = createServerFn({ method: "POST" })
             .eq("id", booking.id);
         }
         storeganiseOrderId = sgUpdates.storeganise_order_id ?? null;
+        moveInDate = sgUpdates.move_in_date ?? moveInDate;
       } catch (e) {
         sgFallbackError = e instanceof Error ? e.message : String(e);
         console.error("Storeganise fallback create failed:", sgFallbackError);
@@ -509,7 +511,7 @@ export const signContract = createServerFn({ method: "POST" })
       userId,
       email: (claims.email as string | undefined) ?? "",
       unitSnapshot: refreshedSnapshot,
-      moveInDate: booking.move_in_date,
+      moveInDate,
       monthlyPence: refreshedSnapshot?.monthly_price_pence ?? null,
       signedAt,
     });
